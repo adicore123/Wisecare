@@ -116,9 +116,9 @@ export async function processAutomaticReminders() {
     const settings = db.getSettings();
     const clinicName = settings.clinicName || 'מרחב טיפולי WiseCare';
 
-    // Look for appointments scheduled within the next 1-28 hours
+    // Look for appointments scheduled within the next 1-36 hours (covering next day on daily run)
     const minThreshold = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-    const maxThreshold = new Date(now.getTime() + 28 * 60 * 60 * 1000);
+    const maxThreshold = new Date(now.getTime() + 36 * 60 * 60 * 1000);
 
     for (const apt of allAppointments) {
       if (apt.reminderSent) continue;
