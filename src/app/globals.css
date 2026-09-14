@@ -1818,9 +1818,14 @@ textarea.form-control {
 
   .top-navbar-label,
   .workspace-address,
-  .navbar-user-name,
-  .top-navbar-actions > .btn {
+  .navbar-user-name {
     display: none;
+  }
+
+  .top-navbar-actions > .btn {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    display: inline-flex !important;
   }
 
   .clinic-pill {
@@ -3449,5 +3454,149 @@ select option:checked {
   border-color: var(--primary, #0d9488) !important;
   box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15) !important;
   outline: none !important;
+}
+
+/* ========================================================================= */
+/* SUPERADMIN MOBILE RESPONSIVE SUITE                                        */
+/* ========================================================================= */
+
+.superadmin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.superadmin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.superadmin-tabs-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.superadmin-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.superadmin-tab-btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.superadmin-table-desktop {
+  display: block;
+}
+
+.superadmin-cards-mobile {
+  display: none;
+}
+
+.superadmin-mobile-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.superadmin-mobile-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.superadmin-mobile-card-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.superadmin-settings-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .superadmin-settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .superadmin-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  .superadmin-header .page-title-group {
+    width: 100%;
+  }
+
+  .superadmin-header-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .superadmin-header-actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .superadmin-table-desktop {
+    display: none !important;
+  }
+
+  .superadmin-cards-mobile {
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .superadmin-search-wrapper {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  .superadmin-search-wrapper .search-bar {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .superadmin-search-wrapper .filter-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
 }
 

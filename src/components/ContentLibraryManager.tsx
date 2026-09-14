@@ -134,11 +134,13 @@ function sourceFromUrl(urlStr?: string) {
 
 function getSharedDraft() {
   if (typeof window === 'undefined') return null;
-  if (window.location.pathname !== '/crm-share') return null;
   const params = new URLSearchParams(window.location.search);
+  const isSharePath = window.location.pathname === '/crm-share';
+  const hasShareParams = params.has('url') || params.has('text') || params.has('share') || params.has('share_url');
+  if (!isSharePath && !hasShareParams) return null;
   const text = params.get('text') || '';
-  const detectedUrl = params.get('url') || text.match(/https?:\/\/[^\s]+/)?.[0] || '';
-  const sharedTitle = params.get('title') || '';
+  const detectedUrl = params.get('url') || params.get('share_url') || text.match(/https?:\/\/[^\s]+/)?.[0] || '';
+  const sharedTitle = params.get('title') || params.get('share_title') || '';
   if (!detectedUrl && !sharedTitle && !text) return null;
   const detected = detectUrlDetails(detectedUrl);
   return {
@@ -205,6 +207,33 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   }, []);
+
+  // Auto-preview shared video or URL when opened via share target
+  useEffect(() => {
+    if (sharedDraft?.url && /^https?:\/\/.+/i.test(sharedDraft.url.trim())) {
+      setPreviewLoading(true);
+      api.previewContentUrl(sharedDraft.url.trim())
+        .then((preview: any) => {
+          if (preview) {
+            setForm((current: any) => ({
+              ...current,
+              type: preview.type || current.type,
+              sourceName: preview.sourceName || current.sourceName,
+              title: (current.title && current.title !== 'Facebook') ? current.title : (preview.title || current.title),
+              description: current.description ? current.description : (preview.description || current.description),
+              imageData: current.imageData ? current.imageData : (preview.image || current.imageData)
+            }));
+            if (preview.title) {
+              showToast('פרטי הסרטון זוהו ונמשכו אוטומטית! ✨', 'success');
+            }
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          setPreviewLoading(false);
+        });
+    }
+  }, [sharedDraft, showToast]);
 
   const loadItems = useCallback(async () => {
     if (!therapistId) return;

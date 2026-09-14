@@ -96,6 +96,18 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
           onSuccess(response.user, response.token);
         } else {
           const code = response.user.loginCode || 'dr-sarah-8821';
+          const pendingShareStr = typeof window !== 'undefined' ? localStorage.getItem('wisecare_pending_share') : null;
+          if (pendingShareStr) {
+            try {
+              localStorage.removeItem('wisecare_pending_share');
+              const pendingShare = JSON.parse(pendingShareStr);
+              const targetUrl = pendingShare.url ? `&url=${encodeURIComponent(pendingShare.url)}` : '';
+              const targetTitle = pendingShare.title ? `&title=${encodeURIComponent(pendingShare.title)}` : '';
+              const targetText = pendingShare.description ? `&text=${encodeURIComponent(pendingShare.description)}` : '';
+              router.push(`/crm/${code}/content?share=1${targetUrl}${targetTitle}${targetText}`);
+              return;
+            } catch {}
+          }
           router.push(`/crm/${code}/clients`);
         }
       }

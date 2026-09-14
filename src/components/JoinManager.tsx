@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sparkles,
   Heart,
@@ -107,6 +107,27 @@ export default function JoinPage() {
   const [createdResult, setCreatedResult] = useState(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
+  const [existingPortal, setExistingPortal] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const last = localStorage.getItem('wisecare_last_portal');
+      if (last) {
+        setExistingPortal(last);
+      }
+    }
+  }, []);
+
+  // Auto-redirect to portal after registration success using replace
+  useEffect(() => {
+    if (view === 'success' && createdResult?.portalCode) {
+      const timer = setTimeout(() => {
+        window.location.replace(`/portal/${encodeURIComponent(createdResult.portalCode)}`);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [view, createdResult]);
+
   // Switch views and clear errors
   const switchView = (newView) => {
     setError('');
@@ -201,7 +222,7 @@ export default function JoinPage() {
         localStorage.setItem('wisecare_portal_token', res.token);
       }
       if (res?.portalCode) {
-        window.location.href = `/portal/${encodeURIComponent(res.portalCode)}`;
+        window.location.replace(`/portal/${encodeURIComponent(res.portalCode)}`);
       }
     } catch (err) {
       setError(err.message || 'שם משתמש או סיסמה שגויים');
@@ -269,7 +290,7 @@ export default function JoinPage() {
         localStorage.setItem('wisecare_portal_token', res.token);
       }
       if (res?.portalCode) {
-        window.location.href = `/portal/${encodeURIComponent(res.portalCode)}`;
+        window.location.replace(`/portal/${encodeURIComponent(res.portalCode)}`);
       }
     } catch (err) {
       setError(err.message || 'שגיאה באיפוס הסיסמה');
@@ -280,7 +301,8 @@ export default function JoinPage() {
 
   const handleEnterPortal = () => {
     if (createdResult?.portalCode) {
-      window.location.href = `/portal/${encodeURIComponent(createdResult.portalCode)}`;
+      // Using replace so pressing mobile Back button won't return to registration
+      window.location.replace(`/portal/${encodeURIComponent(createdResult.portalCode)}`);
     }
   };
 
@@ -323,6 +345,50 @@ export default function JoinPage() {
         <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f766e' }}>WiseCare Self-Care</span>
         <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>• מרחב אישי ומאובטח</span>
       </div>
+
+      {existingPortal && view === 'intro' && (
+        <div style={{
+          width: '100%',
+          maxWidth: '480px',
+          background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)',
+          border: '1.5px solid #99f6e4',
+          borderRadius: '16px',
+          padding: '14px 18px',
+          marginBottom: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08)'
+        }}>
+          <div>
+            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f766e' }}>
+              זיהינו מרחב אישי קיים במכשיר זה 🌱
+            </div>
+            <div style={{ fontSize: '0.78rem', color: '#134e4a', marginTop: '2px' }}>
+              קוד מרחב: {existingPortal}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => window.location.replace(`/portal/${encodeURIComponent(existingPortal)}`)}
+            style={{
+              background: '#0d9488',
+              color: '#ffffff',
+              border: 'none',
+              padding: '7px 14px',
+              borderRadius: '10px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)'
+            }}
+          >
+            כניסה ישירה &larr;
+          </button>
+        </div>
+      )}
 
       {/* Main Container Card */}
       <div style={{
@@ -1364,6 +1430,11 @@ export default function JoinPage() {
               <span>כניסה למרחב האישי שלי</span>
               <ArrowLeft size={18} />
             </button>
+
+            <div style={{ color: '#0d9488', fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <Loader2 size={15} className="spin" />
+              <span>מעביר אותך אוטומטית למרחב שלך בעוד מספר שניות...</span>
+            </div>
 
             <div style={{ color: '#94a3b8', fontSize: '0.78rem' }}>
               💡 טיפ: תוכל להיכנס בכל שלב בעזרת שם המשתמש והסיסמה שהגדרת!

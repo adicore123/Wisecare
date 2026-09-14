@@ -1065,7 +1065,7 @@ export default function SuperAdminPage({
   return (
     <div>
       {/* Top Header */}
-      <div className="page-header" style={{ flexDirection: 'row-reverse' }}>
+      <div className="page-header superadmin-header">
         <div className="page-title-group">
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <ShieldCheck size={28} color="#6366f1" /> פאנל מנהל מערכת ראשי (SuperAdmin)
@@ -1075,7 +1075,7 @@ export default function SuperAdminPage({
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div className="superadmin-header-actions">
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -1120,14 +1120,7 @@ export default function SuperAdminPage({
       </div>
 
       {/* SuperAdmin Navigation Subtabs */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        marginBottom: '24px',
-        borderBottom: '2px solid #e2e8f0',
-        paddingBottom: '2px'
-      }}>
+      <div className="superadmin-tabs-scroll">
         <button
           type="button"
           onClick={() => setActiveTab('therapists')}
@@ -1278,7 +1271,7 @@ export default function SuperAdminPage({
 
           {/* Therapists Table */}
           <div className="card-table">
-            <div className="card-toolbar">
+            <div className="card-toolbar superadmin-search-wrapper">
               <div className="search-input-wrapper">
                 <Search size={18} color="#94a3b8" />
                 <input
@@ -1294,7 +1287,7 @@ export default function SuperAdminPage({
               </span>
             </div>
 
-            <div className="table-responsive">
+            <div className="table-responsive superadmin-table-desktop">
               <table className="custom-table">
                 <thead>
                   <tr>
@@ -1541,6 +1534,145 @@ export default function SuperAdminPage({
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Responsive Cards for Therapists */}
+            <div className="superadmin-cards-mobile" style={{ padding: '12px' }}>
+              {filtered.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px 16px', color: '#64748b' }}>
+                  לא נמצאו מטפלים
+                </div>
+              ) : (
+                filtered.map(therapist => (
+                  <div key={therapist.id} className="superadmin-mobile-card">
+                    {/* Header */}
+                    <div className="superadmin-mobile-card-header">
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="superadmin-mobile-card-avatar" style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)' }}>
+                          {therapist.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#0f172a' }}>{therapist.name}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#64748b' }}>{therapist.title || 'מטפל/ת'} • {therapist.specialty || 'קליניקה'}</div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(therapist)}
+                        className={`badge ${therapist.active ? 'badge-success' : 'badge-warning'}`}
+                        style={{ cursor: 'pointer', border: 'none', padding: '4px 10px' }}
+                        title="לחץ לשינוי סטטוס"
+                      >
+                        {therapist.active ? 'פעיל' : 'מושבת'}
+                      </button>
+                    </div>
+
+                    {/* Metadata Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', fontSize: '0.82rem' }}>
+                      <code style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '6px', color: '#475569' }}>
+                        @{therapist.username}
+                      </code>
+                      <span className="badge badge-info">{therapist.clientsCount || 0} לקוחות</span>
+                      <span className="badge badge-neutral">{therapist.activeTasksCount || 0} משימות</span>
+                    </div>
+
+                    {/* Contact Row */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', fontSize: '0.84rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={14} color="#64748b" />
+                        <span dir="ltr">{therapist.phone || 'אין טלפון'}</span>
+                      </div>
+                      {therapist.phone && (
+                        <a
+                          href={`https://wa.me/${therapist.phone.replace(/[^0-9]/g, '').startsWith('0') ? '972' + therapist.phone.replace(/[^0-9]/g, '').slice(1) : therapist.phone.replace(/[^0-9]/g, '')}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                        >
+                          <WhatsAppIcon size={14} />
+                          <span>וואטסאפ</span>
+                        </a>
+                      )}
+                    </div>
+
+                    {/* Link & Invite Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLoginLink(therapist)}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.8rem', padding: '8px', justifyContent: 'center' }}
+                      >
+                        {copiedId === therapist.id ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
+                        <span>{copiedId === therapist.id ? 'הועתק' : 'העתק קישור'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSendWhatsAppInvite(therapist)}
+                        disabled={sendingWhatsAppId === therapist.id}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.8rem', padding: '8px', justifyContent: 'center', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                      >
+                        <WhatsAppIcon size={14} />
+                        <span>{sendingWhatsAppId === therapist.id ? 'שולח...' : 'שלח פרטים'}</span>
+                      </button>
+                    </div>
+
+                    {/* Impersonation & Actions */}
+                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                      <button
+                        type="button"
+                        onClick={() => handleImpersonateTherapist(therapist)}
+                        disabled={impersonatingTherapistId === therapist.id}
+                        className="btn btn-primary"
+                        style={{
+                          flex: 1,
+                          background: 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
+                          fontSize: '0.86rem',
+                          padding: '10px',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        {impersonatingTherapistId === therapist.id ? (
+                          <>
+                            <RefreshCw size={14} className="animate-spin" />
+                            <span>מתחבר...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LogIn size={15} />
+                            <span>כניסה לסביבתו</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setResetModalTherapist(therapist);
+                          setResetFormData({ password: '', sendWhatsApp: Boolean(therapist.phone) });
+                        }}
+                        className="btn btn-secondary"
+                        style={{ padding: '10px', fontSize: '0.8rem' }}
+                        title="איפוס סיסמה"
+                      >
+                        <Key size={15} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTherapistModal(therapist)}
+                        className="btn btn-secondary"
+                        style={{ padding: '10px', fontSize: '0.8rem', color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
+                        title="מחק סביבה"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </>
       )}
@@ -1622,12 +1754,7 @@ export default function SuperAdminPage({
           </div>
 
           {/* Settings Grid: Form on the right (RTL), Live WhatsApp preview on the left */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1.4fr) minmax(320px, 1fr)',
-            gap: '24px',
-            alignItems: 'start'
-          }}>
+          <div className="superadmin-settings-grid">
             {/* Left Column in RTL: Settings Form Controls */}
             <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Automation Toggle Switch Card */}
@@ -2088,7 +2215,7 @@ export default function SuperAdminPage({
 
             {/* Clients Table Card */}
             <div className="card">
-              <div className="card-header" style={{ flexWrap: 'wrap', gap: '14px' }}>
+              <div className="card-header superadmin-search-wrapper" style={{ flexWrap: 'wrap', gap: '14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                   {/* Search Bar */}
                   <div className="search-bar" style={{ minWidth: '280px' }}>
@@ -2171,7 +2298,7 @@ export default function SuperAdminPage({
                 </span>
               </div>
 
-              <div className="table-responsive">
+              <div className="table-responsive superadmin-table-desktop">
                 <table className="custom-table">
                   <thead>
                     <tr>
@@ -2421,6 +2548,137 @@ export default function SuperAdminPage({
                     )}
                   </tbody>
                 </table>
+              </div>
+
+              {/* Mobile Responsive Cards for Clients */}
+              <div className="superadmin-cards-mobile" style={{ padding: '12px' }}>
+                {filteredClients.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 16px', color: '#64748b' }}>
+                    לא נמצאו לקוחות מתאימים
+                  </div>
+                ) : (
+                  filteredClients.map(client => {
+                    const displayName = `${client.firstName || ''} ${client.lastName || ''}`.trim() || 'לקוח ללא שם';
+                    const firstLetter = displayName.charAt(0);
+                    const isSelf = Boolean(client.isSelfCare);
+
+                    return (
+                      <div key={client.id || client.portalCode} className="superadmin-mobile-card">
+                        {/* Header */}
+                        <div className="superadmin-mobile-card-header">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div 
+                              className="superadmin-mobile-card-avatar"
+                              style={{
+                                background: isSelf
+                                  ? 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)'
+                                  : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)'
+                              }}
+                            >
+                              {firstLetter}
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#0f172a' }}>{displayName}</div>
+                              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                {isSelf ? '🌿 מרחב עצמאי (Self-Care)' : `🏥 ${client.therapist?.name || 'משויך לקליניקה'}`}
+                              </div>
+                            </div>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setDeleteClientModal(client)}
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 8px', color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2' }}
+                            title="מחק מרחב"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+
+                        {/* Portal Link Row */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', fontSize: '0.82rem' }}>
+                          <code style={{ color: isSelf ? '#0f766e' : '#4338ca', direction: 'ltr', fontWeight: 600 }}>
+                            /portal/{client.portalCode}
+                          </code>
+                          <div style={{ display: 'flex', gap: '6px' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyClientPortalLink(client)}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                              title="העתק קישור"
+                            >
+                              {copiedClientId === client.id ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                            </button>
+                            <a
+                              href={`/portal/${client.portalCode}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 8px', fontSize: '0.75rem' }}
+                              title="פתח מרחב"
+                            >
+                              <ExternalLink size={13} />
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Phone & Contact */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.84rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569' }}>
+                            <Phone size={14} color="#64748b" />
+                            <span dir="ltr">{client.phone || 'אין טלפון'}</span>
+                          </div>
+                          {client.phone && (
+                            <a
+                              href={`https://wa.me/${client.phone.replace(/[^0-9]/g, '').startsWith('0') ? '972' + client.phone.replace(/[^0-9]/g, '').slice(1) : client.phone.replace(/[^0-9]/g, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                            >
+                              <WhatsAppIcon size={14} />
+                              <span>וואטסאפ</span>
+                            </a>
+                          )}
+                        </div>
+
+                        {/* Direct Impersonation Action */}
+                        <button
+                          type="button"
+                          onClick={() => handleImpersonateClient(client)}
+                          disabled={impersonatingClientId === client.id}
+                          className="btn btn-primary"
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            fontSize: '0.86rem',
+                            background: isSelf
+                              ? 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)'
+                              : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          {impersonatingClientId === client.id ? (
+                            <>
+                              <RefreshCw size={14} className="animate-spin" />
+                              <span>מתחבר למרחב...</span>
+                            </>
+                          ) : (
+                            <>
+                              <KeyRound size={15} />
+                              <span>כניסת מנהל ראשי ישירה למרחב</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>

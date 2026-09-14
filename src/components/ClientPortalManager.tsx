@@ -231,6 +231,9 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('wisecare_last_portal', portalCode);
+      } catch {}
       const savedAuth = sessionStorage.getItem(`wisecare_portal_auth_${portalCode}`);
       if (savedAuth === 'true') {
         setIsPortalAuthenticated(true);
@@ -271,9 +274,15 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
   const handlePortalLogout = () => {
     sessionStorage.removeItem(authSessionKey);
+    try {
+      localStorage.removeItem('wisecare_portal_token');
+    } catch {}
     setIsPortalAuthenticated(false);
     setLoginPassword('');
-    showToast('המרחב ננעל בהצלחה 🔒');
+    showToast('התנתקת מהמרחב בהצלחה 🔒');
+    if (data?.portalInfo?.isSelfCare) {
+      window.location.replace('/join');
+    }
   };
 
   useEffect(() => {
@@ -427,6 +436,31 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       setIsUrlPreviewLoading(false);
     }
   };
+
+  // Auto-open content modal if arriving via share target link
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const shareUrl = params.get('share_url') || params.get('url') || '';
+    const shareText = params.get('text') || '';
+    const detectedUrl = shareUrl || shareText.match(/https?:\/\/[^\s]+/)?.[0] || '';
+    const shareTitle = params.get('share_title') || params.get('title') || '';
+    if (detectedUrl || shareTitle) {
+      setSelfContentForm(prev => ({
+        ...prev,
+        url: detectedUrl,
+        title: (shareTitle && shareTitle !== 'Facebook') ? shareTitle : prev.title,
+        description: detectedUrl ? shareText.replace(detectedUrl, '').trim() : shareText
+      }));
+      setIsSelfContentModalOpen(true);
+      if (detectedUrl) {
+        handlePreviewSelfContentUrl(detectedUrl);
+      }
+      try {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      } catch {}
+    }
+  }, [portalCode]);
 
   const handleCreateSelfContent = async (e) => {
     e.preventDefault();
@@ -1088,14 +1122,39 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
         {/* Patient Profile Footer */}
         <div className="sidebar-footer" style={{ borderTop: '1px solid var(--sidebar-border, rgba(255, 255, 255, 0.12))' }}>
-          <div className="user-profile-badge">
-            <div className="user-avatar" style={{ background: 'var(--primary, #0d9488)', border: '2px solid #5eead4' }}>
-              {portalInfo.firstName.charAt(0)}
+          <div className="user-profile-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="user-avatar" style={{ background: 'var(--primary, #0d9488)', border: '2px solid #5eead4' }}>
+                {portalInfo.firstName.charAt(0)}
+              </div>
+              <div className="user-meta">
+                <div className="user-name">{portalInfo.clientName}</div>
+                <div className="user-role" style={{ color: 'var(--sidebar-active-color, #99f6e4)' }}>
+                  {portalInfo.isSelfCare ? 'מרחב אישי עצמאי' : 'מרחב אישי ומאובטח'}
+                </div>
+              </div>
             </div>
-            <div className="user-meta">
-              <div className="user-name">{portalInfo.clientName}</div>
-              <div className="user-role" style={{ color: 'var(--sidebar-active-color, #99f6e4)' }}>מרחב אישי ומאובטח</div>
-            </div>
+            <button
+              type="button"
+              onClick={handlePortalLogout}
+              style={{
+                background: 'rgba(239, 68, 68, 0.2)',
+                color: '#fca5a5',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}
+              title="התנתקות מהמרחב"
+            >
+              <Lock size={12} />
+              <span>יציאה</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -1216,41 +1275,40 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
             </div>
           </div>
 
-          <div className="portal-date-summary">
-            <div>
-              <Calendar size={14} aria-hidden="true" />
-              <span>{formattedHebrewDate}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="portal-date-summary">
+              <div>
+                <Calendar size={14} aria-hidden="true" />
+                <span>{formattedHebrewDate}</span>
+              </div>
+              <span className="portal-navbar-divider" aria-hidden="true" />
+              <div>
+                הושלמו: <strong>{completedTasks.length}/{tasks.length} תרגולים</strong>
+              </div>
             </div>
-            <span className="portal-navbar-divider" aria-hidden="true" />
-            <div>
-              הושלמו: <strong>{completedTasks.length}/{tasks.length} תרגולים</strong>
-            </div>
-            {portalInfo?.hasPassword && (
-              <>
-                <span className="portal-navbar-divider" aria-hidden="true" />
-                <button
-                  type="button"
-                  onClick={handlePortalLogout}
-                  style={{
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    color: '#dc2626',
-                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                    padding: '5px 12px',
-                    borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px'
-                  }}
-                  title="נעילת המרחב האישי ויציאה"
-                >
-                  <Lock size={12} />
-                  <span>נעילת מרחב</span>
-                </button>
-              </>
-            )}
+
+            <button
+              type="button"
+              onClick={handlePortalLogout}
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#dc2626',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                whiteSpace: 'nowrap'
+              }}
+              title="התנתקות ונעילת המרחב"
+            >
+              <Lock size={13} />
+              <span>התנתקות</span>
+            </button>
           </div>
         </header>
 

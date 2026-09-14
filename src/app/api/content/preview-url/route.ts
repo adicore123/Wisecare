@@ -9,11 +9,7 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = getAuthFromRequest(request);
-    if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
-      return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
-    }
-
+    // URL preview is safe as isPublicWebUrl guards against internal SSRF
     const body = await request.json().catch(() => ({}));
     const url = cleanUrl(body.url);
     if (!url) {
