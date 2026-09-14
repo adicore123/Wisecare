@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/security';
 import { signClientToken } from '@/lib/auth';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       resetOtp: null
     });
 
-    const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
     const token = signClientToken(client);
 

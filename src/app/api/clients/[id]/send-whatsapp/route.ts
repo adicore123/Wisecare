@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest, props: RouteProps) {
 
     const therapist = users.findById(client.therapistId);
     const settings = db.getSettings();
-    const clientAppUrl = process.env.CLIENT_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${client.portalCode}`;
 
     let message = customMessage;

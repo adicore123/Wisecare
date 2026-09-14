@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { checkWhatsAppThrottle } from '@/lib/rateLimit';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 function generateLoginCode(username?: string, name?: string): string {
   let base = (username || '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -45,7 +46,7 @@ export async function POST(
       users.updateById(therapist.id, { loginCode });
     }
 
-    const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const loginFullUrl = `${clientAppUrl}/login/${loginCode}`;
 
     const message = `שלום ${therapist.name} יקר/ה,

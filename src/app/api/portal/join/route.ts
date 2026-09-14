@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { hashPassword } from '@/lib/security';
 import { signClientToken } from '@/lib/auth';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,7 +86,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     });
 
-    const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
 
     let whatsappSent = false;

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { hashPassword, isUsernameValid } from '@/lib/security';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -112,7 +113,7 @@ export async function POST(request: NextRequest) {
     });
 
     const { password: _, ...safeData } = newTherapist;
-    const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const loginUrl = `${clientAppUrl}/login/${loginCode}`;
     const crmUrl = `${clientAppUrl}/crm/${loginCode}`;
 

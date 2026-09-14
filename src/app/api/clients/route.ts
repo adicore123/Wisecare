@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 function generatePortalCode(firstName: string): string {
   const cleanName = (firstName || 'client')
@@ -109,7 +110,7 @@ export async function POST(request: NextRequest) {
     if (sendWhatsAppNow) {
       try {
         const settings = db.getSettings();
-        const clientAppUrl = process.env.CLIENT_APP_URL || 'http://localhost:3000';
+        const clientAppUrl = getBaseUrl(request);
         const portalUrl = `${clientAppUrl}/portal/${portalCode}`;
 
         let message = settings.defaultMessageTemplate ||

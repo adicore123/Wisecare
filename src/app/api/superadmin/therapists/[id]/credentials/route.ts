@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { hashPassword, isUsernameValid } from '@/lib/security';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function PUT(
   request: NextRequest,
@@ -54,7 +55,7 @@ export async function PUT(
     }
 
     users.updateById(id, updatePayload);
-    const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const clientAppUrl = getBaseUrl(request);
     const loginFullUrl = `${clientAppUrl}/login/${target.loginCode}`;
 
     let whatsappStatus: any = { sent: false };

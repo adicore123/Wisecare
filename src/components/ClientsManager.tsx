@@ -307,7 +307,15 @@ export default function ClientsManager() {
                 filteredClients.map(client => (
                   <tr key={client.id}>
                     <td>
-                      <button type="button" className="client-name-button" onClick={() => handleOpenClientDetails(client)}>
+                      <button 
+                        type="button" 
+                        className="client-name-button" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOpenClientDetails(client);
+                        }}
+                      >
                         <div className={`client-avatar ${client.gender === 'נקבה' ? 'is-female' : ''}`} aria-hidden="true">
                           {client.firstName.charAt(0)}
                         </div>
@@ -352,13 +360,15 @@ export default function ClientsManager() {
 
                     <td>
                       <button 
+                        type="button"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
-                          router.push(`/portal/${client.portalCode}`);
+                          window.open(`/portal/${client.portalCode}`, '_blank');
                         }}
                         className="btn btn-secondary"
                         style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                        title="צפה במרחב הלקוח כפי שהוא רואה אותו מהבית"
+                        title="צפה במרחב הלקוח כפי שהוא רואה אותו מהבית (חלון חדש)"
                       >
                         <ExternalLink size={13} />
                         <span>צפה בפורטל</span>
@@ -437,7 +447,7 @@ export default function ClientsManager() {
           onAddTask={handleAddTaskToClient}
           onDeleteTask={handleDeleteTask}
           onSendWhatsApp={(msg?: string) => api.sendClientWhatsApp(selectedClient.id, msg)}
-          onOpenPortal={() => router.push(`/portal/${selectedClient.portalCode}`)}
+          onOpenPortal={() => window.open(`/portal/${selectedClient.portalCode}`, '_blank')}
         />
       )}
 

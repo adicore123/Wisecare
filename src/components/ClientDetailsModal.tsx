@@ -186,7 +186,14 @@ export default function ClientDetailsModal({
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div 
+      className="modal-overlay" 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
       <div className="modal-card" style={{ maxWidth: '780px' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="modal-header">

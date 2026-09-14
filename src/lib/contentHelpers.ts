@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 export const ALLOWED_TYPES = new Set(['video', 'article', 'post', 'image', 'link']);
 export const MAX_IMAGE_DATA_LENGTH = 2_800_000;
@@ -147,7 +148,7 @@ export function enrichItems(items: any[]) {
 }
 
 export async function notifyClient(client: any, assignment: any, item: any) {
-  const clientAppUrl = process.env.CLIENT_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const clientAppUrl = getBaseUrl();
   const portalUrl = new URL(`/portal/${encodeURIComponent(client.portalCode)}`, clientAppUrl);
   portalUrl.searchParams.set('tab', 'content');
   portalUrl.searchParams.set('content', item.id);
