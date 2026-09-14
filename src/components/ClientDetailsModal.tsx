@@ -21,7 +21,8 @@ import {
   MapPin,
   Video,
   Phone,
-  AlertCircle
+  AlertCircle,
+  Lock
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
@@ -281,33 +282,57 @@ export default function ClientDetailsModal({
               </div>
             )}
 
-            {/* Portal Link & PIN Info */}
+            {/* Portal Link, Username & Password Info */}
             <div style={{
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '12px',
+              padding: '12px 16px',
               display: 'flex',
-              alignItems: 'center',
-              background: 'white',
-              border: '1px solid #ccfbf1',
-              borderRadius: '10px',
-              padding: '8px 14px',
-              gap: '12px',
-              flexWrap: 'wrap'
+              flexDirection: 'column',
+              gap: '10px'
             }}>
-              <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>קישור ישיר:</span>
-              <code style={{ direction: 'ltr', color: '#0d9488', fontWeight: 600, fontSize: '0.88rem', flex: 1 }}>
-                {portalUrl}
-              </code>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span className="badge badge-info" style={{ fontSize: '0.78rem' }}>
-                  <KeyRound size={12} /> קוד PIN: {client.pin}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '240px' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>קישור ישיר:</span>
+                  <code style={{ direction: 'ltr', color: '#0d9488', fontWeight: 600, fontSize: '0.88rem', wordBreak: 'break-all' }}>
+                    {portalUrl}
+                  </code>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <button 
+                    onClick={handleCopyLink} 
+                    className="btn btn-secondary"
+                    style={{ padding: '4px 10px', fontSize: '0.8rem' }}
+                  >
+                    {copied ? <Check size={14} color="#059669" /> : <Copy size={14} />}
+                    {copied ? 'הועתק!' : 'העתק קישור'}
+                  </button>
+                  <a 
+                    href={portalUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="btn btn-primary"
+                    style={{ padding: '4px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <ExternalLink size={13} /> צפה במרחב
+                  </a>
+                </div>
+              </div>
+
+              {/* Credentials Badges */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', paddingTop: '8px', borderTop: '1px solid #edf2f7' }}>
+                <span style={{ fontSize: '0.84rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <User size={13} color="var(--primary, #0d9488)" /> <strong>שם משתמש:</strong> <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 6px', background: '#e2e8f0', borderRadius: '6px' }}>{client.username || client.phone}</code>
                 </span>
-                <button 
-                  onClick={handleCopyLink} 
-                  className="btn btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                >
-                  {copied ? <Check size={14} color="#059669" /> : <Copy size={14} />}
-                  {copied ? 'הועתק!' : 'העתק'}
-                </button>
+                <span style={{ fontSize: '0.84rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Lock size={13} color="var(--primary, #0d9488)" /> <strong>סיסמה אישית:</strong> <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 6px', background: '#e2e8f0', borderRadius: '6px' }}>{client.initialPassword || client.pin || 'מוגדרת'}</code>
+                </span>
+                {client.pin && (
+                  <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <KeyRound size={12} /> PIN גיבוי: {client.pin}
+                  </span>
+                )}
               </div>
             </div>
           </div>

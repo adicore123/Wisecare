@@ -38,7 +38,10 @@ import {
   Link2,
   AlertCircle,
   Loader2,
-  X
+  X,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api';
@@ -216,6 +219,62 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const [pendingDeleteContentId, setPendingDeleteContentId] = useState(null);
 
   const [pendingDeleteAppointmentId, setPendingDeleteAppointmentId] = useState(null);
+
+  // Portal Authentication & Security Gate State
+  const authSessionKey = `wisecare_portal_auth_${portalCode}`;
+  const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedAuth = sessionStorage.getItem(`wisecare_portal_auth_${portalCode}`);
+      if (savedAuth === 'true') {
+        setIsPortalAuthenticated(true);
+      }
+    }
+  }, [portalCode]);
+
+  const handlePortalLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginUsername.trim() || !loginPassword.trim()) {
+      setLoginError('נא להזין שם משתמש וסיסמה');
+      return;
+    }
+    setIsLoggingIn(true);
+    setLoginError('');
+    try {
+      const res = await fetch(`/api/portal/${encodeURIComponent(portalCode)}/verify-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername.trim(),
+          password: loginPassword.trim()
+        })
+      });
+      const resData = await res.json();
+      if (!res.ok) {
+        throw new Error(resData.error || 'פרטי התחברות שגויים');
+      }
+      sessionStorage.setItem(authSessionKey, 'true');
+      setIsPortalAuthenticated(true);
+      showToast('ברוך/ה הבא/ה למרחב האישי שלך! ✨');
+    } catch (err: any) {
+      setLoginError(err.message || 'שגיאה בהתחברות');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handlePortalLogout = () => {
+    sessionStorage.removeItem(authSessionKey);
+    setIsPortalAuthenticated(false);
+    setLoginPassword('');
+    showToast('המרחב ננעל בהצלחה 🔒');
+  };
 
   useEffect(() => {
     loadPortalAll();
@@ -623,6 +682,153 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     );
   }
 
+  // Security Gate: If client has password and is not authenticated in this session
+  if (data?.portalInfo?.hasPassword && !isPortalAuthenticated) {
+    return (
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)' }}>
+        <div className="modal-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid #ccfbf1' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '20px',
+              background: 'var(--primary-light, #ccfbf1)',
+              color: 'var(--primary-hover, #0f766e)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '0 8px 20px rgba(13, 148, 136, 0.15)'
+            }}>
+              <Lock size={30} />
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+              כניסה למרחב האישי
+            </h2>
+            <p style={{ fontSize: '0.88rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
+              {data.portalInfo.clinicName || 'WiseCare מרחב טיפולי'}
+              {data.portalInfo.therapist?.name ? ` • ${data.portalInfo.therapist.name}` : ''}
+            </p>
+            <div style={{
+              marginTop: '12px',
+              padding: '8px 12px',
+              background: '#f0fdf4',
+              borderRadius: '10px',
+              border: '1px solid #bbf7d0',
+              fontSize: '0.8rem',
+              color: '#166534',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}>
+              <ShieldCheck size={15} color="#16a34a" />
+              <span>מרחב מאובטח ומוגן לשמירה על פרטיותך</span>
+            </div>
+          </div>
+
+          <form onSubmit={handlePortalLogin}>
+            {loginError && (
+              <div style={{
+                background: '#fef2f2',
+                color: '#dc2626',
+                border: '1px solid #fecaca',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                fontSize: '0.88rem',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{loginError}</span>
+              </div>
+            )}
+
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                שם משתמש
+              </label>
+              <input 
+                type="text"
+                className="form-control"
+                placeholder="הזן/י שם משתמש או טלפון"
+                dir="ltr"
+                style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', borderRadius: '12px' }}
+                required
+                value={loginUsername}
+                onChange={e => setLoginUsername(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '22px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                סיסמה אישית
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showLoginPassword ? 'text' : 'password'}
+                  className="form-control"
+                  placeholder="הזן/י את סיסמתך"
+                  dir="ltr"
+                  style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', paddingLeft: '40px', borderRadius: '12px' }}
+                  required
+                  value={loginPassword}
+                  onChange={e => setLoginPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={isLoggingIn}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '1rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isLoggingIn ? <Loader2 size={18} className="spin" /> : <Lock size={18} />}
+              <span>{isLoggingIn ? 'מאמת פרטי כניסה...' : 'כניסה למרחב האישי 🔐'}</span>
+            </button>
+          </form>
+
+          <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '0.82rem', color: '#64748b', lineHeight: 1.5 }}>
+            לא קיבלת או שכחת את פרטי הגישה?
+            <br />
+            פנה/י למטפל/ת שלך לקבלת תזכורת עם הסיסמה בוואטסאפ.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const { portalInfo, tasks, content = [] } = data;
   const isDirectContentView = activeTab === 'content' && Boolean(featuredContentId);
   const displayedContent = isDirectContentView
@@ -1019,6 +1225,32 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
             <div>
               הושלמו: <strong>{completedTasks.length}/{tasks.length} תרגולים</strong>
             </div>
+            {portalInfo?.hasPassword && (
+              <>
+                <span className="portal-navbar-divider" aria-hidden="true" />
+                <button
+                  type="button"
+                  onClick={handlePortalLogout}
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    color: '#dc2626',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                  title="נעילת המרחב האישי ויציאה"
+                >
+                  <Lock size={12} />
+                  <span>נעילת מרחב</span>
+                </button>
+              </>
+            )}
           </div>
         </header>
 

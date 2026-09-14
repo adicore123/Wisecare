@@ -79,7 +79,7 @@ const defaultData = {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
     clinicName: 'מרחב טיפולי WiseCare',
-    defaultMessageTemplate: 'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלכניסה ישירה למרחב האישי שלך:\n{{portalUrl}}\n\nקוד הגישה שלך: {{pin}}\nמאחלים לך מסע טיפולי פורה ומעצים! ✨',
+    defaultMessageTemplate: 'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור כניסה:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה אישית: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨',
     autoSendTherapistInviteWhatsApp: true,
     therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare'
   }

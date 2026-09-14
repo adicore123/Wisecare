@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
+import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
+import { hashPassword, generateSecurePassword } from '@/lib/security';
 
 function generatePortalCode(firstName: string): string {
   const cleanName = (firstName || 'client')
@@ -75,7 +77,9 @@ export async function POST(request: NextRequest) {
       age,
       gender,
       notes,
-      sendWhatsAppNow
+      sendWhatsAppNow,
+      username: rawUsername,
+      password: inputPassword
     } = body;
 
     if (!firstName || !lastName || !phone) {
@@ -90,6 +94,43 @@ export async function POST(request: NextRequest) {
     const users = db.collection('users');
     const therapist = users.findById(therapistId);
 
+    // Enforce phone uniqueness rule with test number whitelist
+    const cleanPhone = normalizePhone(phone);
+    if (!isTestPhoneNumber(cleanPhone)) {
+      const existingClientWithPhone = clients.findOne((c: any) => 
+        !c.archived && normalizePhone(c.phone) === cleanPhone
+      );
+      if (existingClientWithPhone) {
+        return NextResponse.json({
+          error: `מספר טלפון זה (${phone}) כבר קיים במערכת עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). לא ניתן לפתוח משתמשים כפולים עם אותו מספר טלפון (למעט מספר הבדיקות המורשה 0509611808).`
+        }, { status: 400 });
+      }
+    }
+
+    // Determine Username
+    let chosenUsername = rawUsername ? String(rawUsername).trim() : '';
+    if (!chosenUsername) {
+      const cleanFirst = (firstName || 'client').toLowerCase().replace(/[^a-z0-9]/g, '');
+      chosenUsername = cleanFirst ? `${cleanFirst}${crypto.randomInt(100, 999)}` : `client${crypto.randomInt(1000, 9999)}`;
+    }
+
+    // Check username uniqueness
+    const existingUsername = clients.findOne((c: any) => 
+      !c.archived && c.username && c.username.toLowerCase() === chosenUsername.toLowerCase()
+    );
+    if (existingUsername) {
+      return NextResponse.json({
+        error: `שם המשתמש "${chosenUsername}" כבר תפוס במערכת. אנא בחר/י שם משתמש אחר.`
+      }, { status: 400 });
+    }
+
+    // Determine Password
+    let rawPassword = inputPassword ? String(inputPassword).trim() : '';
+    if (!rawPassword) {
+      rawPassword = generateSecurePassword(8);
+    }
+    const hashedPassword = hashPassword(rawPassword);
+
     const portalCode = generatePortalCode(firstName);
     const pin = generatePin();
 
@@ -98,6 +139,10 @@ export async function POST(request: NextRequest) {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phone: phone.trim(),
+      username: chosenUsername,
+      password: hashedPassword,
+      initialPassword: rawPassword,
+      hasPassword: true,
       age: Number(age) || null,
       gender: gender || 'זכר',
       notes: notes ? notes.trim() : '',
@@ -116,13 +161,15 @@ export async function POST(request: NextRequest) {
         const portalUrl = `${clientAppUrl}/portal/${portalCode}`;
 
         let message = settings.defaultMessageTemplate ||
-          'שלום {{firstName}},\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלכניסה ישירה:\n{{portalUrl}}\nקוד גישה: {{pin}}';
+          'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨';
 
         message = message
           .replace(/{{firstName}}/g, newClient.firstName)
           .replace(/{{lastName}}/g, newClient.lastName)
           .replace(/{{therapistName}}/g, therapist ? therapist.name : 'המטפל/ת שלך')
           .replace(/{{portalUrl}}/g, portalUrl)
+          .replace(/{{username}}/g, newClient.username || newClient.phone)
+          .replace(/{{password}}/g, rawPassword)
           .replace(/{{pin}}/g, pin);
 
         whatsappResult = await sendWhatsAppMessage({

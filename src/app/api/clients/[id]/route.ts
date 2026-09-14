@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
+import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
+import { hashPassword } from '@/lib/security';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -70,13 +72,49 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     }
 
     const body = await request.json();
-    const allowedFields = ['firstName', 'lastName', 'phone', 'age', 'gender', 'notes', 'pin'];
+
+    // Check phone uniqueness rule if phone is updated
+    if (body.phone !== undefined) {
+      const cleanPhone = normalizePhone(body.phone);
+      if (!isTestPhoneNumber(cleanPhone)) {
+        const existingClientWithPhone = clients.findOne((c: any) => 
+          c.id !== id && !c.archived && normalizePhone(c.phone) === cleanPhone
+        );
+        if (existingClientWithPhone) {
+          return NextResponse.json({
+            error: `מספר טלפון זה (${body.phone}) כבר קיים במערכת עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). רק מספר הבדיקות (0509611808) מורשה לרישום כפול.`
+          }, { status: 400 });
+        }
+      }
+    }
+
+    // Check username uniqueness if username is updated
+    if (body.username !== undefined && body.username.trim()) {
+      const cleanUsername = body.username.trim().toLowerCase();
+      const existingUsername = clients.findOne((c: any) => 
+        c.id !== id && !c.archived && c.username && c.username.toLowerCase() === cleanUsername
+      );
+      if (existingUsername) {
+        return NextResponse.json({
+          error: `שם המשתמש "${body.username}" כבר תפוס במערכת. אנא בחר/י שם משתמש אחר.`
+        }, { status: 400 });
+      }
+    }
+
+    const allowedFields = ['firstName', 'lastName', 'phone', 'username', 'age', 'gender', 'notes', 'pin'];
     const updateData: Record<string, any> = {};
     allowedFields.forEach(field => {
       if (body[field] !== undefined) {
-        updateData[field] = body[field];
+        updateData[field] = typeof body[field] === 'string' ? body[field].trim() : body[field];
       }
     });
+
+    if (body.password && String(body.password).trim()) {
+      const rawPassword = String(body.password).trim();
+      updateData.password = hashPassword(rawPassword);
+      updateData.initialPassword = rawPassword;
+      updateData.hasPassword = true;
+    }
 
     const updated = clients.updateById(id, updateData);
     await db.flush();

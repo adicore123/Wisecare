@@ -35,13 +35,15 @@ export async function POST(request: NextRequest, props: RouteProps) {
     let message = customMessage;
     if (!message) {
       message = settings.defaultMessageTemplate ||
-        'שלום {{firstName}},\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלכניסה ישירה:\n{{portalUrl}}\nקוד גישה: {{pin}}';
+        'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨';
 
       message = message
         .replace(/{{firstName}}/g, client.firstName)
         .replace(/{{lastName}}/g, client.lastName)
         .replace(/{{therapistName}}/g, therapist ? therapist.name : 'המטפל/ת שלך')
         .replace(/{{portalUrl}}/g, portalUrl)
+        .replace(/{{username}}/g, client.username || client.phone)
+        .replace(/{{password}}/g, client.initialPassword || client.pin || '')
         .replace(/{{pin}}/g, client.pin);
     }
 

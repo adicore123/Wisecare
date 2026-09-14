@@ -63,7 +63,9 @@ export async function GET(
           email: therapist.email,
           specialty: therapist.specialty
         } : null,
-        isSelfCare: Boolean(client.isSelfCare || !client.therapistId)
+        isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
+        hasPassword: Boolean(client.password || client.initialPassword),
+        username: client.username || ''
       },
       tasks: clientTasks.map((t: any) => ({
         id: t.id,
