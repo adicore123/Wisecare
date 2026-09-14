@@ -28,6 +28,7 @@ export default function IntroManager() {
   const [introComplete, setIntroComplete] = useState<boolean | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isClinicModalOpen, setIsClinicModalOpen] = useState(false);
+  const [existingPortal, setExistingPortal] = useState<string | null>(null);
 
   // Clinic Registration Form State
   const [clinicForm, setClinicForm] = useState({
@@ -46,6 +47,13 @@ export default function IntroManager() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    try {
+      const last = localStorage.getItem('wisecare_last_portal');
+      if (last) {
+        setExistingPortal(last);
+      }
+    } catch {}
 
     // 1. Check for replay or existing intro view
     const params = new URLSearchParams(window.location.search);
@@ -235,10 +243,10 @@ export default function IntroManager() {
               </span>
             </div>
 
-            {/* Path 2: Patient / Self-Care -> Links to /join */}
+            {/* Path 2: Patient / Self-Care -> Links to existing portal or /join */}
             <Link
               className="path path--patient"
-              href="/join"
+              href={existingPortal ? `/portal/${encodeURIComponent(existingPortal)}` : '/join'}
               data-role="patient"
             >
               <span className="path__icon" aria-hidden="true">
@@ -250,11 +258,15 @@ export default function IntroManager() {
 
               <span className="path__content">
                 <strong>אני מטופל/ת</strong>
-                <span>אני רוצה מרחב אישי שיעזור לי ללוות ולארגן את התהליך שלי.</span>
+                <span>
+                  {existingPortal
+                    ? 'יש לך מרחב אישי פעיל במכשיר זה. לחץ/י להמשך ישיר.'
+                    : 'אני רוצה מרחב אישי שיעזור לי ללוות ולארגן את התהליך שלי.'}
+                </span>
               </span>
 
               <span className="path__action">
-                <span>כניסה למרחב האישי</span>
+                <span>{existingPortal ? 'המשך למרחב האישי שלי' : 'כניסה למרחב האישי'}</span>
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="m14.5 5-7 7 7 7" />
                 </svg>

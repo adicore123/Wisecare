@@ -234,7 +234,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       try {
         localStorage.setItem('wisecare_last_portal', portalCode);
       } catch {}
-      const savedAuth = sessionStorage.getItem(`wisecare_portal_auth_${portalCode}`);
+      const savedAuth = localStorage.getItem(`wisecare_portal_auth_${portalCode}`) || sessionStorage.getItem(`wisecare_portal_auth_${portalCode}`);
       if (savedAuth === 'true') {
         setIsPortalAuthenticated(true);
       }
@@ -262,7 +262,11 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       if (!res.ok) {
         throw new Error(resData.error || 'פרטי התחברות שגויים');
       }
+      localStorage.setItem(authSessionKey, 'true');
       sessionStorage.setItem(authSessionKey, 'true');
+      try {
+        localStorage.setItem('wisecare_last_portal', portalCode);
+      } catch {}
       setIsPortalAuthenticated(true);
       showToast('ברוך/ה הבא/ה למרחב האישי שלך! ✨');
     } catch (err: any) {
@@ -275,13 +279,15 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const handlePortalLogout = () => {
     sessionStorage.removeItem(authSessionKey);
     try {
+      localStorage.removeItem(authSessionKey);
       localStorage.removeItem('wisecare_portal_token');
+      localStorage.removeItem('wisecare_last_portal');
     } catch {}
     setIsPortalAuthenticated(false);
     setLoginPassword('');
     showToast('התנתקת מהמרחב בהצלחה 🔒');
     if (data?.portalInfo?.isSelfCare) {
-      window.location.replace('/join');
+      window.location.replace('/join?view=login');
     }
   };
 

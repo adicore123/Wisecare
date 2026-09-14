@@ -70,8 +70,8 @@ const GOAL_OPTIONS = [
 ];
 
 export default function JoinPage() {
-  // view: 'intro' | 'register' | 'login' | 'forgot_request' | 'forgot_verify' | 'success'
-  const [view, setView] = useState('intro');
+  // view: 'register' | 'login' | 'forgot_request' | 'forgot_verify' | 'success'
+  const [view, setView] = useState('register');
 
   // Registration Form
   const [registerForm, setRegisterForm] = useState({
@@ -104,7 +104,7 @@ export default function JoinPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [createdResult, setCreatedResult] = useState(null);
+  const [createdResult, setCreatedResult] = useState<any>(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const [existingPortal, setExistingPortal] = useState<string | null>(null);
@@ -113,15 +113,22 @@ export default function JoinPage() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const reqView = params.get('view') || params.get('mode');
-      if (reqView === 'login') {
-        setView('login');
-      } else if (reqView === 'register') {
-        setView('register');
-      }
+      const isNew = params.get('new') === '1' || params.get('register') === '1';
 
       const last = localStorage.getItem('wisecare_last_portal');
       if (last) {
         setExistingPortal(last);
+        // If user already registered and hasn't explicitly asked to open a new space, redirect straight to portal
+        if (!isNew && !reqView) {
+          window.location.replace(`/portal/${encodeURIComponent(last)}`);
+          return;
+        }
+      }
+
+      if (reqView === 'login') {
+        setView('login');
+      } else {
+        setView('register');
       }
     }
   }, []);
@@ -197,6 +204,10 @@ export default function JoinPage() {
         goal: selectedGoalObj ? selectedGoalObj.label : registerForm.goal
       });
 
+      if (res?.portalCode) {
+        localStorage.setItem('wisecare_last_portal', res.portalCode);
+        localStorage.setItem(`wisecare_portal_auth_${res.portalCode}`, 'true');
+      }
       if (res?.token) {
         localStorage.setItem('wisecare_portal_token', res.token);
       }
@@ -226,6 +237,10 @@ export default function JoinPage() {
         password: loginForm.password
       });
 
+      if (res?.portalCode) {
+        localStorage.setItem('wisecare_last_portal', res.portalCode);
+        localStorage.setItem(`wisecare_portal_auth_${res.portalCode}`, 'true');
+      }
       if (res?.token) {
         localStorage.setItem('wisecare_portal_token', res.token);
       }
@@ -401,7 +416,7 @@ export default function JoinPage() {
       {/* Main Container Card */}
       <div style={{
         width: '100%',
-        maxWidth: view === 'intro' ? '680px' : '560px',
+        maxWidth: '560px',
         background: '#ffffff',
         borderRadius: '24px',
         boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.8)',
@@ -439,150 +454,6 @@ export default function JoinPage() {
         )}
 
         {/* ========================================================================= */}
-        {/* 1. INTRO / SHOWCASE VIEW                                                  */}
-        {/* ========================================================================= */}
-        {view === 'intro' && (
-          <div>
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 12px',
-                borderRadius: '999px',
-                background: '#f0fdfa',
-                color: '#0d9488',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                marginBottom: '12px'
-              }}>
-                <Smile size={15} />
-                <span>הכירו את המרחב האישי שלכם</span>
-              </div>
-              <h1 style={{
-                fontSize: 'clamp(1.7rem, 3.5vw, 2.2rem)',
-                fontWeight: 800,
-                color: '#0f172a',
-                marginBottom: '10px',
-                lineHeight: 1.25
-              }}>
-                המרחב הטיפולי האישי והשקט שלך 🌱
-              </h1>
-              <p style={{
-                fontSize: '0.98rem',
-                color: '#64748b',
-                lineHeight: 1.6,
-                maxWidth: '520px',
-                margin: '0 auto'
-              }}>
-                מקום בטוח ופרטי משלך לתרגולים, שמירת סרטונים מעצימים, מעקב פגישות וויסות רגשי – בקצב שלך, ללא תלות במטפל חיצוני.
-              </p>
-            </div>
-
-            {/* 4 Feature Preview Cards Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-              gap: '14px',
-              marginBottom: '32px'
-            }}>
-              {INTRO_FEATURES.map((feat, idx) => {
-                const Icon = feat.icon;
-                return (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: '16px',
-                      borderRadius: '16px',
-                      background: feat.bgColor,
-                      border: `1px solid ${feat.borderColor}`,
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '12px',
-                      textAlign: 'right'
-                    }}
-                  >
-                    <div style={{
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '10px',
-                      background: '#ffffff',
-                      color: feat.color,
-                      display: 'grid',
-                      placeItems: 'center',
-                      boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                      flexShrink: 0
-                    }}>
-                      <Icon size={20} />
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '0.98rem', fontWeight: 800, color: '#0f172a', margin: '0 0 4px 0' }}>
-                        {feat.title}
-                      </h3>
-                      <p style={{ fontSize: '0.84rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
-                        {feat.desc}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <button
-                type="button"
-                onClick={() => switchView('register')}
-                style={{
-                  width: '100%',
-                  minHeight: '52px',
-                  borderRadius: '14px',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
-                  color: '#ffffff',
-                  fontSize: '1.05rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '10px',
-                  boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <span>פתח לי מרחב אישי חדש ✨</span>
-                <ArrowLeft size={18} />
-              </button>
-
-              <button
-                type="button"
-                onClick={() => switchView('login')}
-                style={{
-                  width: '100%',
-                  minHeight: '46px',
-                  borderRadius: '14px',
-                  border: '1.5px solid #cbd5e1',
-                  background: '#ffffff',
-                  color: '#334155',
-                  fontSize: '0.95rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                <User size={16} />
-                <span>כבר יש לך מרחב? התחבר כאן</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
         {/* 2. REGISTRATION VIEW                                                      */}
         {/* ========================================================================= */}
         {view === 'register' && (
@@ -590,7 +461,7 @@ export default function JoinPage() {
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <button
                 type="button"
-                onClick={() => switchView('intro')}
+                onClick={() => window.location.href = '/'}
                 style={{
                   background: 'none',
                   border: 'none',
@@ -605,7 +476,7 @@ export default function JoinPage() {
                 }}
               >
                 <ArrowRight size={16} />
-                <span>חזרה לאינטרו</span>
+                <span>חזרה לדף הבית</span>
               </button>
 
               <button
