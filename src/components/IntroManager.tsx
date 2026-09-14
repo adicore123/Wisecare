@@ -50,11 +50,13 @@ export default function IntroManager() {
 
     const params = new URLSearchParams(window.location.search);
     const forceReplay = params.has('replay');
+    let cancelled = false;
+    let introTimer: ReturnType<typeof setTimeout> | undefined;
 
-    // PWA launches at "/". Resume a valid remembered session immediately,
-    // instead of making returning therapists or patients choose/login again.
-    if (!forceReplay) {
-      const resumeSession = async () => {
+    const initializeEntry = async () => {
+      // Keep the clean placeholder visible while checking for a remembered
+      // account. This prevents the intro from flashing before the redirect.
+      if (!forceReplay) {
         try {
           const therapistRes = await fetch('/api/auth/me');
           if (therapistRes.ok) {
@@ -77,43 +79,43 @@ export default function IntroManager() {
             const session = await portalRes.json();
             if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
             window.location.replace(`/portal/${encodeURIComponent(lastPortal)}`);
+            return;
           }
         } catch {}
-      };
-      void resumeSession();
-    }
 
-    try {
-      const last = localStorage.getItem('wisecare_last_portal');
-      if (last) {
-        setExistingPortal(last);
+        if (cancelled) return;
       }
-    } catch {}
 
-    // 1. Check for replay or existing intro view
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      try {
+        const last = localStorage.getItem('wisecare_last_portal');
+        if (last) setExistingPortal(last);
+      } catch {}
 
-    let hasSeen = false;
-    try {
-      hasSeen = sessionStorage.getItem(INTRO_STORAGE_KEY) === 'true';
-    } catch {
-      hasSeen = false;
-    }
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let hasSeen = false;
+      try {
+        hasSeen = localStorage.getItem(INTRO_STORAGE_KEY) === 'true';
+      } catch {}
 
-    if (reduceMotion || (!forceReplay && hasSeen)) {
-      setIntroComplete(true);
-    } else {
-      setIntroComplete(false);
-      const timer = setTimeout(() => {
-        completeIntro();
-      }, 4700);
-      return () => clearTimeout(timer);
-    }
+      if (cancelled) return;
+      if (reduceMotion || (!forceReplay && hasSeen)) {
+        setIntroComplete(true);
+      } else {
+        setIntroComplete(false);
+        introTimer = setTimeout(completeIntro, 4700);
+      }
+    };
+
+    void initializeEntry();
+    return () => {
+      cancelled = true;
+      if (introTimer) clearTimeout(introTimer);
+    };
   }, []);
 
   const completeIntro = () => {
     try {
-      sessionStorage.setItem(INTRO_STORAGE_KEY, 'true');
+      localStorage.setItem(INTRO_STORAGE_KEY, 'true');
     } catch {}
     setIntroComplete(true);
   };
