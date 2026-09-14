@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Wisecare — המרחב החכם לתהליך הטיפולי שלך"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Wisecare</title>
+    <link rel="icon" href="./pwa-icon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="intro" id="intro">
+      <button class="intro__skip" id="skipIntro" type="button">דלג</button>
+
+      <div class="intro__words" aria-hidden="true">
+        <span class="intro__word">להקשיב.</span>
+        <span class="intro__word">להבין.</span>
+        <span class="intro__word">להתקדם.</span>
+        <span class="intro__word intro__word--together">ביחד.</span>
+      </div>
+
+      <div class="intro__brand" aria-hidden="true">
+        <img src="./pwa-icon.svg" alt="" />
+        <span>Wisecare</span>
+        <small>המרחב החכם לתהליך הטיפולי שלך</small>
+      </div>
+    </div>
+
+    <main class="entry" id="mainContent">
+      <svg class="ambient ambient--start" viewBox="0 0 330 560" aria-hidden="true">
+        <path d="M-20 20C170 40 205 218 53 331C-35 396-12 517 83 590" />
+        <path d="M-22 472C67 382 63 267 185 218C190 347 95 410-22 472Z" />
+      </svg>
+      <svg class="ambient ambient--end" viewBox="0 0 330 560" aria-hidden="true">
+        <path d="M350 20C160 40 125 218 277 331C365 396 342 517 247 590" />
+        <path d="M352 472C263 382 267 267 145 218C140 347 235 410 352 472Z" />
+      </svg>
+
+      <section class="entry__content" aria-labelledby="entryTitle">
+        <header class="brand" aria-label="Wisecare">
+          <img class="brand__logo" src="./pwa-icon.svg" alt="הלוגו של Wisecare" />
+          <span class="brand__name" lang="en">Wisecare</span>
+        </header>
+
+        <div class="entry__heading">
+          <h1 id="entryTitle">איך תרצו להשתמש ב־<span lang="en">Wisecare</span>?</h1>
+          <p>בחרו את המרחב שמתאים לכם וניקח אתכם משם.</p>
+        </div>
+
+        <div class="paths" aria-label="בחירת סוג המרחב">
+          <a class="path path--therapist" href="#therapist" data-role="therapist">
+            <span class="path__icon" aria-hidden="true">
+              <svg viewBox="0 0 80 80" role="img">
+                <circle cx="27" cy="20" r="9" />
+                <circle cx="57" cy="29" r="7" />
+                <path d="M13 56V47c0-11 6-18 14-18s13 6 17 15c3 7 8 11 16 11h7" />
+                <path d="M49 61v-8c0-8 4-14 10-14s10 5 10 13v12" />
+              </svg>
+            </span>
+            <span class="path__content">
+              <strong>אני מטפל/ת</strong>
+              <span>יש לי מטופלים ואני רוצה לנהל את העבודה הטיפולית שלי במקום אחד.</span>
+            </span>
+            <span class="path__action">
+              <span>כניסה למרחב המטפלים</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m14.5 5-7 7 7 7" />
+              </svg>
+            </span>
+          </a>
+
+          <a class="path path--patient" href="#patient" data-role="patient">
+            <span class="path__icon" aria-hidden="true">
+              <svg viewBox="0 0 80 80" role="img">
+                <path d="M40 65S15 45 15 27c0-10 7-16 15-16 5 0 9 3 10 8 2-5 6-8 11-8 8 0 14 6 14 16 0 18-25 38-25 38Z" />
+                <path d="M40 59c0-17 6-28 18-34-1 15-7 26-18 34Z" />
+              </svg>
+            </span>
+            <span class="path__content">
+              <strong>אני מטופל/ת</strong>
+              <span>אני רוצה מרחב אישי שיעזור לי ללוות ולארגן את התהליך שלי.</span>
+            </span>
+            <span class="path__action">
+              <span>כניסה למרחב האישי</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m14.5 5-7 7 7 7" />
+              </svg>
+            </span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <script src="./script.js"></script>
+  </body>
+</html>

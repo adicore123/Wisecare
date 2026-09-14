@@ -111,6 +111,14 @@ export default function JoinPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const reqView = params.get('view') || params.get('mode');
+      if (reqView === 'login') {
+        setView('login');
+      } else if (reqView === 'register') {
+        setView('register');
+      }
+
       const last = localStorage.getItem('wisecare_last_portal');
       if (last) {
         setExistingPortal(last);
