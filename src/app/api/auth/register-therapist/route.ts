@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/lib/db';
-import { signToken } from '@/lib/auth';
+import { createSessionCookie, signToken } from '@/lib/auth';
 import { hashPassword, isUsernameValid } from '@/lib/security';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
@@ -131,13 +131,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       token,
       user: safeUser,
       redirectUrl: `/crm/${loginCode}/clients`,
       message: 'הקליניקה נפתחה בהצלחה!'
     });
+    response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_token'));
+    return response;
   } catch (error: any) {
     console.error('[register-therapist Error]', error);
     return NextResponse.json({ error: error.message || 'שגיאה ביצירת הקליניקה' }, { status: 500 });

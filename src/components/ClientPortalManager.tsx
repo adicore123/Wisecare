@@ -233,6 +233,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   // Portal Authentication & Security Gate State
   const authSessionKey = `wisecare_portal_auth_${portalCode}`;
   const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -273,17 +274,23 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       setIsPinEnabled(hasPinConfig);
       setSavedPin(storedPin);
 
-      // Check Authentication session
-      const savedAuth = localStorage.getItem(authSessionKey) || sessionStorage.getItem(authSessionKey);
-      if (savedAuth === 'true') {
-        setIsPortalAuthenticated(true);
-        // If 4-digit PIN lock is enabled on this device, activate PIN gate
-        if (hasPinConfig) {
-          setIsPinLocked(true);
-        } else {
-          setIsPinLocked(false);
-        }
-      }
+      const portalToken = localStorage.getItem('wisecare_portal_token');
+      fetch(`/api/portal/${encodeURIComponent(portalCode)}/verify-auth`, {
+        headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
+      })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          return res.json();
+        })
+        .then((session) => {
+          if (!session?.authenticated) return;
+          setIsPortalAuthenticated(true);
+          localStorage.setItem(authSessionKey, 'true');
+          if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
+          setIsPinLocked(hasPinConfig);
+        })
+        .catch(() => {})
+        .finally(() => setIsAuthChecked(true));
     }
   }, [portalCode, authSessionKey]);
 
@@ -382,6 +389,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       }
 
       sessionStorage.setItem(authSessionKey, 'true');
+      if (resData.token) localStorage.setItem('wisecare_portal_token', resData.token);
 
       if (rememberMe) {
         localStorage.setItem(authSessionKey, 'true');
@@ -406,7 +414,10 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     }
   };
 
-  const handlePortalLogout = () => {
+  const handlePortalLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     sessionStorage.removeItem(authSessionKey);
     try {
       localStorage.removeItem(authSessionKey);
@@ -950,7 +961,15 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     );
   }
 
-  // Security Gate: If client has password and is not authenticated in this session
+  if (data?.portalInfo?.hasPassword && !isAuthChecked) {
+    return (
+      <div className="portal-layout" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }} role="status">
+        <Loader2 className="animate-spin" size={30} />
+      </div>
+    );
+  }
+
+  // Security Gate: If client has password and has no valid remembered session
   if (data?.portalInfo?.hasPassword && !isPortalAuthenticated) {
     return (
       <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)' }}>

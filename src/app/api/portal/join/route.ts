@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { hashPassword } from '@/lib/security';
-import { signClientToken } from '@/lib/auth';
+import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     const token = signClientToken(client);
     await db.flush();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       portalCode: client.portalCode,
       portalUrl,
@@ -124,6 +124,8 @@ export async function POST(request: NextRequest) {
         isSelfCare: true
       }
     }, { status: 201 });
+    response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
+    return response;
   } catch (error: any) {
     console.error('[Portal Join Error]', error);
     return NextResponse.json({ error: 'אירעה שגיאה ביצירת המרחב האישי. אנא נסה שוב.' }, { status: 500 });

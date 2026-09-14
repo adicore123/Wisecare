@@ -1,5 +1,9 @@
 import jwt from 'jsonwebtoken';
 
+// A remembered device stays signed in for 30 days. Successful visits refresh
+// the cookie, so active users are not asked for credentials again.
+export const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+
 const getSecret = (): string => {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.length < 32) {
@@ -28,7 +32,7 @@ export function signToken(user: { id: string; role: string; username: string }):
   return jwt.sign(
     { userId: user.id, role: user.role, username: user.username },
     secret,
-    { expiresIn: '8h', issuer: 'wisecare', audience: 'wisecare-app' }
+    { expiresIn: '30d', issuer: 'wisecare', audience: 'wisecare-app' }
   );
 }
 
@@ -40,7 +44,7 @@ export function signClientToken(client: { id: string; portalCode: string }): str
   return jwt.sign(
     { clientId: client.id, role: 'client', portalCode: client.portalCode },
     secret,
-    { expiresIn: '7d', issuer: 'wisecare', audience: 'wisecare-portal' }
+    { expiresIn: '30d', issuer: 'wisecare', audience: 'wisecare-portal' }
   );
 }
 
@@ -122,7 +126,7 @@ export function getClientAuthFromRequest(request: Request): ClientPayload | null
 export function createSessionCookie(
   token: string,
   name: string = 'wisecare_token',
-  maxAgeSeconds: number = 8 * 3600
+  maxAgeSeconds: number = SESSION_MAX_AGE_SECONDS
 ): string {
   const isProd = process.env.NODE_ENV === 'production';
   const secureFlag = isProd ? '; Secure' : '';
@@ -135,4 +139,3 @@ export function createSessionCookie(
 export function createClearCookie(name: string = 'wisecare_token'): string {
   return `${name}=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
-

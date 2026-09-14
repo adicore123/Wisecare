@@ -1,8 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/security';
-import { signClientToken } from '@/lib/auth';
+import { createSessionCookie, getClientAuthFromRequest, signClientToken } from '@/lib/auth';
 import { normalizePhone } from '@/lib/phoneHelpers';
+
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ portalCode: string }> }
+) {
+  const { portalCode } = await props.params;
+  const auth = getClientAuthFromRequest(request);
+  if (!auth || auth.portalCode !== portalCode) {
+    return NextResponse.json({ authenticated: false }, { status: 401 });
+  }
+
+  await db.ensureLoaded();
+  const client = db.collection('clients').findById(auth.clientId);
+  if (!client || client.portalCode !== portalCode || client.status === 'inactive') {
+    return NextResponse.json({ authenticated: false }, { status: 401 });
+  }
+
+  const token = signClientToken(client);
+  const response = NextResponse.json({ authenticated: true, token });
+  response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
+  return response;
+}
 
 export async function POST(
   request: NextRequest,
@@ -34,7 +56,9 @@ export async function POST(
     // If client has no password configured yet, allow login
     if (!client.password && !client.initialPassword) {
       const token = signClientToken(client);
-      return NextResponse.json({ success: true, token });
+      const response = NextResponse.json({ success: true, token });
+      response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
+      return response;
     }
 
     const cleanInput = String(username).trim().toLowerCase();
@@ -68,7 +92,7 @@ export async function POST(
 
     const token = signClientToken(client);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       token,
       client: {
@@ -79,6 +103,8 @@ export async function POST(
         portalCode: client.portalCode
       }
     });
+    response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
+    return response;
   } catch (err: any) {
     console.error('[Portal Verify Auth Error]', err);
     return NextResponse.json(

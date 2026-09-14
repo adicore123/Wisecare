@@ -48,6 +48,41 @@ export default function IntroManager() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    const params = new URLSearchParams(window.location.search);
+    const forceReplay = params.has('replay');
+
+    // PWA launches at "/". Resume a valid remembered session immediately,
+    // instead of making returning therapists or patients choose/login again.
+    if (!forceReplay) {
+      const resumeSession = async () => {
+        try {
+          const therapistRes = await fetch('/api/auth/me');
+          if (therapistRes.ok) {
+            const session = await therapistRes.json();
+            if (session.user?.loginCode) {
+              localStorage.setItem('wisecare_user', JSON.stringify(session.user));
+              if (session.token) localStorage.setItem('wisecare_token', session.token);
+              window.location.replace(`/crm/${encodeURIComponent(session.user.loginCode)}/clients`);
+              return;
+            }
+          }
+
+          const lastPortal = localStorage.getItem('wisecare_last_portal');
+          if (!lastPortal) return;
+          const portalToken = localStorage.getItem('wisecare_portal_token');
+          const portalRes = await fetch(`/api/portal/${encodeURIComponent(lastPortal)}/verify-auth`, {
+            headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
+          });
+          if (portalRes.ok) {
+            const session = await portalRes.json();
+            if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
+            window.location.replace(`/portal/${encodeURIComponent(lastPortal)}`);
+          }
+        } catch {}
+      };
+      void resumeSession();
+    }
+
     try {
       const last = localStorage.getItem('wisecare_last_portal');
       if (last) {
@@ -56,8 +91,6 @@ export default function IntroManager() {
     } catch {}
 
     // 1. Check for replay or existing intro view
-    const params = new URLSearchParams(window.location.search);
-    const forceReplay = params.has('replay');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let hasSeen = false;

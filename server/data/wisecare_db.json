@@ -25,20 +25,6 @@
       "createdAt": "2026-09-12T15:19:59.079Z"
     },
     {
-      "id": "id-1789276614526-wkk94z",
-      "createdAt": "2026-09-13T05:16:54.526Z",
-      "name": "עדי",
-      "username": "adi",
-      "password": "dffb5250d89f93fc3eca824d58163c75:fcd4100c40ef3a4fb4ea19551c1da6a44b063bc7a787074bc038fd762e96d77c1f0faa4d1e78bb73854b8a7011fd847e0071cddb722ca93c8bb685134ff76e28",
-      "email": "",
-      "phone": "",
-      "title": "פסיכולוג/ית קליני/ת",
-      "specialty": "CBT, חרדות וטיפול רגשי",
-      "loginCode": "adi-5821",
-      "role": "therapist",
-      "active": true
-    },
-    {
       "id": "id-1789280216249-ghmjw2",
       "createdAt": "2026-09-13T06:16:56.249Z",
       "name": "Dr. Yaron Lev",
@@ -72,7 +58,9 @@
         "code": "912440",
         "expiresAt": "2026-09-13T13:11:42.783Z"
       },
-      "updatedAt": "2026-09-13T13:01:42.783Z"
+      "updatedAt": "2026-09-14T13:44:33.477Z",
+      "archived": true,
+      "deletedAt": "2026-09-14T13:44:33.477Z"
     },
     {
       "id": "id-1789301264455-fqqzix",
@@ -145,7 +133,56 @@
       "portalCode": "gsh-692993",
       "therapistId": "id-1789280216249-ghmjw2",
       "whatsappStatus": "sent",
-      "updatedAt": "2026-09-13T20:00:16.825Z"
+      "updatedAt": "2026-09-14T13:46:26.402Z",
+      "archived": true,
+      "deletedAt": "2026-09-14T13:46:26.402Z"
+    },
+    {
+      "age": null,
+      "createdAt": "2026-09-14T13:16:43.003Z",
+      "firstName": "בדיקת",
+      "gender": "זכר",
+      "id": "id-1789391803003-3b788ce1",
+      "lastName": "בדיקת",
+      "lastSentAt": null,
+      "notes": "",
+      "phone": "05211122330521112233",
+      "pin": "2572",
+      "portalCode": "client-130441",
+      "therapistId": "therapist-1",
+      "whatsappStatus": "not_sent"
+    },
+    {
+      "createdAt": "2026-09-14T13:17:00.252Z",
+      "email": "levyadicorr@gmail.com",
+      "firstName": "עדי",
+      "goal": "נשימות, ויסות לחצים ורוגע נפשי",
+      "id": "id-1789391820252-e1468943",
+      "isSelfCare": true,
+      "lastName": "לוי",
+      "password": "5d0879f96c69e2eac3b3d7584d6287c0:c8dfce2f7e269ac189f9c740beb8e4cc41ec9d12d7e91bd2f068ddf123abf95060a02edc1b764ba451e2594378e155e49fd37e053b3e1208ed5ebe39103d712b",
+      "phone": "0501234568",
+      "portalCode": "my-230961",
+      "source": "self_join",
+      "status": "active",
+      "therapistId": null,
+      "username": "adicore"
+    },
+    {
+      "age": 37,
+      "createdAt": "2026-09-14T13:46:09.880Z",
+      "firstName": "נאור",
+      "gender": "זכר",
+      "id": "id-1789393569880-01e2813c",
+      "lastName": "בר ציון",
+      "lastSentAt": "2026-09-14T13:46:10.246Z",
+      "notes": "",
+      "phone": "054-635-8258",
+      "pin": "8253",
+      "portalCode": "client-180327",
+      "therapistId": "id-1789280216249-ghmjw2",
+      "whatsappStatus": "sent",
+      "updatedAt": "2026-09-14T13:46:10.246Z"
     }
   ],
   "tasks": [
@@ -178,6 +215,19 @@
       "clientNotes": "Feeling much calmer and more focused.",
       "completedAt": "2026-09-13T12:37:06.119Z",
       "updatedAt": "2026-09-13T12:37:06.119Z"
+    },
+    {
+      "category": "ויסות רגשי",
+      "clientId": "id-1789391803003-3b788ce1",
+      "clientNotes": "",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-09-14T13:39:49.451Z",
+      "description": "אנא למלא את השאלון השבועי המצורף לעקב אחר התחושואנא למלא את השאלון השבועי המצורף לעקב אחר התחושות והחוויות.ת והחוויות.",
+      "dueDate": null,
+      "id": "id-1789393189451-e5529e16",
+      "therapistId": "therapist-1",
+      "title": "שאלון מעקב שבועי - תחושות וחוויות"
     }
   ],
   "contentItems": [
@@ -232,6 +282,409 @@
       "sourceName": "YouTube (Goodful)",
       "category": "אישי",
       "customNote": ""
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:19:18.130Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789391958131-bea9804f",
+      "imageData": "https://i.ytimg.com/vi/_VjInqcewU4/hqdefault.jpg",
+      "sourceName": "YouTube (שיעורי תורה / חיזוקים / אמונה / אור בהירות הדרך )",
+      "therapistId": null,
+      "title": "איך לנצח את המחשבות השליליות  - הרב יגאל כהן שיעור חובה !!",
+      "type": "video",
+      "url": "https://youtube.com/watch?v=_VjInqcewU4&si=TEoac7y0MjAkziVs"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:20:30.114Z",
+      "customNote": "",
+      "description": "Robert Wilkinson on Reels",
+      "id": "id-1789392030114-ecb9bafc",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/809458673_1969473040383762_3509478587086668787_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=a27664&_nc_ohc=v9U3c9zJTNAQ7kNvwFtPnq2&_nc_oc=AdriabaiQY8SaCv854XiuYJWYtGeMRGeKTBjTycVcdISm_NDmdL-jexX3zhBapYDY1A&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=zmeptnwMHPy9Dkz_zXXWFw&_nc_ss=7f180&oh=00_AQLl3UUhI2KJ0sC513HsjKG4Cf_Xj4w_ZpBJRTZr6jGQOA&oe=6AADD7E3",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Robert Wilkinson on Reels",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/14bxDwNmTfE/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:21:00.304Z",
+      "customNote": "",
+      "description": "אני מדבר על כך שהזמן הוא המשאב היקר ביותר שלנו, והוא נגמר בכל שנייה. אנחנו מסבירים למה אנשים מתקשים להתחיל, לעזוב או לקבל החלטות ומזכירים שיום אחד כולנו נמות. אני קורא לכולם לפעול עכשיו במקום לדחות...",
+      "id": "id-1789392060304-02be55da",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t51.82787-15/800603554_18120745492936506_2447487358778531978_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=a27664&_nc_ohc=v1BmI2XhIbgQ7kNvwHxVu0j&_nc_oc=AdqMhW8ARfcURCjQBm2HldpnntToD9k0Rbyw8yjgye2yYldv7Hx0gTfp95aP-P7CBZ8&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=vgXWrzV35ay8e2zdwdBrhQ&_nc_ss=7f180&oh=00_AQIkaWTyKdvFfTTF9107ycfbhB4v8FI05smZ2ib86qIYkA&oe=6AADCC25",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "אני מדבר על כך שהזמן הוא המשאב היקר ביותר שלנו, והוא נגמר בכל שנייה. אנחנו מסבירים למה אנשים מתקשים להתחיל, לעזוב או ...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1ES9VDY8x7/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:21:21.230Z",
+      "customNote": "",
+      "description": "Good Men Get Rejected While Toxic Men Get Chosen? #GoodMen #ToxicRelationship #DatingTruth #RealTalk",
+      "id": "id-1789392081230-af9ab613",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/788837834_1077937681433613_3387672439160114795_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=a27664&_nc_ohc=PJaHi_MnrBcQ7kNvwE7s94r&_nc_oc=AdrrweSMQ43aoKKISS07i9mXW_PlW9MrqDVSx6Vbrt-qhCHaem_UF79O7aj6ahvlrsk&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=-DDREmtQfABM7yyjDLpnhg&_nc_ss=7f180&oh=00_AQK4yRoQZ7jLKaheCgQIEzSt0UtA8R-ZY95_Aeam2pgapw&oe=6AADACFD",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Good Men Get Rejected While Toxic Men Get Chosen? #GoodMen #ToxicRelationship #DatingTruth #RealTalk | Liansheng fitness",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/19FowsExy7/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:21:37.661Z",
+      "customNote": "",
+      "description": "Never Mistake a Calm Person for a Blind One..\n#SilentStrength #Psychology #EmotionalIntelligence #LifeLessons",
+      "id": "id-1789392097661-68602088",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/797006310_1342426367723955_1456448541991512559_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=a27664&_nc_ohc=lszhNg9VSvAQ7kNvwFa8l-C&_nc_oc=Ado3AjUH1FMU7Ag7Zr1CDvWuHXc5biFwuVh442qhAbT1RyPtbvk9h2mPQJWoo_tzsZo&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=EmP8tBEKpsouCAJ0sR-rpA&_nc_ss=7f180&oh=00_AQK-4CQTGuxHB6AwMkwkUc3ZS4Spt8BVLME7aiNLr-XhqA&oe=6AADBE1E",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Never Mistake a Calm Person for a Blind One..",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1BsVxsRJiN/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:21:54.868Z",
+      "customNote": "",
+      "description": "I Forgave You… But Something Changed Forever..\n#Forgiveness #ProtectYourPeace #LettingGo #LifeLessons",
+      "id": "id-1789392114868-fe729f4e",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/801326543_1604236624749893_1558410695312691587_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=a27664&_nc_ohc=YylhKD9bR-kQ7kNvwGR5Lbe&_nc_oc=AdobTPBrhgWcx8mniNLGor7n_fRlx_YDDX7iHdQKdOjQNkTLgHl3HeTNldzLieqQtfI&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=1r6FGwOwiX_HQ6TSLCvDbg&_nc_ss=7f180&oh=00_AQL_Ga1_IABvvrse5_K5yg-GMaLmlOkQBdpgW8zP7dPyKA&oe=6AADC9EF",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "I Forgave You… But Something Changed Forever..",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/19aHgeYpzr/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:22:12.969Z",
+      "customNote": "",
+      "description": "Facebook",
+      "id": "id-1789392132969-1a7e34d7",
+      "imageData": "",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Facebook",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1CrPXerfMc/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:22:30.932Z",
+      "customNote": "",
+      "description": "They broke a good man.\n\nDidn't realize they were\nbuilding an unbreakable one. \n\nHis loyalty was treated\nlike weakness.\n\nHis goodness was used\nnot honored.\n\nBut what came back\nafter the breaking…...",
+      "id": "id-1789392150932-bf589592",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/806093174_1091277063439402_3768411328118188707_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=a27664&_nc_ohc=uekuFWLsrdMQ7kNvwEmn8Wj&_nc_oc=AdqITihHVQsBcSlTy8g1R5_DcRoNdf6tVE9XZMuQT_QRkDQT45M2qtOpqQfj4myKB0U&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=huQKdyuiO9GJAAOvqg0xjw&_nc_ss=7f180&oh=00_AQJVqvPFxjLomMkwBE5VzeusvY8aDxnW-GBRP-kW1vYWrQ&oe=6AADCEB9",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "They broke a good man.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/19TsPKdJhW/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:22:47.604Z",
+      "customNote": "",
+      "description": "⁨ תקשיבו לזה עד הסוף ותקבלו כלי שישפר לכם את החיים לתמיד!! כבר מהיום!!!\n\nואם את או אתה בנקודה שאתם רוצים לייצר את השה הכי עוצמתית שלכם בחיים, תשאירו טלפון בפרטי, אחזור אליכם ונבין יחד איזה מהתהליכים...",
+      "id": "id-1789392167604-a5f80294",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/628971318_2441402299611172_5538884103561426654_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=a27664&_nc_ohc=HyqX0mjmKdAQ7kNvwHGH9jJ&_nc_oc=AdrV-S3g0Cg1HeCOrznwuMSDyWxOkKxhDB-6nYLTqQAJtPtVTFXCtQjNyrmrtOCxBbY&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=npsH59TQvRlVd8mW5-Qbcg&_nc_ss=7f180&oh=00_AQKLSElKVeq0GgShJNC9796ZK5K3JdIJonClDXjdvGOJug&oe=6AADB586",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "⁨ תקשיבו לזה עד הסוף ותקבלו כלי שישפר לכם את החיים לתמיד!! כבר מהיום!!!",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1bnVbZLhnP/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:23:03.628Z",
+      "customNote": "",
+      "description": "You Were Part of My Pain, But Not My Healing",
+      "id": "id-1789392183629-0658bb15",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t51.71878-15/717418937_965588503021509_3840493896050763150_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=a27664&_nc_ohc=1l3MJKG-lt0Q7kNvwFwhsJE&_nc_oc=AdrIxCqxcPDYzYrVIuhmTz4B0TIU4nHXFCC2ymkizHRwaozNkkfsXh-mKFsTDCdqM6g&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=31BkHg3tOXNTX9DapVeLCQ&_nc_ss=7f180&oh=00_AQKJIo-ym3kXaa-u-Fhd3SzCn4UHUnWWa9QlSrLbSOjX8g&oe=6AADC794",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "You Were Part of My Pain, But Not My Healing | Roderick Cole",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1D8F5F4af5/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:23:18.689Z",
+      "customNote": "",
+      "description": "When you can’t tell the truth",
+      "id": "id-1789392198689-92ed4faf",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/801181403_2898139147227901_796410447913795122_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=a27664&_nc_ohc=NJAvQhBkjqIQ7kNvwFfp12U&_nc_oc=Adqmy10Hg4alVlXkK4tnZnvEG_2Jxphv2KWCCFF_IoEpRG0HkidxayBdCpIBSnwTxe0&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=4nd1uQDFJ5qsyYDrklTeTA&_nc_ss=7f180&oh=00_AQIwMuLwV3euSrubMw9nShHMuOc8VnXWmHvo7GEkWHC9SA&oe=6AADB31F",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "When you can’t tell the truth | Mark Lee Jr",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1C6KreLRzC/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:23:33.461Z",
+      "customNote": "",
+      "description": "They gone need you again ….",
+      "id": "id-1789392213461-b693f722",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/736207168_1463751105469969_6684952225601668879_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a27664&_nc_ohc=iClXkbG4w3EQ7kNvwHN3gm3&_nc_oc=Adr3XY9BNjMHob0KkQBcTSXkFyxqPODUTfjad_yUIrN156hO711ildixyxohlBoGQpM&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=MYdGbYTI9VHL8jIWQSssTg&_nc_ss=7f180&oh=00_AQKHxQZ_rAjBATMFuPmuOOOZeKY15YdkuTVi7VSZr9EImQ&oe=6AADD2D7",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "They gone need you again …. | Mark Lee Jr",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1G7uGp6jWJ/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:23:48.449Z",
+      "customNote": "",
+      "description": "העצמה אישית עסקית מנטאלית on Reels",
+      "id": "id-1789392228449-169718d4",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/687978278_852206971256420_5430936832789128459_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=a27664&_nc_ohc=sqP8LXICRysQ7kNvwF4uuHg&_nc_oc=Adr-NNKZs9u2pCYANuEv-cieMMpMqT1Jz0tvOCkWAKAcZkq_NC2sXgKcRXv76j4ptEI&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=XMVWYigJttDoviEphBl4Sw&_nc_ss=7f180&oh=00_AQJt0F8rpw6bRNoK417AMX9sEsKUjIfSEE7-A7Q9gzcnPw&oe=6AADB3C9",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "העצמה אישית עסקית מנטאלית on Reels",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1GEWvJhXW5/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:24:02.487Z",
+      "customNote": "",
+      "description": "My Self-Respect Runs Deeper Than My Love...\n#SelfRespect #Love #Loyalty #Boundaries",
+      "id": "id-1789392242487-3756e8f4",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/790993256_28213540678304559_7433073787491030712_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a27664&_nc_ohc=3pUBeJK4ff0Q7kNvwHquKlU&_nc_oc=AdrFhO2OUVNUwaNli-VXFzmf1ylVTQAi9400lJ4MzIH4wIMgheeBKH7Tel0V4tfnyls&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=yduIpsq6sN3VCZC4e9uGJw&_nc_ss=7f180&oh=00_AQKk_tOec4NjlFi7it6b63aT-2dVe06aQ9YBsM4eJzVDmQ&oe=6AADD112",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "My Self-Respect Runs Deeper Than My Love...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1csWSzrtNx/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:24:16.831Z",
+      "customNote": "",
+      "description": "If she can't say sorry, it's time to let her go.  #selfworth #boundaries #mentalhealth #lettinggo #truthbomb #fyp",
+      "id": "id-1789392256831-473c75a3",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/800512465_1620995686087314_5241441899119442778_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=596eb7&_nc_ohc=C6CgEQI-29wQ7kNvwFX8XtT&_nc_oc=Adri-3HiI8KfZzwcoCFePuuyiXO50rseckJhv_zktSx0xINHTbLbjkmaslN1EbjhfM4&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=Jo4GntNo6vay_Q1Tq6jwfA&_nc_ss=7f180&oh=00_AQJnckRlBX3Lnzv_byrMrE58gwnwA76HdsBBOqc8Nxr1KQ&oe=6AADE164",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "If she can't say sorry, it's time to let her go.  #selfworth #boundaries #mentalhealth #lettinggo #truthbomb #fyp | ...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DgRr53zob/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:24:34.474Z",
+      "customNote": "",
+      "description": "גוללת באמצע הלילה והיוצרת תוכן המטורפת הזו תפסה אותי.\nשמעתי את ההסבר שלה בלופים כי הזדהיתי כל-כך עם האמת שלו.\nאז היתי חייבת לתרגם \n\nכדי שזה יגיע ליותר אנשים שעברו בגידה\nבצורה זוגית, חברית, שותפית או...",
+      "id": "id-1789392274474-7527472b",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.82787-15/786121742_18423218857178527_230090810928034734_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=a27664&_nc_ohc=OVXTImoFpEsQ7kNvwH2QhPD&_nc_oc=AdrNsLS3ZNRDJc-wcxdkayQz986feP9NdUqyB__LgCh5dCmDMWKcXBZrReA-4obJuqw&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=2miRb8K59uDhY6v2O8Ivkw&_nc_ss=7f180&oh=00_AQK0AHuTMbD2Ps3N1n6vDYofSGw_sajrjva5FhA2L4tVDQ&oe=6AADC800",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "גוללת באמצע הלילה והיוצרת תוכן המטורפת הזו תפסה אותי.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1Btk5MJomg/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:24:52.727Z",
+      "customNote": "",
+      "description": "רק! תקשיבו! לזה! עד! הפאקינג! סוף!!!!!!\nתסמכו עליי! תקדישו 3 דקות מהחיים שלכם לעצמכם לא משנה אם אתם מרגישים שמתחברים או לא!\n•\nבעולם שכולם רצים בדרך ל״מטרות״ שלהם ולא נהנים מהנוף, תהיו אנשים שעוצרים...",
+      "id": "id-1789392292727-80b67f2d",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/670309367_959930569842715_6111153336289576726_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a27664&_nc_ohc=IsjoU5aQ10kQ7kNvwHqUFLn&_nc_oc=AdrfgZJBKVJRO8vFhkG9j8CLMleMA8z48kxBDipDa7JOYucqDwFt5w2sMJl90MmVyJk&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=9DGa3YSqd9QbL4cZw6R50Q&_nc_ss=7f180&oh=00_AQKga5gAz1MVEESilr1LpeTgGv_vFNiTP-KukkJfc8BdfQ&oe=6AADDC9C",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "רק! תקשיבו! לזה! עד! הפאקינג! סוף!!!!!!",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1ZPBeoF8WY/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:25:08.804Z",
+      "customNote": "",
+      "description": "Dr. Ramani reveals that relationships don’t heal from cheating through promises, but by breaking the cycle that causes it.",
+      "id": "id-1789392308804-d78bae96",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/629591722_1948840529060803_367716468639878818_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=596eb7&_nc_ohc=GfoBUiuMsGoQ7kNvwFpFC1f&_nc_oc=AdrqNTxtTc5XIIR1Cvz35zWsBAvaFQejRtkzQeOZTJj1IzAA2vCdLGEVUvDwNsZkt4g&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=kItjt4YvggAeyRtS9Aw-iA&_nc_ss=7f180&oh=00_AQK3tPYjAZk2hd_lQ_n2bAdk85os7uMf7nboC8xKWeGdqQ&oe=6AADB8A7",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Dr. Ramani reveals that relationships don’t heal from cheating through promises, but by breaking the cycle that cause...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/14ojifgvr1Q/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:25:35.272Z",
+      "customNote": "",
+      "description": "The strongest one in the family usually the one nobody checks on… but everybody depends on.",
+      "id": "id-1789392335272-33b67b5e",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t51.71878-15/658965810_4452977438280679_6405395614713337818_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=a27664&_nc_ohc=0Hxoi_elHj8Q7kNvwHRGgU9&_nc_oc=AdoVPT8hSd81d1jr995Lvbb6qBlqYI-uCkIqeQ9dv80ft09GDDm-rstbxtWLRzQHVoE&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=UTosjxsi8lHvuI63zp920w&_nc_ss=7f180&oh=00_AQLxrV1AcsjaEciYeR7hlo6BIiiwxEZtK9Y5q2tFY0rQrQ&oe=6AADD8B6",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "The strongest one in the family usually the one nobody checks on… but everybody depends on. | Roderick Cole",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/186WK3JFSb/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:25:51.061Z",
+      "customNote": "",
+      "description": "This Is Why Good People Attract The Worst People",
+      "id": "id-1789392351061-3f2e78e1",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t51.71878-15/705258428_2407421963071754_630896601970691776_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=a27664&_nc_ohc=1hyFEdOQ5KkQ7kNvwE1gxmj&_nc_oc=AdqtRIgnv26emk_7CUgJMQcxiRmNRlTMdpBmRdlDrD51wh1cXarlys5gDMn0Kgp3bRI&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=_mpWPJTC0paaj1TD6Lvwtg&_nc_ss=7f180&oh=00_AQL78rCZ3kyCfUaoBFaGqNB6wpyx299aGFsOa36Daj4KJw&oe=6AADC0BE",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "This Is Why Good People Attract The Worst People | Roderick Cole",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1F6d2Muh45/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:26:11.079Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789392371079-8b05b91c",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/721575367_2018970676162913_1601202455586972957_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=596eb7&_nc_ohc=xwJflIJQkN0Q7kNvwFyRUZb&_nc_oc=AdpBcb3Jz-4qMLzitAuCcWj0u-d1SwoTKg7CEd6QeIf4BHQBEDIAzFjN9EjTeMpOHgw&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=53GYohMJE3D6jQ85cga-Tg&_nc_ss=7f180&oh=00_AQIcIM4tJIoAdD5yp-fpuAvATo_gVfdo2C3h0_udN7JnLA&oe=6AADD9A5",
+      "sourceName": "Facebook Video",
+      "therapistId": null,
+      "title": " | Trent Shelton",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1L2i35CDt1/_"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:26:26.518Z",
+      "customNote": "",
+      "description": "\n\n#inspiration #motivation #friends",
+      "id": "id-1789392386518-95d74b35",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/731735680_1042227778230217_5212736439256164154_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=596eb7&_nc_ohc=s8aVHBLGzUMQ7kNvwHUXuAc&_nc_oc=AdpWgiWtntUXlw6D51KSwlcI8ARYl7tCcVRrk9igkImkcvFFSK-9jQFQ33Nw82wg0VA&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=MecUWmsy0FmoNXPBGJyBHA&_nc_ss=7f180&oh=00_AQLtGctQ3GJBe4yQW8f-BjzlODWYYkynuTEFiCZXFKz43Q&oe=6AADDFDE",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1BnFJCUGr5/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:26:42.656Z",
+      "customNote": "",
+      "description": "Like this if you feel this 梁 #friendship #mentalhealth #relationship",
+      "id": "id-1789392402656-0914f0e8",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/513393864_581857528026028_4037374653734661523_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=596eb7&_nc_ohc=dsKFl8d98wYQ7kNvwGIW9Oy&_nc_oc=AdrmLmrVzLZrT6KRxHHoee6p6ENexhCZ2AJBKQP7zyJk-toQ7QyjVFyY4Be_VLvvGV8&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=faTaF7sDpBay0vtfXluRXQ&_nc_ss=7f180&oh=00_AQINcaWrQTWl8-NM6NXQPkFtUMd7Hz1HZzCEaShpCv1RfQ&oe=6AADCBCD",
+      "sourceName": "Facebook Video",
+      "therapistId": null,
+      "title": "Like this if you feel this 梁 #friendship #mentalhealth #relationship | Trent Shelton",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1De8DBj7vX/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:26:59.760Z",
+      "customNote": "",
+      "description": "The respect is lost #datingadvice #relationships #relationshipadvice #dating #fyp",
+      "id": "id-1789392419760-8bd591a0",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t51.71878-15/762252169_1049264030915636_7736771220235520327_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=a27664&_nc_ohc=hjUD6MH_6b8Q7kNvwEPO7pq&_nc_oc=AdpCXtLtUOv1cuewakqoJQ6Qr1uXboiAclAoCkT3K7YnRnu0Pw7e3W-bRNHSRqjN3d4&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=KNhYyqIJ9i4qUHMBwQV1BA&_nc_ss=7f180&oh=00_AQKbIs5T6Bow5tiSxShh9e17JGmw8TchgpEty1kZSNI8Sg&oe=6AADAEF2",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "The respect is lost #datingadvice #relationships #relationshipadvice #dating #fyp | Ashlea Hoess",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/19es5zBfYS/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:27:16.360Z",
+      "customNote": "",
+      "description": "Breadcrumbs do nothing for anyone\n\n#datingadvice #relationshipadvice #relationships #dating #fyp",
+      "id": "id-1789392436360-666b350c",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t51.71878-15/773662904_875846622040799_6858937096008971397_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=a27664&_nc_ohc=76d7syMwmB8Q7kNvwFVQu-E&_nc_oc=Adpk7a6SX71v0C6O4jCf3Sjr_MCyihU-VOkZfzE8Ojyz3KKW_Q8dRVdFmnoyixebF18&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=oTe7i-_KEU4Zr4qpL5LRmQ&_nc_ss=7f180&oh=00_AQKEf7csD1AXdED0d9jAdAOLQON_J_eK0rE76ljhthbkrA&oe=6AADBF35",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Breadcrumbs do nothing for anyone",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1EN2QBp6Ew/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:27:35.604Z",
+      "customNote": "",
+      "description": "A woman loses respect when you put up her her disrespect.\n\n#datingadvice #relationshipadvice #relationships #dating #fyp",
+      "id": "id-1789392455604-1396b39b",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/783900099_1589381396065010_3729608627073289278_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=a27664&_nc_ohc=dnVExW7ZA-YQ7kNvwGqWTeF&_nc_oc=AdptBNkRaPZUC9wltc7xug9TaWpLMrFqtdmRLMc7PCL1DFxirFXQHyG5IZyV7UMk8ow&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=QqqWuaw7b7IcupaL8qM-5w&_nc_ss=7f180&oh=00_AQJfTq3RumT-Ersjmrtt7XUDP8XYEnpQBntG3i88aVYd5Q&oe=6AADC6A5",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "A woman loses respect when you put up her her disrespect.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/19PymzAcj2/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:28:00.602Z",
+      "customNote": "",
+      "description": "Every man wants the testimony.\n\nVery few men are willing to survive the chapter that creates it.",
+      "id": "id-1789392480602-f680ab2a",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.82787-15/765519519_17965824528132217_1551427595282821393_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=a27664&_nc_ohc=AZ62HDIPhP0Q7kNvwHk9HKW&_nc_oc=AdoqgULupnf9qGdHuHVN8NPGcfFjjgn0NPTAR6bNMnPmNJTJf6V30dGRL_RZOfI5Cww&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=bo1R6kQskm9twk3rIzjVdQ&_nc_ss=7f180&oh=00_AQK5-aJ3lBx4K-wKvnFmFEtZsCPGH5yqD3Co_suyFMV2qg&oe=6AADE062",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Every man wants the testimony.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1Bvo31ftXG/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:28:17.765Z",
+      "customNote": "",
+      "description": "מלכודת הזימון 懶",
+      "id": "id-1789392497765-022624ec",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t51.82787-15/797722970_18626993464015653_8265330886870373512_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=a27664&_nc_ohc=qWYR3FTwKZoQ7kNvwHy3jSZ&_nc_oc=AdqMX7B3OpC4EuswUuO07BtYeUKV4fXnXSqewDuSllXr2atWfvKsa9mla7KllR2yErA&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=P51EQpoAdveE5ovP7ArPYA&_nc_ss=7f180&oh=00_AQKX0w2PngGzetCxYiCDBty804HMd4nsbF0zDp7fNINs0w&oe=6AADBC7E",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "מלכודת הזימון 懶 | Dor Shamay",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1G7Z2KVPeG/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:28:33.848Z",
+      "customNote": "",
+      "description": "Betrayal can turn into grief when the person who caused it seems more bothered by your pain than by what their choices did to you.\n\nA healthy relationship makes room for that grief instead of rushing...",
+      "id": "id-1789392513848-acea604f",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/784197329_2233103717262664_1550743659288942449_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a27664&_nc_ohc=kYJqdn4SPo0Q7kNvwG-hynG&_nc_oc=AdpSpPxxtmWjQsf5nI0NZvtnWIanHwuBckHcle9oztpOgvyXGfWsr7W2acub7HvhHOo&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=NeNOIpO4Ly94SeehqWSTrw&_nc_ss=7f180&oh=00_AQJGJX_oVG_g_BGgIiqG40WBJ8g8t_hvqAZF2vtsC7kM-Q&oe=6AADCA65",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Betrayal can turn into grief when the person who caused it seems more bothered by your pain than by what their choice...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/19ZzMgC94G/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T13:28:50.808Z",
+      "customNote": "",
+      "description": "You Knew Exactly What You Were Doing...\n#Betrayal #ToxicRelationships #BrokenTrust #EmotionalPain",
+      "id": "id-1789392530808-69752fbb",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/791436414_1974255579938737_1938855451737283790_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=a27664&_nc_ohc=l3fmO6BMIksQ7kNvwFVte9s&_nc_oc=Adqx9C_qfaiCzqQjhGeDBK5KxakWtoKgf3enJNNhJV6sA7_BK36nENaLBja5MKV_hTk&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=oJzHcC1E_p1o7gejczYqIA&_nc_ss=7f180&oh=00_AQLbd_fj7psAfM5Lc0c0HOr-mcKo1RVKwIEBq4optPTpOg&oe=6AADBC29",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "You Knew Exactly What You Were Doing...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DsmEaoTUB/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T14:44:58.419Z",
+      "customNote": "",
+      "description": "יש לי נטייה קצת מעצבנת להפוך כמעט כל דבר שקורה לי בחיים לתובנה \n\nשיחה עם חברה, משהו שקורה לי בזוגיות או במשפחה, משהו שלמדתי בלימודי פסיכולוגיה או בקואוצ׳ינג, תקופה שאני בעצמי עוברת, ספר שקראתי או...",
+      "id": "id-1789397098420-7c463e1c",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/809238668_28171076269240502_1038147445391501328_n.jpg?stp=cp6_dst-jpg_tt6&cstp=mx1536x2048&ctp=p600x600&_nc_cat=105&ccb=1-7&_nc_sid=6376bf&_nc_ohc=dckqsijdtPQQ7kNvwGzsQAQ&_nc_oc=AdpDDLUyp4fh3xpWUmsDyo6kihpCqV8F_NrbmzpIzylbwLRuT2ZjcwuFFeQiWKZdKV0&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=Ie6VImlJ3b1crArtNcMkNA&_nc_ss=7f180&oh=00_AQLgm2a-OF_tjBW4aMvMxO5UHvUeAXpyCXQVdQWnRVufQA&oe=6AADE39F",
+      "sourceName": "Facebook Video",
+      "therapistId": null,
+      "title": "Secret Tel Aviv | יש לי נטייה קצת מעצבנת להפוך כמעט כל דבר שקורה לי בחיים לתובנה  | Facebook",
+      "type": "video",
+      "url": "https://www.facebook.com/share/p/1LJbPq6my2/"
     }
   ],
   "contentAssignments": [
@@ -254,6 +707,223 @@
       "createdAt": "2026-09-13T12:17:33.155Z",
       "contentId": "id-1789301853155-jynh3e",
       "clientId": "id-1789301264455-fqqzix",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789391958131-bea9804f",
+      "createdAt": "2026-09-14T13:19:18.131Z",
+      "id": "id-1789391958131-058e8bee",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392030114-ecb9bafc",
+      "createdAt": "2026-09-14T13:20:30.115Z",
+      "id": "id-1789392030115-6d9701ff",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392060304-02be55da",
+      "createdAt": "2026-09-14T13:21:00.305Z",
+      "id": "id-1789392060305-fe112642",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392081230-af9ab613",
+      "createdAt": "2026-09-14T13:21:21.231Z",
+      "id": "id-1789392081231-139e8115",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392097661-68602088",
+      "createdAt": "2026-09-14T13:21:37.661Z",
+      "id": "id-1789392097661-3b19d08a",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392114868-fe729f4e",
+      "createdAt": "2026-09-14T13:21:54.869Z",
+      "id": "id-1789392114869-04d585dd",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392132969-1a7e34d7",
+      "createdAt": "2026-09-14T13:22:12.970Z",
+      "id": "id-1789392132970-d7cf3b50",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392150932-bf589592",
+      "createdAt": "2026-09-14T13:22:30.933Z",
+      "id": "id-1789392150933-ce05e9f6",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392167604-a5f80294",
+      "createdAt": "2026-09-14T13:22:47.605Z",
+      "id": "id-1789392167605-683cdac3",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392183629-0658bb15",
+      "createdAt": "2026-09-14T13:23:03.629Z",
+      "id": "id-1789392183629-006f1b2d",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392198689-92ed4faf",
+      "createdAt": "2026-09-14T13:23:18.690Z",
+      "id": "id-1789392198690-bb264802",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392213461-b693f722",
+      "createdAt": "2026-09-14T13:23:33.462Z",
+      "id": "id-1789392213462-4affc5e6",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392228449-169718d4",
+      "createdAt": "2026-09-14T13:23:48.450Z",
+      "id": "id-1789392228450-485f9f67",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392242487-3756e8f4",
+      "createdAt": "2026-09-14T13:24:02.487Z",
+      "id": "id-1789392242487-f954db15",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392256831-473c75a3",
+      "createdAt": "2026-09-14T13:24:16.831Z",
+      "id": "id-1789392256831-695ae04e",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392274474-7527472b",
+      "createdAt": "2026-09-14T13:24:34.475Z",
+      "id": "id-1789392274475-dc6b66c7",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392292727-80b67f2d",
+      "createdAt": "2026-09-14T13:24:52.728Z",
+      "id": "id-1789392292728-92e963e0",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392308804-d78bae96",
+      "createdAt": "2026-09-14T13:25:08.805Z",
+      "id": "id-1789392308805-72e4fc83",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392335272-33b67b5e",
+      "createdAt": "2026-09-14T13:25:35.273Z",
+      "id": "id-1789392335273-70efbf9e",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392351061-3f2e78e1",
+      "createdAt": "2026-09-14T13:25:51.061Z",
+      "id": "id-1789392351061-e96e30ef",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392371079-8b05b91c",
+      "createdAt": "2026-09-14T13:26:11.080Z",
+      "id": "id-1789392371080-9b5be3ca",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392386518-95d74b35",
+      "createdAt": "2026-09-14T13:26:26.519Z",
+      "id": "id-1789392386519-edd0572d",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392402656-0914f0e8",
+      "createdAt": "2026-09-14T13:26:42.656Z",
+      "id": "id-1789392402656-21785809",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392419760-8bd591a0",
+      "createdAt": "2026-09-14T13:26:59.761Z",
+      "id": "id-1789392419761-d948ba67",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392436360-666b350c",
+      "createdAt": "2026-09-14T13:27:16.361Z",
+      "id": "id-1789392436361-ae7f52a4",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392455604-1396b39b",
+      "createdAt": "2026-09-14T13:27:35.605Z",
+      "id": "id-1789392455605-bd3a0118",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392480602-f680ab2a",
+      "createdAt": "2026-09-14T13:28:00.603Z",
+      "id": "id-1789392480603-f89b4316",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392497765-022624ec",
+      "createdAt": "2026-09-14T13:28:17.766Z",
+      "id": "id-1789392497766-e38d2c28",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392513848-acea604f",
+      "createdAt": "2026-09-14T13:28:33.849Z",
+      "id": "id-1789392513849-346061cd",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789392530808-69752fbb",
+      "createdAt": "2026-09-14T13:28:50.809Z",
+      "id": "id-1789392530809-20397e01",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789397098420-7c463e1c",
+      "createdAt": "2026-09-14T14:44:58.421Z",
+      "id": "id-1789397098421-4d1c9b69",
       "notificationStatus": "none"
     }
   ],
@@ -333,6 +1003,19 @@
       "intensity": 7,
       "recordedDate": "13.09.2026",
       "recordedTime": "15:39"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "content": "איך אפקר להתמודד עם כל כך הרבה בשורות רעות בו זמנית ? אני לא מבין איך האדם אמור לקום מכל כך הרבה מכות בוואת אחת .... מקום העבודה נשרף , הכתף שלי שבור , גירושין , צו הרחקה , ילדים שאני לא יכול לראות , אשתי שנתתי לה את הלב שלי כל יום מחדש גם כשהיא סגרה אצ שלה , מעבר מגורים עפ אבא שלי שמתסכל על כל תנועה שלי ,.     אז אומרים לי ללכת לטיפול ... זה יחזיר לי את הילדים? זה יחזיר לי את הכתף? זה יחזיר לי את אשתי?     אני לא מבין איך אפשר לקום ממפולת כשאת חזקה ... איך יכול להיות שכל הזביבה שלי יודעים שאני אדם טוב עם לב ענק ואני מרגיש אדם רע ...",
+      "createdAt": "2026-09-14T13:38:46.793Z",
+      "id": "id-1789393126823-e74a7973",
+      "intensity": 7,
+      "mood": "עצב או בדידות",
+      "portalCode": "my-230961",
+      "recordedDate": "14.09.2026",
+      "recordedTime": "13:38",
+      "therapistId": null,
+      "title": "."
     }
   ],
   "appointments": [
@@ -557,6 +1240,137 @@
       "action": "exit_impersonation",
       "targetId": "superadmin-1",
       "timestamp": "2026-09-14T10:05:53.682Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:12:33.662Z",
+      "id": "id-1789391553662-c0d85a35",
+      "ip": "46.117.16.120",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-14T13:12:33.662Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:43:59.735Z",
+      "id": "id-1789393439735-d8c3827b",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-14T13:43:59.735Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:44:22.148Z",
+      "id": "id-1789393462148-c7b732ab",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-14T13:44:22.148Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-14T13:44:31.858Z",
+      "details": {
+        "clientName": "עדי לוי",
+        "phone": "0509611808"
+      },
+      "id": "id-1789393471858-4ed409c4",
+      "targetId": "id-1789280459704-piz91h",
+      "targetType": "client",
+      "timestamp": "2026-09-14T13:44:31.858Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-14T13:44:33.478Z",
+      "details": {
+        "clientName": "עדי לוי",
+        "phone": "0509611808"
+      },
+      "id": "id-1789393473477-4a0ee7ff",
+      "targetId": "id-1789280459704-piz91h",
+      "targetType": "client",
+      "timestamp": "2026-09-14T13:44:33.477Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:45:36.825Z",
+      "id": "id-1789393536825-9944a66e",
+      "ip": "46.117.16.120",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-14T13:45:36.825Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "yaron_lev",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-14T13:46:24.276Z",
+      "details": {
+        "clientName": "gsh ffd",
+        "phone": "0509611808"
+      },
+      "id": "id-1789393584276-1f6c9eaf",
+      "targetId": "id-1789329616519-c1e580c0",
+      "targetType": "client",
+      "timestamp": "2026-09-14T13:46:24.276Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "yaron_lev",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-14T13:46:26.403Z",
+      "details": {
+        "clientName": "gsh ffd",
+        "phone": "0509611808"
+      },
+      "id": "id-1789393586403-538d0d02",
+      "targetId": "id-1789329616519-c1e580c0",
+      "targetType": "client",
+      "timestamp": "2026-09-14T13:46:26.403Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:51:28.394Z",
+      "id": "id-1789393888393-347083b7",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-14T13:51:28.393Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "adicore123",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-14T13:51:44.386Z",
+      "id": "id-1789393904385-57b96e40",
+      "ip": "::1",
+      "timestamp": "2026-09-14T13:51:44.385Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:51:49.316Z",
+      "id": "id-1789393909316-87df1a7d",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-14T13:51:49.316Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-14T13:51:51.705Z",
+      "id": "id-1789393911704-8f957389",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-14T13:51:51.704Z"
     }
   ]
 }

@@ -45,21 +45,20 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
     const impersonating = localStorage.getItem('wisecare_is_impersonating') === 'true' || !!localStorage.getItem('wisecare_admin_token');
     setIsImpersonating(impersonating);
 
-    if (!storedUserStr || !token) {
-      router.push('/login');
-      return;
+    // The HttpOnly cookie is the source of truth. localStorage is only a UI
+    // cache and may be cleared by mobile browsers or a PWA restart.
+    if (storedUserStr) {
+      try {
+        setCurrentUser(JSON.parse(storedUserStr));
+      } catch {}
     }
 
-    try {
-      const user = JSON.parse(storedUserStr);
-      setCurrentUser(user);
-
-      // Verify token
-      api.getMe()
+    api.getMe()
         .then((res: any) => {
           if (res?.user) {
             setCurrentUser(res.user);
             localStorage.setItem('wisecare_user', JSON.stringify(res.user));
+            if (res.token) localStorage.setItem('wisecare_token', res.token);
           }
         })
         .catch(() => {
@@ -68,9 +67,6 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
           localStorage.removeItem('wisecare_user');
           router.push('/login');
         });
-    } catch {
-      router.push('/login');
-    }
   }, [router]);
 
   useEffect(() => {

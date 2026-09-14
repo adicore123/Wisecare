@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/security';
-import { signClientToken } from '@/lib/auth';
+import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
     const token = signClientToken(client);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       portalCode: client.portalCode,
       portalUrl,
@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
         isSelfCare: Boolean(client.isSelfCare || !client.therapistId)
       }
     });
+    response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
+    return response;
   } catch (error: any) {
     console.error('[Portal Login Error]', error);
     return NextResponse.json({ error: 'אירעה שגיאה בהתחברות למערכת.' }, { status: 500 });

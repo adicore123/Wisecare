@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getAuthFromRequest } from '@/lib/auth';
+import { createSessionCookie, getAuthFromRequest, signToken } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -17,7 +17,10 @@ export async function GET(request: Request) {
     }
 
     const { password: _, ...userInfo } = user;
-    return NextResponse.json({ user: userInfo });
+    const token = signToken(user);
+    const response = NextResponse.json({ user: userInfo, token });
+    response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_token'));
+    return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';
     return NextResponse.json({ error: message }, { status: 500 });
