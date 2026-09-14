@@ -6,6 +6,7 @@ export async function GET(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
@@ -31,6 +32,7 @@ export async function POST(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { preferredDate, preferredTime, type = 'in_person', notes, therapistName, location: customLocation } = body;
@@ -74,6 +76,8 @@ export async function POST(
       confirmationSentAt: null,
       createdAt: new Date().toISOString()
     });
+
+    await db.flush();
 
     return NextResponse.json(newAppointment, { status: 201 });
   } catch (error: any) {

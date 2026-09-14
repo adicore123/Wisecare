@@ -8,6 +8,7 @@ import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const body = await request.json().catch(() => ({}));
     let { firstName, lastName = '', fullName, phone, email = '', username = '', password = '', goal = '' } = body;
 
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     const token = signClientToken(client);
+    await db.flush();
 
     return NextResponse.json({
       success: true,

@@ -8,6 +8,7 @@ interface RouteProps {
 
 export async function GET(request: NextRequest, props: RouteProps) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest, props: RouteProps) {
 
 export async function PUT(request: NextRequest, props: RouteProps) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -77,6 +79,7 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     });
 
     const updated = clients.updateById(id, updateData);
+    await db.flush();
     return NextResponse.json(updated);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';
@@ -86,6 +89,7 @@ export async function PUT(request: NextRequest, props: RouteProps) {
 
 export async function DELETE(request: NextRequest, props: RouteProps) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -119,6 +123,8 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
         phone: client.phone
       }
     });
+
+    await db.flush();
 
     return NextResponse.json({
       success: true,

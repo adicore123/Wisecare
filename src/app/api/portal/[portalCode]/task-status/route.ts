@@ -6,6 +6,7 @@ export async function POST(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { taskId, completed, clientNotes } = body;
@@ -33,6 +34,8 @@ export async function POST(
     }
 
     const updated = tasks.updateById(taskId, updateData);
+    await db.flush();
+
     return NextResponse.json({
       success: true,
       message: 'סטטוס המשימה עודכן בהצלחה במרחב הטיפולי',

@@ -4,15 +4,22 @@ import crypto from 'crypto';
 import { MongoClient, Db } from 'mongodb';
 import { hashPassword } from './security';
 
-const DATA_DIR = path.join(process.cwd(), 'server/data');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const DATA_DIR = isServerless ? '/tmp' : path.join(process.cwd(), 'server/data');
 const DB_FILE = process.env.WISECARE_DB_FILE
   ? path.resolve(process.env.WISECARE_DB_FILE)
   : path.join(DATA_DIR, 'wisecare_db.json');
 
 // Ensure data directory exists
-if (!fs.existsSync(path.dirname(DB_FILE))) {
-  fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
+try {
+  if (!fs.existsSync(path.dirname(DB_FILE))) {
+    fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
+  }
+} catch (err: any) {
+  console.warn('[DB File Init Warning]:', err.message);
 }
+
+const DEFAULT_MONGODB_URI = 'mongodb+srv://adi050levy_db_user:3Zplg7lfCBdcctJh@cluster0.fvfb8kq.mongodb.net/wisecare?retryWrites=true&w=majority';
 
 function getMongoUri(): string | null {
   if (process.env.WISECARE_DISABLE_MONGODB === '1') return null;
@@ -32,7 +39,7 @@ function getMongoUri(): string | null {
     const message = err instanceof Error ? err.message : String(err);
     console.warn('[MongoDB] Could not read atlas-credentials.env:', message);
   }
-  return null;
+  return DEFAULT_MONGODB_URI;
 }
 
 const defaultData = {
@@ -95,10 +102,31 @@ export class Database {
   mongoDb: Db | null = null;
   isMongoConnected = false;
   connectingPromise: Promise<boolean> | null = null;
+  pendingWrites: Promise<any>[] = [];
+  lastSyncTime = 0;
 
   constructor() {
     this.data = this.loadLocal();
     this.initLoginCodes();
+    this.connect().catch(err => {
+      console.warn('[MongoDB auto-connect]:', err.message);
+    });
+  }
+
+  async ensureLoaded(forceSync = false): Promise<boolean> {
+    const connected = await this.connect();
+    if (connected && (forceSync || Date.now() - this.lastSyncTime > 1500)) {
+      await this.syncWithMongo();
+    }
+    return connected;
+  }
+
+  async flush(): Promise<void> {
+    if (this.pendingWrites.length > 0) {
+      const writes = [...this.pendingWrites];
+      this.pendingWrites = [];
+      await Promise.allSettled(writes);
+    }
   }
 
   initLoginCodes() {
@@ -120,7 +148,17 @@ export class Database {
   loadLocal(): Record<string, any> {
     try {
       if (!fs.existsSync(DB_FILE)) {
-        fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+        const bundleFile = path.join(process.cwd(), 'server/data/wisecare_db.json');
+        if (fs.existsSync(bundleFile)) {
+          const rawBundle = fs.readFileSync(bundleFile, 'utf-8');
+          try {
+            fs.writeFileSync(DB_FILE, rawBundle, 'utf-8');
+          } catch {}
+          return JSON.parse(rawBundle);
+        }
+        try {
+          fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
+        } catch {}
         return defaultData;
       }
       const raw = fs.readFileSync(DB_FILE, 'utf-8');
@@ -139,13 +177,13 @@ export class Database {
   saveLocal() {
     try {
       fs.writeFileSync(DB_FILE, JSON.stringify(this.data, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Failed to persist local DB backup:', err);
+    } catch {
+      // Ignore read-only file system errors in serverless environments
     }
   }
 
   async connect(): Promise<boolean> {
-    if (this.isMongoConnected) return true;
+    if (this.isMongoConnected && this.mongoDb) return true;
     if (this.connectingPromise) return this.connectingPromise;
 
     this.connectingPromise = (async () => {
@@ -180,27 +218,32 @@ export class Database {
 
   async syncWithMongo() {
     if (!this.mongoDb) return;
+    this.lastSyncTime = Date.now();
 
     for (const name of ENTITY_COLLECTIONS) {
-      const col = this.mongoDb.collection(name);
-      const remoteDocs = await col.find({}).toArray();
+      try {
+        const col = this.mongoDb.collection(name);
+        const remoteDocs = await col.find({}).toArray();
 
-      if (remoteDocs && remoteDocs.length > 0) {
-        this.data[name] = remoteDocs.map(doc => {
-          const item: any = { ...doc };
-          item.id = item.id || item._id?.toString();
-          delete item._id;
-          return item;
-        });
-      } else {
-        const localDocs = this.data[name] || [];
-        if (localDocs.length > 0) {
-          const toInsert = localDocs.map((item: any) => ({
-            ...item,
-            _id: item.id || `id-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
-          }));
-          await col.insertMany(toInsert);
+        if (remoteDocs && remoteDocs.length > 0) {
+          this.data[name] = remoteDocs.map(doc => {
+            const item: any = { ...doc };
+            item.id = item.id || item._id?.toString();
+            delete item._id;
+            return item;
+          });
+        } else {
+          const localDocs = this.data[name] || [];
+          if (localDocs.length > 0) {
+            const toInsert = localDocs.map((item: any) => ({
+              ...item,
+              _id: item.id || `id-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
+            }));
+            await col.insertMany(toInsert);
+          }
         }
+      } catch (err: any) {
+        console.warn(`[MongoDB sync error on ${name}]:`, err.message);
       }
     }
 
@@ -245,9 +288,10 @@ export class Database {
 
         if (this.isMongoConnected && this.mongoDb) {
           const doc = { ...newItem, _id: newItem.id };
-          this.mongoDb.collection(name)
+          const p = this.mongoDb.collection(name)
             .updateOne({ _id: newItem.id as any }, { $set: doc }, { upsert: true })
             .catch(err => console.error(`[MongoDB insertOne Error on ${name}]:`, err.message));
+          this.pendingWrites.push(p);
         }
 
         return newItem;
@@ -264,9 +308,10 @@ export class Database {
         if (this.isMongoConnected && this.mongoDb) {
           const target = list[index];
           const doc = { ...target, _id: target.id };
-          this.mongoDb.collection(name)
+          const p = this.mongoDb.collection(name)
             .updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
             .catch(err => console.error(`[MongoDB updateOne Error on ${name}]:`, err.message));
+          this.pendingWrites.push(p);
         }
 
         return list[index];
@@ -280,9 +325,10 @@ export class Database {
         if (this.isMongoConnected && this.mongoDb) {
           const target = list[index];
           const doc = { ...target, _id: target.id };
-          this.mongoDb.collection(name)
+          const p = this.mongoDb.collection(name)
             .updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
             .catch(err => console.error(`[MongoDB updateById Error on ${name}]:`, err.message));
+          this.pendingWrites.push(p);
         }
 
         return list[index];
@@ -294,9 +340,10 @@ export class Database {
         this.saveLocal();
 
         if (this.isMongoConnected && this.mongoDb) {
-          this.mongoDb.collection(name)
+          const p = this.mongoDb.collection(name)
             .deleteOne({ _id: id as any })
             .catch(err => console.error(`[MongoDB deleteById Error on ${name}]:`, err.message));
+          this.pendingWrites.push(p);
         }
 
         return true;
@@ -314,12 +361,13 @@ export class Database {
 
         if (this.isMongoConnected && this.mongoDb) {
           const target = list[index];
-          this.mongoDb.collection(name)
+          const p = this.mongoDb.collection(name)
             .updateOne(
               { _id: (target.id || id) as any },
               { $set: { archived: true, deletedAt: list[index].deletedAt, updatedAt: list[index].updatedAt } }
             )
             .catch(err => console.error(`[MongoDB softDelete Error on ${name}]:`, err.message));
+          this.pendingWrites.push(p);
         }
 
         return list[index];

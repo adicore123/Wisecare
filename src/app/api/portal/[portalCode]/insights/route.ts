@@ -6,6 +6,7 @@ export async function GET(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const clients = db.collection('clients');
     const insights = db.collection('insights');
@@ -30,6 +31,7 @@ export async function POST(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { title, content, mood, intensity } = body;
@@ -62,6 +64,8 @@ export async function POST(
       recordedTime: timeStr,
       createdAt: now.toISOString()
     });
+
+    await db.flush();
 
     return NextResponse.json(newInsight, { status: 201 });
   } catch (error: any) {

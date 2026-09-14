@@ -6,6 +6,7 @@ import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function POST(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const body = await request.json().catch(() => ({}));
     const { identifier, password } = body;
 

@@ -6,6 +6,7 @@ export async function POST(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { title, description, category, dueDate } = body;
@@ -31,6 +32,8 @@ export async function POST(
       clientNotes: '',
       createdAt: new Date().toISOString()
     });
+
+    await db.flush();
 
     return NextResponse.json(newTask, { status: 201 });
   } catch (error: any) {

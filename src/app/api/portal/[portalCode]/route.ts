@@ -6,6 +6,7 @@ export async function GET(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const clients = db.collection('clients');
     const tasks = db.collection('tasks');
