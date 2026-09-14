@@ -4261,10 +4261,359 @@ select option:checked {
     min-height: 48px;
     font-size: 0.96rem;
   }
+}
 
-  .intro-ambient {
-    opacity: 0.45;
+/* Exact intro folder class aliases to guarantee 100% fidelity */
+.entry-home .brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: clamp(26px, 4vh, 42px);
+  text-decoration: none;
+}
+
+.entry-home .brand__logo {
+  width: 68px;
+  height: 68px;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(8, 28, 48, 0.14);
+}
+
+.entry-home .brand__name {
+  direction: ltr;
+  font-size: 2.15rem;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: var(--intro-navy);
+}
+
+.entry-home .entry__heading {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.entry-home .entry__heading h1 {
+  margin: 0;
+  color: var(--intro-navy);
+  font-size: clamp(2rem, 4.2vw, 3.7rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1.18;
+}
+
+.entry-home .entry__heading p {
+  margin: 13px 0 0;
+  color: var(--intro-slate);
+  font-size: clamp(1rem, 1.8vw, 1.28rem);
+  line-height: 1.7;
+}
+
+.entry-home .paths {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin-top: clamp(34px, 6vh, 58px);
+}
+
+.entry-home .path {
+  --path-color: var(--intro-teal);
+  --path-color-dark: var(--intro-teal-dark);
+  --path-soft: var(--intro-teal-soft);
+  position: relative;
+  display: flex;
+  min-height: 332px;
+  flex-direction: column;
+  align-items: center;
+  padding: 34px 34px 30px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--path-color) 26%, var(--intro-line));
+  border-radius: var(--intro-radius-card);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--intro-shadow);
+  color: var(--intro-navy);
+  text-align: center;
+  text-decoration: none;
+  transform: translateY(0);
+  transition: transform 0.4s var(--intro-ease), border-color 0.35s ease, box-shadow 0.4s var(--intro-ease);
+  cursor: pointer;
+}
+
+.entry-home .path::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, var(--path-soft), transparent 35%);
+  content: "";
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+
+.entry-home .path--patient {
+  --path-color: var(--intro-emerald);
+  --path-color-dark: var(--intro-emerald-dark);
+  --path-soft: var(--intro-emerald-soft);
+}
+
+.entry-home .path:hover,
+.entry-home .path:focus-visible {
+  border-color: color-mix(in srgb, var(--path-color) 58%, white);
+  box-shadow: 0 28px 70px color-mix(in srgb, var(--path-color) 12%, transparent), 0 7px 22px rgba(12, 47, 62, 0.06);
+  outline: none;
+  transform: translateY(-7px);
+}
+
+.entry-home .path:hover::before,
+.entry-home .path:focus-visible::before {
+  opacity: 0.72;
+}
+
+.entry-home .path__icon,
+.entry-home .path__content,
+.entry-home .path__action {
+  position: relative;
+  z-index: 1;
+}
+
+.entry-home .path__icon {
+  display: grid;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 20px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--path-soft);
+  color: var(--path-color-dark);
+  transition: transform 0.4s var(--intro-ease);
+}
+
+.entry-home .path:hover .path__icon,
+.entry-home .path:focus-visible .path__icon {
+  transform: scale(1.06) rotate(-2deg);
+}
+
+.entry-home .path__icon svg {
+  width: 62px;
+  height: 62px;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3.5;
+}
+
+.entry-home .path__content {
+  display: grid;
+  gap: 8px;
+  max-width: 390px;
+}
+
+.entry-home .path__content strong {
+  font-size: 1.65rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--intro-navy);
+}
+
+.entry-home .path__content > span {
+  color: var(--intro-slate);
+  font-size: 1.03rem;
+  line-height: 1.65;
+}
+
+.entry-home .path__action {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 13px 24px;
+  border-radius: var(--intro-radius-button);
+  background: var(--path-color-dark);
+  box-shadow: 0 11px 24px color-mix(in srgb, var(--path-color) 20%, transparent);
+  color: var(--intro-white) !important;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: background 0.25s ease, transform 0.25s ease;
+  border: none;
+}
+
+.entry-home .path:hover .path__action {
+  background: var(--path-color);
+  transform: translateY(-1px);
+}
+
+.entry-home .path__action svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transition: transform 0.25s ease;
+}
+
+.entry-home .path:hover .path__action svg {
+  transform: translateX(-3px);
+}
+
+/* Subtle returning user footer line */
+.entry-home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: clamp(28px, 4vh, 44px);
+  font-size: 0.95rem;
+  color: var(--intro-slate);
+  text-align: center;
+}
+
+.entry-home-footer-btn {
+  background: transparent;
+  border: none;
+  color: var(--intro-teal-dark);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.entry-home-footer-btn:hover {
+  background: var(--intro-teal-soft);
+  color: var(--intro-teal);
+  text-decoration: underline;
+}
+
+/* Dedicated Clinic Registration Modal */
+.clinic-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 28, 48, 0.65);
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.25s ease;
+}
+
+.clinic-modal-card {
+  width: 100%;
+  max-width: 560px;
+  background: #ffffff;
+  border-radius: 26px;
+  box-shadow: 0 30px 70px -15px rgba(8, 28, 48, 0.35), 0 0 0 1px rgba(7, 141, 154, 0.15);
+  padding: 34px 30px;
+  position: relative;
+  direction: rtl;
+  text-align: right;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.clinic-modal-close {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.clinic-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+@media (max-width: 760px) {
+  .entry-home .brand {
+    flex-direction: row;
+    margin-bottom: 26px;
+  }
+
+  .entry-home .brand__logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 13px;
+  }
+
+  .entry-home .brand__name {
+    font-size: 1.72rem;
+  }
+
+  .entry-home .entry__heading h1 {
+    font-size: clamp(1.82rem, 8.2vw, 2.55rem);
+  }
+
+  .entry-home .entry__heading p {
+    max-width: 310px;
+    margin: 10px auto 0;
+    line-height: 1.55;
+  }
+
+  .entry-home .paths {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 28px;
+  }
+
+  .entry-home .path {
+    min-height: 0;
+    align-items: stretch;
+    padding: 23px;
+    border-radius: 22px;
+    text-align: right;
+  }
+
+  .entry-home .path__icon {
+    width: 66px;
+    height: 66px;
+    margin-bottom: 15px;
+  }
+
+  .entry-home .path__icon svg {
+    width: 49px;
+    height: 49px;
+  }
+
+  .entry-home .path__content strong {
+    font-size: 1.42rem;
+  }
+
+  .entry-home .path__content > span {
+    font-size: 0.96rem;
+  }
+
+  .entry-home .path__action {
+    min-height: 50px;
+    margin-top: 20px;
+  }
+
+  .clinic-modal-card {
+    padding: 24px 18px;
+    border-radius: 20px;
   }
 }
+
 
 
