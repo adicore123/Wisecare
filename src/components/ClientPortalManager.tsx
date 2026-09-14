@@ -47,7 +47,9 @@ import {
   Smartphone,
   LogOut,
   Check,
-  Delete
+  Delete,
+  Edit,
+  Edit3
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api';
@@ -172,6 +174,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
   // Insights state
   const [isNewInsightOpen, setIsNewInsightOpen] = useState(false);
+  const [editingInsightId, setEditingInsightId] = useState<string | null>(null);
   const [insightSearch, setInsightSearch] = useState('');
   const [insightForm, setInsightForm] = useState({
     title: '',
@@ -211,6 +214,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState(null);
 
   const [isSelfContentModalOpen, setIsSelfContentModalOpen] = useState(false);
+  const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [selfContentForm, setSelfContentForm] = useState({
     url: '',
     title: '',
@@ -655,6 +659,20 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     }
   }, [portalCode]);
 
+  const handleOpenEditSelfContent = (item: any) => {
+    setEditingContentId(item.id);
+    setSelfContentForm({
+      url: item.url || '',
+      title: item.title || '',
+      description: item.description || '',
+      type: item.type || 'video',
+      imageData: item.imageData || '',
+      sourceName: item.sourceName || '',
+      category: item.category || 'אישי'
+    });
+    setIsSelfContentModalOpen(true);
+  };
+
   const handleCreateSelfContent = async (e) => {
     e.preventDefault();
     if (!selfContentForm.url.trim() && !selfContentForm.description.trim()) {
@@ -663,9 +681,16 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     }
     setIsSubmittingSelfContent(true);
     try {
-      await api.addPortalSelfContent(portalCode, selfContentForm);
-      showToast('התוכן נוסף לספרייה האישית שלך בהצלחה! 🎬');
+      if (editingContentId) {
+        await api.updatePortalSelfContent(portalCode, editingContentId, selfContentForm);
+        showToast('התוכן עודכן בהצלחה! ✨');
+      } else {
+        await api.addPortalSelfContent(portalCode, selfContentForm);
+        showToast('התוכן נוסף לספרייה האישית שלך בהצלחה! 🎬');
+        confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+      }
       setIsSelfContentModalOpen(false);
+      setEditingContentId(null);
       setSelfContentForm({
         url: '',
         title: '',
@@ -675,11 +700,10 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
         sourceName: '',
         category: 'אישי'
       });
-      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
       const updated = await api.getPortalData(portalCode);
       setData(updated);
-    } catch (err) {
-      showToast(err.message || 'שגיאה בהוספת תוכן', 'error');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשמירת תוכן', 'error');
     } finally {
       setIsSubmittingSelfContent(false);
     }
@@ -766,7 +790,18 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     }
   };
 
-  // Add Insight / Thought entry
+  // Add or Edit Insight / Thought entry
+  const handleOpenEditInsight = (item: any) => {
+    setEditingInsightId(item.id);
+    setInsightForm({
+      title: item.title || '',
+      content: item.content || '',
+      mood: item.mood || 'שלווה והקלה',
+      intensity: item.intensity || 7
+    });
+    setIsNewInsightOpen(true);
+  };
+
   const handleCreateInsight = async (e) => {
     e.preventDefault();
     if (!insightForm.content.trim()) {
@@ -776,7 +811,14 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
     setSavingInsight(true);
     try {
-      await api.addPortalInsight(portalCode, insightForm);
+      if (editingInsightId) {
+        await api.updatePortalInsight(portalCode, editingInsightId, insightForm);
+        showToast('התובנה עודכנה ביומן האישי שלך בהצלחה! ✨');
+      } else {
+        await api.addPortalInsight(portalCode, insightForm);
+        showToast('התובנה נשמרה ביומן האישי שלך בהצלחה! ✨');
+        confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
+      }
       setInsightForm({
         title: '',
         content: '',
@@ -784,12 +826,11 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
         intensity: 7
       });
       setIsNewInsightOpen(false);
+      setEditingInsightId(null);
       const updatedInsights = await api.getPortalInsights(portalCode);
       setInsights(updatedInsights);
-      showToast('התובנה נשמרה ביומן האישי שלך בהצלחה! ✨');
-      confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
-    } catch (err) {
-      showToast('שגיאה בשמירת התובנה: ' + err.message, 'error');
+    } catch (err: any) {
+      showToast('שגיאה בשמירת התובנה: ' + (err.message || ''), 'error');
     } finally {
       setSavingInsight(false);
     }
@@ -2085,17 +2126,29 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                               <span>{isExpanded ? 'סגור תוכן' : item.type === 'article' ? 'קרא את המאמר המלא' : 'קרא עוד'}</span>
                             </button>
                           )}
-                          {(portalInfo.isSelfCare || !portalInfo.therapist) && (
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              onClick={() => setPendingDeleteContentId(item.id)}
-                              style={{ color: '#ef4444', borderColor: '#fecaca', padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                              title="הסר פריט זה מהמרחב האישי"
-                            >
-                              <Trash2 size={14} />
-                              <span>הסר</span>
-                            </button>
+                          {(portalInfo.isSelfCare || !portalInfo.therapist || item.category === 'אישי') && (
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => handleOpenEditSelfContent(item)}
+                                style={{ color: 'var(--primary, #0d9488)', borderColor: 'var(--primary-light, #ccfbf1)', padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                title="ערוך פריט תוכן זה"
+                              >
+                                <Edit size={14} />
+                                <span>ערוך</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => setPendingDeleteContentId(item.id)}
+                                style={{ color: '#ef4444', borderColor: '#fecaca', padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                title="הסר פריט זה מהמרחב האישי"
+                              >
+                                <Trash2 size={14} />
+                                <span>הסר</span>
+                              </button>
+                            </div>
                           )}
                         </div>
                       </article>
@@ -2229,14 +2282,24 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                               </td>
 
                               <td style={{ textAlign: 'left' }}>
-                                <button 
-                                  onClick={() => setPendingDeleteInsightId(item.id)}
-                                  className="btn-icon" 
-                                  title="מחק רשומה זו"
-                                  style={{ color: '#ef4444' }}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  <button 
+                                    onClick={() => handleOpenEditInsight(item)}
+                                    className="btn-icon" 
+                                    title="ערוך תובנה זו"
+                                    style={{ color: 'var(--primary, #0d9488)', padding: '6px' }}
+                                  >
+                                    <Edit size={16} />
+                                  </button>
+                                  <button 
+                                    onClick={() => setPendingDeleteInsightId(item.id)}
+                                    className="btn-icon" 
+                                    title="מחק רשומה זו"
+                                    style={{ color: '#ef4444', padding: '6px' }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -2306,14 +2369,24 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                             </span>
                           </div>
 
-                          <button 
-                            onClick={() => setPendingDeleteInsightId(item.id)}
-                            className="btn-icon" 
-                            title="מחק רשומה זו"
-                            style={{ color: '#ef4444', padding: '6px' }}
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <button 
+                              onClick={() => handleOpenEditInsight(item)}
+                              className="btn-icon" 
+                              title="ערוך תובנה זו"
+                              style={{ color: 'var(--primary, #0d9488)', padding: '6px' }}
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button 
+                              onClick={() => setPendingDeleteInsightId(item.id)}
+                              className="btn-icon" 
+                              title="מחק רשומה זו"
+                              style={{ color: '#ef4444', padding: '6px' }}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -2321,9 +2394,9 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                 </div>
               </div>
 
-              {/* New Insight Modal */}
+              {/* New / Edit Insight Modal */}
               {isNewInsightOpen && (
-                <div className="modal-overlay" onClick={() => setIsNewInsightOpen(false)}>
+                <div className="modal-overlay" onClick={() => { setIsNewInsightOpen(false); setEditingInsightId(null); }}>
                   <div className="modal-card" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
                     <div className="modal-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -2340,9 +2413,11 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                           <BookOpen size={20} />
                         </div>
                         <div>
-                          <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>תיעוד תובנה ומחשבה אישית</h3>
+                          <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>
+                            {editingInsightId ? 'עריכת תובנה / מחשבה אישית' : 'תיעוד תובנה ומחשבה אישית'}
+                          </h3>
                           <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '2px 0 0 0' }}>
-                            רשום/י מה עבר עליך, מה הרגשת ואילו מחשבות עלו
+                            {editingInsightId ? 'עדכן/י את הפרטים, התובנות או עוצמת הרגש' : 'רשום/י מה עבר עליך, מה הרגשת ואילו מחשבות עלו'}
                           </p>
                         </div>
                       </div>
@@ -2429,11 +2504,11 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                       </div>
 
                       <div className="modal-footer">
-                        <button type="button" className="btn btn-secondary" onClick={() => setIsNewInsightOpen(false)}>
+                        <button type="button" className="btn btn-secondary" onClick={() => { setIsNewInsightOpen(false); setEditingInsightId(null); }}>
                           ביטול
                         </button>
                         <button type="submit" className="btn btn-primary" disabled={savingInsight}>
-                          {savingInsight ? 'שומר ביומן...' : 'שמור ותעד ביומן ✨'}
+                          {savingInsight ? 'שומר ביומן...' : editingInsightId ? 'שמור שינויים בתובנה ✨' : 'שמור ותעד ביומן ✨'}
                         </button>
                       </div>
                     </form>
@@ -3225,14 +3300,14 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL: הוספת סרטון או מאמר למרחב האישי                                     */}
+      {/* MODAL: הוספה או עריכה של סרטון/מאמר למרחב האישי                             */}
       {/* ========================================================================= */}
       {isSelfContentModalOpen && (
-        <div className="modal-overlay" onClick={() => setIsSelfContentModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
           <div className="modal-card" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>הוספת סרטון או מאמר למרחב שלי</h2>
-              <button type="button" className="close-btn" onClick={() => setIsSelfContentModalOpen(false)}>
+              <h2>{editingContentId ? 'עריכת פריט תוכן במרחב שלי' : 'הוספת סרטון או מאמר למרחב שלי'}</h2>
+              <button type="button" className="close-btn" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
                 <X size={20} />
               </button>
             </div>
@@ -3338,11 +3413,11 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               </div>
 
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => setIsSelfContentModalOpen(false)}>
+                <button type="button" className="btn btn-secondary" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
                   ביטול
                 </button>
                 <button type="submit" className="btn btn-primary" disabled={isSubmittingSelfContent}>
-                  {isSubmittingSelfContent ? 'שומר תוכן...' : 'שמור בספרייה שלי 🎬'}
+                  {isSubmittingSelfContent ? 'שומר תוכן...' : editingContentId ? 'שמור שינויים בתוכן 🎬' : 'שמור בספרייה שלי 🎬'}
                 </button>
               </div>
             </form>

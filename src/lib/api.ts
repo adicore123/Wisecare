@@ -321,6 +321,19 @@ export const api = {
     return res.json();
   },
 
+  updatePortalInsight: async (portalCode, id, data) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/insights/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון התובנה');
+    }
+    return res.json();
+  },
+
   // SuperAdmin
   getSuperadminStats: async (_adminId?: any) => {
     const res = await fetch(`${API_BASE}/superadmin/stats`, {
@@ -649,6 +662,19 @@ export const api = {
       method: 'DELETE'
     });
     if (!res.ok) throw new Error('שגיאה בהסרת תוכן מהמרחב');
+    return res.json();
+  },
+
+  updatePortalSelfContent: async (portalCode, contentId, contentData) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(contentData)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון התוכן');
+    }
     return res.json();
   },
 
