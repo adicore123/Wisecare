@@ -3353,3 +3353,101 @@ select option:checked {
   }
 }
 
+/* ========================================================================== */
+/* Client Portal Insights - Mobile Cards & Expanded Journal Styles           */
+/* ========================================================================== */
+.portal-insights-table-container {
+  display: block;
+}
+
+.portal-insights-cards-container {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .portal-insights-table-container {
+    display: none !important;
+  }
+
+  .portal-insights-cards-container {
+    display: flex !important;
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px 14px;
+  }
+}
+
+.insight-mobile-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.insight-mobile-card:active {
+  transform: scale(0.99);
+}
+
+.insight-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.insight-card-datetime {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.insight-card-body {
+  font-size: 0.96rem;
+  line-height: 1.65;
+  color: #1e293b;
+  white-space: pre-wrap;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 2px 0 0;
+}
+
+.insight-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 6px;
+  border-top: 1px solid #f1f5f9;
+  margin-top: 2px;
+}
+
+.insight-textarea-expanded {
+  min-height: 250px !important;
+  font-size: 1.02rem !important;
+  line-height: 1.7 !important;
+  padding: 16px !important;
+  border-radius: 14px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  resize: vertical !important;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.insight-textarea-expanded:focus {
+  border-color: var(--primary, #0d9488) !important;
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15) !important;
+  outline: none !important;
+}
+

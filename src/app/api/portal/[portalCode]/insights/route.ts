@@ -56,7 +56,7 @@ export async function POST(
       clientId: client.id,
       therapistId: client.therapistId,
       portalCode,
-      title: title ? String(title).trim() : 'תובנה שבועית',
+      title: title && String(title).trim() ? String(title).trim() : 'תובנה אישית',
       content: String(content).trim(),
       mood: mood || 'רגיל',
       intensity: Number(intensity) || 5,

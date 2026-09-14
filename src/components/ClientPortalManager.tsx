@@ -1450,105 +1450,182 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                   </span>
                 </div>
 
-                <div className="table-responsive">
-                  <table className="custom-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: '160px' }}>תאריך ושעה</th>
-                        <th style={{ width: '150px' }}>מצב רוח</th>
-                        <th style={{ width: '220px' }}>כותרת התובנה / האירוע</th>
-                        <th>פירוט מלא של מה שעבר עלי</th>
-                        <th style={{ width: '130px' }}>עוצמת רגש</th>
-                        <th style={{ textAlign: 'left', width: '80px' }}>פעולות</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredInsights.length === 0 ? (
+                {/* Desktop Table View */}
+                <div className="portal-insights-table-container">
+                  <div className="table-responsive">
+                    <table className="custom-table">
+                      <thead>
                         <tr>
-                          <td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
-                            <BookOpen size={36} color="var(--primary, #0d9488)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
-                            <div style={{ fontWeight: 700, fontSize: '1rem', color: '#475569' }}>
-                              עדיין לא תיעדת תובנות השבוע
-                            </div>
-                            <p style={{ fontSize: '0.86rem', marginTop: '4px' }}>
-                              לחץ/י על "תיעוד תובנה / מחשבה חדשה" למעלה כדי להוסיף רשומה ראשונה.
-                            </p>
-                          </td>
+                          <th style={{ width: '160px' }}>תאריך ושעה</th>
+                          <th style={{ width: '150px' }}>מצב רוח</th>
+                          <th style={{ width: '220px' }}>כותרת התובנה / האירוע</th>
+                          <th>פירוט מלא של מה שעבר עלי</th>
+                          <th style={{ width: '130px' }}>עוצמת רגש</th>
+                          <th style={{ textAlign: 'left', width: '80px' }}>פעולות</th>
                         </tr>
-                      ) : (
-                        filteredInsights.map(item => (
-                          <tr key={item.id}>
-                            <td>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                <span style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
-                                  <Calendar size={13} color="var(--primary, #0d9488)" /> {item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}
-                                </span>
-                                <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                  <Clock size={12} /> שעה: {item.recordedTime || new Date(item.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
+                      </thead>
+                      <tbody>
+                        {filteredInsights.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                              <BookOpen size={36} color="var(--primary, #0d9488)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
+                              <div style={{ fontWeight: 700, fontSize: '1rem', color: '#475569' }}>
+                                עדיין לא תיעדת תובנות השבוע
                               </div>
-                            </td>
-
-                            <td>
-                              <span className="badge badge-info" style={{ fontWeight: 700 }}>
-                                <Smile size={13} /> {item.mood}
-                              </span>
-                            </td>
-
-                            <td>
-                              <strong style={{ color: '#0f172a', fontSize: '0.95rem' }}>{item.title}</strong>
-                            </td>
-
-                            <td>
-                              <p style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap', margin: 0 }}>
-                                {item.content}
+                              <p style={{ fontSize: '0.86rem', marginTop: '4px' }}>
+                                לחץ/י על "תיעוד תובנה / מחשבה חדשה" למעלה כדי להוסיף רשומה ראשונה.
                               </p>
                             </td>
-
-                            <td>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div style={{
-                                  width: '100%',
-                                  maxWidth: '70px',
-                                  height: '8px',
-                                  background: '#e2e8f0',
-                                  borderRadius: '4px',
-                                  overflow: 'hidden'
-                                }}>
-                                  <div style={{
-                                    width: `${item.intensity * 10}%`,
-                                    height: '100%',
-                                    background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, #0d9488)' : '#3b82f6'
-                                  }} />
-                                </div>
-                                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>
-                                  {item.intensity}/10
-                                </span>
-                              </div>
-                            </td>
-
-                            <td style={{ textAlign: 'left' }}>
-                              <button 
-                                onClick={() => setPendingDeleteInsightId(item.id)}
-                                className="btn-icon" 
-                                title="מחק רשומה זו"
-                                style={{ color: '#ef4444' }}
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+                        ) : (
+                          filteredInsights.map(item => (
+                            <tr key={item.id}>
+                              <td>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  <span style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
+                                    <Calendar size={13} color="var(--primary, #0d9488)" /> {item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}
+                                  </span>
+                                  <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <Clock size={12} /> שעה: {item.recordedTime || new Date(item.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td>
+                                <span className="badge badge-info" style={{ fontWeight: 700 }}>
+                                  <Smile size={13} /> {item.mood}
+                                </span>
+                              </td>
+
+                              <td>
+                                <strong style={{ color: '#0f172a', fontSize: '0.95rem' }}>{item.title}</strong>
+                              </td>
+
+                              <td>
+                                <p style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap', margin: 0 }}>
+                                  {item.content}
+                                </p>
+                              </td>
+
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <div style={{
+                                    width: '100%',
+                                    maxWidth: '70px',
+                                    height: '8px',
+                                    background: '#e2e8f0',
+                                    borderRadius: '4px',
+                                    overflow: 'hidden'
+                                  }}>
+                                    <div style={{
+                                      width: `${item.intensity * 10}%`,
+                                      height: '100%',
+                                      background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, #0d9488)' : '#3b82f6'
+                                    }} />
+                                  </div>
+                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>
+                                    {item.intensity}/10
+                                  </span>
+                                </div>
+                              </td>
+
+                              <td style={{ textAlign: 'left' }}>
+                                <button 
+                                  onClick={() => setPendingDeleteInsightId(item.id)}
+                                  className="btn-icon" 
+                                  title="מחק רשומה זו"
+                                  style={{ color: '#ef4444' }}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="portal-insights-cards-container">
+                  {filteredInsights.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8', background: '#f8fafc', borderRadius: '16px' }}>
+                      <BookOpen size={36} color="var(--primary, #0d9488)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: '#475569' }}>
+                        עדיין לא תיעדת תובנות השבוע
+                      </div>
+                      <p style={{ fontSize: '0.86rem', marginTop: '4px' }}>
+                        לחץ/י על "תיעוד תובנה / מחשבה חדשה" כדי להתחיל.
+                      </p>
+                    </div>
+                  ) : (
+                    filteredInsights.map(item => (
+                      <div key={item.id} className="insight-mobile-card">
+                        <div className="insight-card-header">
+                          <div className="insight-card-datetime">
+                            <Calendar size={14} color="var(--primary, #0d9488)" />
+                            <span>{item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}</span>
+                            <span>•</span>
+                            <Clock size={13} />
+                            <span>{item.recordedTime || new Date(item.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+
+                          <span className="badge badge-info" style={{ fontWeight: 700, fontSize: '0.82rem' }}>
+                            <Smile size={13} /> {item.mood}
+                          </span>
+                        </div>
+
+                        {item.title && item.title !== 'תובנה אישית' && item.title !== 'תובנה שבועית' ? (
+                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0f172a', lineHeight: 1.4 }}>
+                            {item.title}
+                          </div>
+                        ) : null}
+
+                        <div className="insight-card-body">
+                          {item.content}
+                        </div>
+
+                        <div className="insight-card-footer">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>עוצמת רגש:</span>
+                            <div style={{
+                              width: '54px',
+                              height: '7px',
+                              background: '#e2e8f0',
+                              borderRadius: '4px',
+                              overflow: 'hidden'
+                            }}>
+                              <div style={{
+                                width: `${item.intensity * 10}%`,
+                                height: '100%',
+                                background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, #0d9488)' : '#3b82f6'
+                              }} />
+                            </div>
+                            <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
+                              {item.intensity}/10
+                            </span>
+                          </div>
+
+                          <button 
+                            onClick={() => setPendingDeleteInsightId(item.id)}
+                            className="btn-icon" 
+                            title="מחק רשומה זו"
+                            style={{ color: '#ef4444', padding: '6px' }}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
               {/* New Insight Modal */}
               {isNewInsightOpen && (
                 <div className="modal-overlay" onClick={() => setIsNewInsightOpen(false)}>
-                  <div className="modal-card" style={{ maxWidth: '620px' }} onClick={e => e.stopPropagation()}>
+                  <div className="modal-card" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
                     <div className="modal-header">
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
@@ -1575,12 +1652,14 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                     <form onSubmit={handleCreateInsight}>
                       <div className="modal-body">
                         <div className="form-group">
-                          <label>כותרת האירוע / התובנה *</label>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span>כותרת האירוע / התובנה</span>
+                            <span style={{ color: '#64748b', fontWeight: 500, fontSize: '0.82rem' }}>(אופציונלי)</span>
+                          </label>
                           <input 
                             type="text" 
                             className="form-control" 
-                            placeholder="למשל: שיחה מאתגרת בעבודה / רגע של שלווה בפארק / מחשבה על שינוי"
-                            required
+                            placeholder="למשל: שיחה מאתגרת בעבודה / רגע של שלווה בפארק / מחשבה על שינוי (לא חובה)"
                             value={insightForm.title}
                             onChange={e => setInsightForm({ ...insightForm, title: e.target.value })}
                           />
@@ -1619,11 +1698,15 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                         </div>
 
                         <div className="form-group">
-                          <label>מה עבר עליך? פרט/י מה קרה ומה התובנה שלך *</label>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                            <label style={{ margin: 0 }}>מה עבר עליך? פרט/י מה קרה ומה התובנה שלך *</label>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--primary, #0d9488)', fontWeight: 600 }}>
+                              מרחב כתיבה מרווח ✍️
+                            </span>
+                          </div>
                           <textarea 
-                            className="form-control" 
-                            style={{ minHeight: '130px', lineHeight: 1.6 }}
-                            placeholder="תאר/י את הסיטואציה, מה המחשבות שעלו לך בראש, כיצד הגבת, ומה למדת מזה..."
+                            className="form-control insight-textarea-expanded" 
+                            placeholder="תאר/י את הסיטואציה, מה המחשבות שעלו לך בראש, כיצד הגבת, ומה למדת מזה... כתוב/י בחופשיות, המקום כאן לרשותך."
                             required
                             value={insightForm.content}
                             onChange={e => setInsightForm({ ...insightForm, content: e.target.value })}
