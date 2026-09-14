@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+client/node_modules/
+server/node_modules/
+.pnp
+.pnp.js
+
+# Next.js build output
+.next/
+out/
+client/dist/
+
+# Environment and secrets
+.env
+.env*.local
+.env.local
+atlas-credentials.env
+cookie.txt
+
+# Logs and scratch
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+scratch/
+
+# TypeScript build cache
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# OS & Editor files
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.idea/
+.vscode/

@@ -1,0 +1,632 @@
+// Central API client
+
+const API_BASE = '/api';
+
+/** Read the stored JWT token */
+const getToken = () => localStorage.getItem('wisecare_token');
+
+/** Build Authorization header with Bearer token */
+const authHeaders = (extra = {}) => ({
+  'Content-Type': 'application/json',
+  ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+  ...extra
+});
+
+export const api = {
+  // Auth
+  login: async (username, password) => {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהתחברות');
+    }
+    return res.json();
+  },
+
+  getMe: async () => {
+    const res = await fetch(`${API_BASE}/auth/me`, { headers: authHeaders() });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'לא מחובר');
+    }
+    return res.json();
+  },
+
+  impersonate: async (targetTherapistId) => {
+    const res = await fetch(`${API_BASE}/auth/impersonate`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ targetTherapistId })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בכניסה לסביבת המטפל');
+    }
+    return res.json();
+  },
+
+  getTherapistLoginInfo: async (loginCode) => {
+    const res = await fetch(`${API_BASE}/auth/therapist-login/${loginCode}`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'קישור כניסה לא תקין או פג תוקף');
+    }
+    return res.json();
+  },
+
+  loginWithCode: async (loginCode, username, password) => {
+    const res = await fetch(`${API_BASE}/auth/therapist-login/${loginCode}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שם משתמש או סיסמה שגויים');
+    }
+    return res.json();
+  },
+
+  // Clients
+  getClients: async (therapistId) => {
+    const url = therapistId ? `${API_BASE}/clients?therapistId=${therapistId}` : `${API_BASE}/clients`;
+    const res = await fetch(url, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת לקוחות');
+    return res.json();
+  },
+
+  getClient: async (id) => {
+    const res = await fetch(`${API_BASE}/clients/${id}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת פרטי לקוח');
+    return res.json();
+  },
+
+  createClient: async (data) => {
+    const res = await fetch(`${API_BASE}/clients`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה ביצירת לקוח חדש');
+    }
+    return res.json();
+  },
+
+  updateClient: async (id, data) => {
+    const res = await fetch(`${API_BASE}/clients/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('שגיאה בעדכון לקוח');
+    return res.json();
+  },
+
+  deleteClient: async (id) => {
+    const res = await fetch(`${API_BASE}/clients/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת לקוח');
+    return res.json();
+  },
+
+  sendWhatsApp: async (clientId, customMessage) => {
+    const res = await fetch(`${API_BASE}/clients/${clientId}/send-whatsapp`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ customMessage })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשליחת וואטסאפ');
+    }
+    return res.json();
+  },
+
+  // Tasks (Therapist)
+  createTask: async (taskData) => {
+    const res = await fetch(`${API_BASE}/tasks`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(taskData)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהקצאת משימה');
+    }
+    return res.json();
+  },
+
+  deleteTask: async (taskId) => {
+    const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת משימה');
+    return res.json();
+  },
+
+  getContentItems: async (therapistId) => {
+    const query = new URLSearchParams({ therapistId });
+    const res = await fetch(`${API_BASE}/content?${query.toString()}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת ספריית התוכן');
+    return res.json();
+  },
+
+  createContentItem: async (data) => {
+    const res = await fetch(`${API_BASE}/content`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשמירת פריט התוכן');
+    }
+    return res.json();
+  },
+
+  previewContentUrl: async (url) => {
+    const res = await fetch(`${API_BASE}/content/preview-url`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ url })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליפת פרטי הקישור');
+    }
+    return res.json();
+  },
+
+  assignContentItem: async (contentId, clientIds, sendWhatsApp) => {
+    const res = await fetch(`${API_BASE}/content/${contentId}/assign`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ clientIds, sendWhatsApp })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשיוך התוכן');
+    }
+    return res.json();
+  },
+
+  removeContentAssignment: async (contentId, clientId) => {
+    const res = await fetch(`${API_BASE}/content/${contentId}/assignments/${clientId}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה בהסרת התוכן מהמטופל');
+    return res.json();
+  },
+
+  retryContentNotification: async (contentId, clientId) => {
+    const res = await fetch(`${API_BASE}/content/${contentId}/notify/${clientId}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשליחת התראת WhatsApp');
+    }
+    return res.json();
+  },
+
+  deleteContentItem: async (contentId) => {
+    const res = await fetch(`${API_BASE}/content/${contentId}`, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה במחיקת פריט התוכן');
+    }
+    return res.json();
+  },
+
+  // Client Portal (Patient)
+  getPortalData: async (portalCode) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'מרחב אישי לא נמצא');
+    }
+    return res.json();
+  },
+
+  updatePortalTaskStatus: async (portalCode, taskId, completed, clientNotes) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/task-status`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId, completed, clientNotes })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בעדכון משימה');
+    }
+    return res.json();
+  },
+
+  // Client Insights Journal (יומן תובנות ומחשבות)
+  getPortalInsights: async (portalCode) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/insights`);
+    if (!res.ok) throw new Error('שגיאה בטעינת יומן התובנות');
+    return res.json();
+  },
+
+  addPortalInsight: async (portalCode, data) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/insights`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשמירת התובנה');
+    }
+    return res.json();
+  },
+
+  deletePortalInsight: async (portalCode, id) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/insights/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת תובנה');
+    return res.json();
+  },
+
+  // SuperAdmin – no longer need adminId param, identity comes from JWT
+  getSuperadminStats: async () => {
+    const res = await fetch(`${API_BASE}/superadmin/stats`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה בטעינת נתוני SuperAdmin');
+    return res.json();
+  },
+
+  getTherapists: async () => {
+    const res = await fetch(`${API_BASE}/superadmin/therapists`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה בטעינת רשימת המטפלים');
+    return res.json();
+  },
+
+  createTherapist: async (data) => {
+    const res = await fetch(`${API_BASE}/superadmin/therapists`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה ביצירת מטפל');
+    }
+    return res.json();
+  },
+
+  updateTherapist: async (id, data) => {
+    const res = await fetch(`${API_BASE}/superadmin/therapists/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('שגיאה בעדכון מטפל');
+    return res.json();
+  },
+
+  sendTherapistInviteWhatsApp: async (therapistId) => {
+    const res = await fetch(`${API_BASE}/superadmin/therapists/${therapistId}/send-invite-whatsapp`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשליחת פרטי התחברות בוואטסאפ');
+    }
+    return res.json();
+  },
+
+  resetTherapistCredentials: async (therapistId, data) => {
+    const res = await fetch(`${API_BASE}/superadmin/therapists/${therapistId}/credentials`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה באיפוס פרטי גישה');
+    }
+    return res.json();
+  },
+
+  getSuperadminSettings: async () => {
+    const res = await fetch(`${API_BASE}/superadmin/settings`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה בטעינת הגדרות SuperAdmin');
+    return res.json();
+  },
+
+  updateSuperadminSettings: async (settings) => {
+    const res = await fetch(`${API_BASE}/superadmin/settings`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(settings)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בעדכון הגדרות SuperAdmin');
+    }
+    return res.json();
+  },
+
+  getSuperadminClients: async () => {
+    const res = await fetch(`${API_BASE}/superadmin/clients`, {
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת רשימת הלקוחות');
+    }
+    return res.json();
+  },
+
+  impersonateClient: async (clientId) => {
+    const res = await fetch(`${API_BASE}/superadmin/impersonate-client/${clientId}`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהנפקת גישת SuperAdmin למרחב הלקוח');
+    }
+    return res.json();
+  },
+
+  // Settings
+  getSettings: async () => {
+    const res = await fetch(`${API_BASE}/settings`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת הגדרות');
+    return res.json();
+  },
+
+  checkGreenApiStatus: async () => {
+    const res = await fetch(`${API_BASE}/settings/status`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בבדיקת סטטוס Green API');
+    return res.json();
+  },
+
+  getGreenApiQr: async () => {
+    const res = await fetch(`${API_BASE}/settings/qr`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת קוד QR');
+    return res.json();
+  },
+
+  updateSettings: async (settings) => {
+    const res = await fetch(`${API_BASE}/settings`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(settings)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשמירת הגדרות');
+    }
+    return res.json();
+  },
+
+  testWhatsApp: async (phone, testMessage) => {
+    const res = await fetch(`${API_BASE}/settings/test-whatsapp`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ phone, testMessage })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחת בדיקה');
+    }
+    return res.json();
+  },
+
+  // Appointments & Calendar (יומן ותורים)
+  getAppointments: async (params = {}) => {
+    const query = new URLSearchParams();
+    if (params.therapistId) query.append('therapistId', params.therapistId);
+    if (params.clientId) query.append('clientId', params.clientId);
+    if (params.status) query.append('status', params.status);
+    if (params.date) query.append('date', params.date);
+
+    const queryString = query.toString() ? `?${query.toString()}` : '';
+    const res = await fetch(`${API_BASE}/appointments${queryString}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת תורים');
+    return res.json();
+  },
+
+  createAppointment: async (data) => {
+    const res = await fetch(`${API_BASE}/appointments`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה ביצירת תור חדש');
+    }
+    return res.json();
+  },
+
+  updateAppointment: async (id, data) => {
+    const res = await fetch(`${API_BASE}/appointments/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בעדכון פרטי התור');
+    }
+    return res.json();
+  },
+
+  deleteAppointment: async (id) => {
+    const res = await fetch(`${API_BASE}/appointments/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת תור');
+    return res.json();
+  },
+
+  sendAppointmentReminder: async (id) => {
+    const res = await fetch(`${API_BASE}/appointments/${id}/send-reminder`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשליחת תזכורת WhatsApp');
+    }
+    return res.json();
+  },
+
+  sendAppointmentConfirmation: async (id) => {
+    const res = await fetch(`${API_BASE}/appointments/${id}/send-confirmation`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בשליחת אישור פגישה בוואטסאפ');
+    }
+    return res.json();
+  },
+
+  // Portal Appointments
+  getPortalAppointments: async (portalCode) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/appointments`);
+    if (!res.ok) throw new Error('שגיאה בטעינת תורים לפורטל');
+    return res.json();
+  },
+
+  requestPortalAppointment: async (portalCode, data) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/appointments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהגשת בקשת תור');
+    }
+    return res.json();
+  },
+
+  deletePortalAppointment: async (portalCode, id) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/appointments/${id}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת פגישה');
+    return res.json();
+  },
+
+  // Self-Care Portal & Registration
+  joinSelfCare: async (data) => {
+    const res = await fetch(`${API_BASE}/portal/join`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהרשמה למרחב האישי');
+    }
+    return res.json();
+  },
+
+  createPortalSelfTask: async (portalCode, taskData) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(taskData)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהוספת משימה');
+    }
+    return res.json();
+  },
+
+  deletePortalSelfTask: async (portalCode, taskId) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/tasks/${taskId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('שגיאה במחיקת משימה');
+    return res.json();
+  },
+
+  addPortalSelfContent: async (portalCode, contentData) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/content`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(contentData)
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'שגיאה בהוספת תוכן למרחב האישי');
+    }
+    return res.json();
+  },
+
+  removePortalSelfContent: async (portalCode, contentId) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('שגיאה בהסרת תוכן מהמרחב');
+    return res.json();
+  },
+
+  loginSelfCare: async (data) => {
+    const res = await fetch(`${API_BASE}/portal/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהתחברות למרחב');
+    }
+    return res.json();
+  },
+
+  requestSelfCarePasswordReset: async (data) => {
+    const res = await fetch(`${API_BASE}/portal/forgot-password/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בבקשת איפוס סיסמה');
+    }
+    return res.json();
+  },
+
+  resetSelfCarePassword: async (data) => {
+    const res = await fetch(`${API_BASE}/portal/forgot-password/reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה באיפוס הסיסמה');
+    }
+    return res.json();
+  }
+};
