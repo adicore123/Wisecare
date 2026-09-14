@@ -41,7 +41,13 @@ import {
   X,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  Settings,
+  KeyRound,
+  Smartphone,
+  LogOut,
+  Check,
+  Delete
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api';
@@ -228,18 +234,126 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  // Quick 4-Digit PIN Security State
+  const [isPinLocked, setIsPinLocked] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
+  const [savedPin, setSavedPin] = useState<string | null>(null);
+  const [isPinEnabled, setIsPinEnabled] = useState(false);
+  const [pinError, setPinError] = useState('');
+  const [pinShake, setPinShake] = useState(false);
+
+  // Client Portal Settings Modal State
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [pinFormNew, setPinFormNew] = useState('');
+  const [pinFormConfirm, setPinFormConfirm] = useState('');
+  const [settingsMsg, setSettingsMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('wisecare_last_portal', portalCode);
       } catch {}
-      const savedAuth = localStorage.getItem(`wisecare_portal_auth_${portalCode}`) || sessionStorage.getItem(`wisecare_portal_auth_${portalCode}`);
+
+      // Pre-fill remembered username if available
+      const savedUser = localStorage.getItem(`wisecare_saved_user_${portalCode}`);
+      if (savedUser) {
+        setLoginUsername(savedUser);
+      }
+
+      // Check PIN configuration
+      const storedPin = localStorage.getItem(`wisecare_pin_${portalCode}`);
+      const pinEnabled = localStorage.getItem(`wisecare_pin_enabled_${portalCode}`) === 'true';
+      const hasPinConfig = Boolean(pinEnabled && storedPin && storedPin.length === 4);
+      setIsPinEnabled(hasPinConfig);
+      setSavedPin(storedPin);
+
+      // Check Authentication session
+      const savedAuth = localStorage.getItem(authSessionKey) || sessionStorage.getItem(authSessionKey);
       if (savedAuth === 'true') {
         setIsPortalAuthenticated(true);
+        // If 4-digit PIN lock is enabled on this device, activate PIN gate
+        if (hasPinConfig) {
+          setIsPinLocked(true);
+        } else {
+          setIsPinLocked(false);
+        }
       }
     }
-  }, [portalCode]);
+  }, [portalCode, authSessionKey]);
+
+  // Handle Physical Keyboard during PIN lock
+  useEffect(() => {
+    if (!isPinLocked) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key >= '0' && e.key <= '9') {
+        handlePinDigit(e.key);
+      } else if (e.key === 'Backspace') {
+        handlePinBackspace();
+      } else if (e.key === 'Escape') {
+        handlePinClear();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isPinLocked, enteredPin, savedPin]);
+
+  const handlePinDigit = (digit: string) => {
+    if (enteredPin.length >= 4) return;
+    const nextPin = enteredPin + digit;
+    setEnteredPin(nextPin);
+    setPinError('');
+
+    if (nextPin.length === 4) {
+      if (nextPin === savedPin) {
+        // Unlock immediately!
+        setIsPinLocked(false);
+        setEnteredPin('');
+        setPinError('');
+        showToast('המרחב נפתח בהצלחה! שלום וברוך/ה השב/ה ✨');
+      } else {
+        // Invalid PIN
+        setPinShake(true);
+        setPinError('קוד PIN שגוי. אנא נסה/י שוב');
+        setTimeout(() => {
+          setEnteredPin('');
+          setPinShake(false);
+        }, 500);
+      }
+    }
+  };
+
+  const handlePinBackspace = () => {
+    setEnteredPin(prev => prev.slice(0, -1));
+    setPinError('');
+  };
+
+  const handlePinClear = () => {
+    setEnteredPin('');
+    setPinError('');
+  };
+
+  const handleSwitchToFullLogin = () => {
+    setIsPinLocked(false);
+    setIsPortalAuthenticated(false);
+    setEnteredPin('');
+    setPinError('');
+  };
+
+  const handleLockPortalNow = () => {
+    if (isPinEnabled && savedPin) {
+      setIsPinLocked(true);
+      setIsSettingsModalOpen(false);
+      setMobileMenuOpen(false);
+      showToast('המרחב האישי ננעל בהצלחה 🔒');
+    } else {
+      setIsSettingsModalOpen(true);
+      setSettingsMsg({ type: 'error', text: 'כדי לנעול במהירות, יש להגדיר תחילה קוד PIN בן 4 ספרות' });
+    }
+  };
 
   const handlePortalLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,12 +376,24 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       if (!res.ok) {
         throw new Error(resData.error || 'פרטי התחברות שגויים');
       }
-      localStorage.setItem(authSessionKey, 'true');
+
       sessionStorage.setItem(authSessionKey, 'true');
+
+      if (rememberMe) {
+        localStorage.setItem(authSessionKey, 'true');
+        localStorage.setItem(`wisecare_saved_user_${portalCode}`, loginUsername.trim());
+        localStorage.setItem(`wisecare_remember_me_${portalCode}`, 'true');
+      } else {
+        localStorage.removeItem(authSessionKey);
+        localStorage.removeItem(`wisecare_remember_me_${portalCode}`);
+      }
+
       try {
         localStorage.setItem('wisecare_last_portal', portalCode);
       } catch {}
+
       setIsPortalAuthenticated(true);
+      setIsPinLocked(false);
       showToast('ברוך/ה הבא/ה למרחב האישי שלך! ✨');
     } catch (err: any) {
       setLoginError(err.message || 'שגיאה בהתחברות');
@@ -284,10 +410,71 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       localStorage.removeItem('wisecare_last_portal');
     } catch {}
     setIsPortalAuthenticated(false);
+    setIsPinLocked(false);
     setLoginPassword('');
+    setIsSettingsModalOpen(false);
     showToast('התנתקת מהמרחב בהצלחה 🔒');
     if (data?.portalInfo?.isSelfCare) {
       window.location.replace('/join?view=login');
+    }
+  };
+
+  // Settings Actions
+  const handleSaveNewPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSettingsMsg(null);
+
+    if (!/^\d{4}$/.test(pinFormNew)) {
+      setSettingsMsg({ type: 'error', text: 'קוד ה-PIN חייב להכיל בדיוק 4 ספרות (0-9)' });
+      return;
+    }
+    if (pinFormNew !== pinFormConfirm) {
+      setSettingsMsg({ type: 'error', text: 'אימות הקוד אינו תואם לקוד שהזנת' });
+      return;
+    }
+
+    try {
+      localStorage.setItem(`wisecare_pin_${portalCode}`, pinFormNew);
+      localStorage.setItem(`wisecare_pin_enabled_${portalCode}`, 'true');
+      setSavedPin(pinFormNew);
+      setIsPinEnabled(true);
+      setPinFormNew('');
+      setPinFormConfirm('');
+      setSettingsMsg({ type: 'success', text: 'קוד PIN בן 4 ספרות הוגדר והופעל בהצלחה! 🔒' });
+    } catch {
+      setSettingsMsg({ type: 'error', text: 'שגיאה בשמירת קוד ה-PIN במכשיר' });
+    }
+  };
+
+  const handleTogglePinEnabled = (enable: boolean) => {
+    setSettingsMsg(null);
+    if (!enable) {
+      try {
+        localStorage.setItem(`wisecare_pin_enabled_${portalCode}`, 'false');
+        setIsPinEnabled(false);
+        setSettingsMsg({ type: 'success', text: 'נעילת ה-PIN בוטלה. כעת הכניסה מהירה ללא קוד.' });
+      } catch {}
+    } else {
+      if (savedPin && savedPin.length === 4) {
+        try {
+          localStorage.setItem(`wisecare_pin_enabled_${portalCode}`, 'true');
+          setIsPinEnabled(true);
+          setSettingsMsg({ type: 'success', text: 'נעילת PIN הופעלה מחדש בהצלחה 🔒' });
+        } catch {}
+      } else {
+        setSettingsMsg({ type: 'error', text: 'נא להזין קוד בן 4 ספרות מטה ולהפעיל אותו' });
+      }
+    }
+  };
+
+  const handleClearSavedCredentials = () => {
+    try {
+      localStorage.removeItem(authSessionKey);
+      localStorage.removeItem(`wisecare_saved_user_${portalCode}`);
+      localStorage.removeItem(`wisecare_remember_me_${portalCode}`);
+      setSettingsMsg({ type: 'success', text: 'פרטי ההתחברות השמורים נמחקו ממכשיר זה. בכניסה הבאה תידרש/י להזין שם משתמש וסיסמה.' });
+    } catch {
+      setSettingsMsg({ type: 'error', text: 'שגיאה במחיקת הנתונים השמורים' });
     }
   };
 
@@ -838,6 +1025,19 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               </div>
             </div>
 
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px', cursor: 'pointer' }} onClick={() => setRememberMe(!rememberMe)}>
+              <input 
+                type="checkbox" 
+                id="rememberMeCheckbox"
+                checked={rememberMe} 
+                onChange={e => setRememberMe(e.target.checked)}
+                style={{ width: '18px', height: '18px', accentColor: '#0d9488', cursor: 'pointer' }} 
+              />
+              <label htmlFor="rememberMeCheckbox" style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
+                זכור אותי במכשיר זה (כניסה אוטומטית בעתיד)
+              </label>
+            </div>
+
             <button 
               type="submit"
               className="btn btn-primary"
@@ -863,6 +1063,131 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
             לא קיבלת או שכחת את פרטי הגישה?
             <br />
             פנה/י למטפל/ת שלך לקבלת תזכורת עם הסיסמה בוואטסאפ.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Security Gate 2: Quick 4-Digit PIN Lock Screen (when authenticated on device & PIN is enabled)
+  if (data?.portalInfo?.hasPassword && isPortalAuthenticated && isPinLocked) {
+    return (
+      <div className="portal-pin-wrapper">
+        <div className={`portal-pin-card ${pinShake ? 'portal-pin-shake' : ''}`}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '22px',
+            background: 'rgba(45, 212, 191, 0.15)',
+            color: '#2dd4bf',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 16px',
+            border: '1px solid rgba(45, 212, 191, 0.3)',
+            boxShadow: '0 8px 24px rgba(45, 212, 191, 0.2)'
+          }}>
+            <Lock size={30} />
+          </div>
+
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#ffffff', margin: '0 0 6px 0' }}>
+            מרחב אישי נעול
+          </h2>
+          <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: '0 0 4px 0' }}>
+            {data.portalInfo.clientName} • {data.portalInfo.clinicName || 'WiseCare'}
+          </p>
+          <div style={{ fontSize: '0.82rem', color: '#5eead4', marginTop: '6px' }}>
+            הזינו קוד PIN בן 4 ספרות לפתיחה מהירה
+          </div>
+
+          {pinError && (
+            <div style={{
+              marginTop: '16px',
+              padding: '9px 14px',
+              background: 'rgba(239, 68, 68, 0.2)',
+              border: '1px solid rgba(239, 68, 68, 0.45)',
+              borderRadius: '12px',
+              color: '#fca5a5',
+              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px'
+            }}>
+              <AlertCircle size={15} />
+              <span>{pinError}</span>
+            </div>
+          )}
+
+          {/* 4 Dots Indicator */}
+          <div className="portal-pin-dots">
+            {[0, 1, 2, 3].map(index => (
+              <div 
+                key={index} 
+                className={`portal-pin-dot ${index < enteredPin.length ? 'is-filled' : ''}`} 
+              />
+            ))}
+          </div>
+
+          {/* Numeric Keypad */}
+          <div className="portal-pin-keypad">
+            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
+              <button
+                key={num}
+                type="button"
+                className="portal-pin-key"
+                onClick={() => handlePinDigit(num)}
+              >
+                {num}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="portal-pin-key is-action"
+              onClick={handlePinClear}
+              title="נקה הכל"
+            >
+              C
+            </button>
+            <button
+              type="button"
+              className="portal-pin-key"
+              onClick={() => handlePinDigit('0')}
+            >
+              0
+            </button>
+            <button
+              type="button"
+              className="portal-pin-key is-action"
+              onClick={handlePinBackspace}
+              title="מחק ספרה אחרונה"
+            >
+              ⌫
+            </button>
+          </div>
+
+          {/* Switch to Full Password Login Link */}
+          <div style={{ marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <button
+              type="button"
+              onClick={handleSwitchToFullLogin}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#5eead4',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textUnderlineOffset: '4px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              <KeyRound size={15} />
+              <span>שכחת את ה-PIN? כניסה עם שם משתמש וסיסמה</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1140,27 +1465,54 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                 </div>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={handlePortalLogout}
-              style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
-                borderRadius: '8px',
-                padding: '6px 10px',
-                fontSize: '0.78rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px'
-              }}
-              title="התנתקות מהמרחב"
-            >
-              <Lock size={12} />
-              <span>יציאה</span>
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setSettingsMsg(null);
+                  setIsSettingsModalOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  color: '#e2e8f0',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  borderRadius: '8px',
+                  padding: '6px 9px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="הגדרות אבטחה ופרטיות המרחב"
+              >
+                <Settings size={13} />
+                <span>הגדרות</span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePortalLogout}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  color: '#fca5a5',
+                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  borderRadius: '8px',
+                  padding: '6px 9px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+                title="התנתקות מהמרחב"
+              >
+                <Lock size={12} />
+                <span>יציאה</span>
+              </button>
+            </div>
           </div>
         </div>
       </aside>
@@ -1293,6 +1645,57 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               </div>
             </div>
 
+            {isPinEnabled && (
+              <button
+                type="button"
+                onClick={handleLockPortalNow}
+                style={{
+                  background: 'rgba(13, 148, 136, 0.1)',
+                  color: '#0d9488',
+                  border: '1px solid rgba(13, 148, 136, 0.3)',
+                  padding: '5px 11px',
+                  borderRadius: '8px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  whiteSpace: 'nowrap'
+                }}
+                title="נעילת מסך מהירה עם קוד PIN"
+              >
+                <Lock size={13} />
+                <span>נעילה</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                setSettingsMsg(null);
+                setIsSettingsModalOpen(true);
+              }}
+              style={{
+                background: 'rgba(100, 116, 139, 0.1)',
+                color: '#334155',
+                border: '1px solid rgba(100, 116, 139, 0.25)',
+                padding: '5px 12px',
+                borderRadius: '8px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                whiteSpace: 'nowrap'
+              }}
+              title="הגדרות אבטחה ופרטיות המרחב"
+            >
+              <Settings size={14} />
+              <span>הגדרות</span>
+            </button>
+
             <button
               type="button"
               onClick={handlePortalLogout}
@@ -1310,9 +1713,9 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                 gap: '5px',
                 whiteSpace: 'nowrap'
               }}
-              title="התנתקות ונעילת המרחב"
+              title="התנתקות מהמרחב"
             >
-              <Lock size={13} />
+              <LogOut size={13} />
               <span>התנתקות</span>
             </button>
           </div>
@@ -3007,6 +3410,294 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
       />
+
+      {/* Client Portal: Settings & Security Modal */}
+      {isSettingsModalOpen && (
+        <div 
+          className="portal-settings-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsSettingsModalOpen(false);
+            }
+          }}
+        >
+          <div className="portal-settings-modal-card">
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '20px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  background: 'rgba(13, 148, 136, 0.12)',
+                  color: '#0d9488',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Settings size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    הגדרות אבטחה ופרטיות המרחב
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: '#64748b', margin: '4px 0 0 0' }}>
+                    הגנת פרטיות המרחב, נעילת PIN מהירה וניהול המכשיר
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsSettingsModalOpen(false)}
+                style={{
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '34px',
+                  height: '34px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Notification alert within settings */}
+            {settingsMsg && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px 14px',
+                borderRadius: '12px',
+                fontSize: '0.88rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                background: settingsMsg.type === 'success' ? '#f0fdf4' : '#fef2f2',
+                border: `1px solid ${settingsMsg.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
+                color: settingsMsg.type === 'success' ? '#166534' : '#dc2626'
+              }}>
+                {settingsMsg.type === 'success' ? <CheckCircle2 size={18} color="#16a34a" /> : <AlertCircle size={18} color="#dc2626" />}
+                <span>{settingsMsg.text}</span>
+              </div>
+            )}
+
+            {/* Section 1: 4-Digit PIN Lock */}
+            <div className="portal-settings-section">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <KeyRound size={18} color="#0d9488" />
+                  <span style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
+                    נעילת PIN מהירה (4 ספרות)
+                  </span>
+                </div>
+                <label className="portal-settings-toggle">
+                  <input
+                    type="checkbox"
+                    checked={isPinEnabled}
+                    onChange={(e) => handleTogglePinEnabled(e.target.checked)}
+                  />
+                  <span className="portal-settings-slider" />
+                </label>
+              </div>
+
+              <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 14px 0' }}>
+                הגנה מפני מי שמחזיק בטלפון שלך. כשנעילת PIN מופעלת, בכניסה למרחב מקישים 4 ספרות בלבד במקום שם משתמש וסיסמה ארוכים.
+              </p>
+
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 10px',
+                borderRadius: '8px',
+                fontSize: '0.8rem',
+                fontWeight: 700,
+                marginBottom: '16px',
+                background: isPinEnabled ? '#ecfdf5' : '#fef3c7',
+                color: isPinEnabled ? '#047857' : '#b45309',
+                border: `1px solid ${isPinEnabled ? '#a7f3d0' : '#fde68a'}`
+              }}>
+                {isPinEnabled ? <ShieldCheck size={14} /> : <AlertCircle size={14} />}
+                <span>{isPinEnabled ? 'נעילת PIN פעילה במכשיר זה 🔒' : 'נעילת PIN אינה פעילה כרגע'}</span>
+              </div>
+
+              {/* Set / Change PIN Form */}
+              <form onSubmit={handleSaveNewPin} style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '14px' }}>
+                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '10px' }}>
+                  {isPinEnabled ? 'שינוי או עדכון קוד PIN (4 ספרות)' : 'הגדרת קוד PIN בן 4 ספרות'}
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      קוד PIN חדש (4 ספרות)
+                    </label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      dir="ltr"
+                      placeholder="••••"
+                      value={pinFormNew}
+                      onChange={e => setPinFormNew(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="form-control"
+                      style={{ textAlign: 'center', letterSpacing: '6px', fontSize: '1.2rem', fontWeight: 800, padding: '8px', borderRadius: '10px' }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.78rem', color: '#64748b', display: 'block', marginBottom: '4px' }}>
+                      אימות קוד PIN
+                    </label>
+                    <input
+                      type="password"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      dir="ltr"
+                      placeholder="••••"
+                      value={pinFormConfirm}
+                      onChange={e => setPinFormConfirm(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                      className="form-control"
+                      style={{ textAlign: 'center', letterSpacing: '6px', fontSize: '1.2rem', fontWeight: 800, padding: '8px', borderRadius: '10px' }}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '10px',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Lock size={15} />
+                  <span>שמור והפעל קוד PIN 🔒</span>
+                </button>
+              </form>
+            </div>
+
+            {/* Section 2: Device Remember Me Status */}
+            <div className="portal-settings-section">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <Smartphone size={18} color="#0d9488" />
+                <span style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
+                  שמירת כניסה במכשיר זה
+                </span>
+              </div>
+              <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 12px 0' }}>
+                המכשיר שלך זוכר את פרטי החיבור כך שאין צורך להזין מחדש שם משתמש וסיסמה בכל פעם שאת/ה חוזר/ת למרחב.
+              </p>
+              <button
+                type="button"
+                onClick={handleClearSavedCredentials}
+                style={{
+                  background: '#ffffff',
+                  color: '#475569',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '10px',
+                  padding: '8px 14px',
+                  fontSize: '0.82rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                <Trash2 size={14} color="#64748b" />
+                <span>נקה פרטי התחברות שמורים ממכשיר זה</span>
+              </button>
+            </div>
+
+            {/* Section 3: Account & Clinic Summary */}
+            <div className="portal-settings-section" style={{ fontSize: '0.86rem', color: '#475569' }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>פרטי החשבון שלך</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                <span>שם מטופל/ת:</span>
+                <strong>{portalInfo.clientName}</strong>
+              </div>
+              {loginUsername && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span>שם משתמש:</span>
+                  <strong dir="ltr">{loginUsername}</strong>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>קליניקה / מרחב:</span>
+                <strong>{portalInfo.clinicName || 'WiseCare'}</strong>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '10px' }}>
+              {isPinEnabled && (
+                <button
+                  type="button"
+                  onClick={handleLockPortalNow}
+                  style={{
+                    background: 'rgba(13, 148, 136, 0.1)',
+                    color: '#0d9488',
+                    border: '1px solid rgba(13, 148, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '11px',
+                    fontWeight: 700,
+                    fontSize: '0.88rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  <Lock size={16} />
+                  <span>נעילת מסך עכשיו</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handlePortalLogout}
+                style={{
+                  gridColumn: isPinEnabled ? 'auto' : '1 / -1',
+                  background: 'rgba(239, 68, 68, 0.08)',
+                  color: '#dc2626',
+                  border: '1px solid rgba(239, 68, 68, 0.3)',
+                  borderRadius: '12px',
+                  padding: '11px',
+                  fontWeight: 700,
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px'
+                }}
+              >
+                <LogOut size={16} />
+                <span>התנתקות מלאה מהמרחב</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
