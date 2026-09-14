@@ -58,8 +58,37 @@ export default function IntroManager() {
       // account. This prevents the intro from flashing before the redirect.
       if (!forceReplay) {
         try {
-          const therapistRes = await fetch('/api/auth/me');
-          if (therapistRes.ok) {
+          const lastPortal = localStorage.getItem('wisecare_last_portal');
+          const portalToken = localStorage.getItem('wisecare_portal_token');
+          const cachedUserStr = localStorage.getItem('wisecare_user');
+
+          // 1. Instant client-side redirect if session tokens are locally cached
+          if (lastPortal && portalToken) {
+            window.location.replace(`/portal/${encodeURIComponent(lastPortal)}`);
+            return;
+          }
+
+          if (cachedUserStr) {
+            try {
+              const cachedUser = JSON.parse(cachedUserStr);
+              if (cachedUser?.loginCode) {
+                window.location.replace(`/crm/${encodeURIComponent(cachedUser.loginCode)}/clients`);
+                return;
+              }
+            } catch {}
+          }
+
+          // 2. Otherwise verify sessions concurrently in parallel
+          const [therapistRes, portalRes] = await Promise.all([
+            fetch('/api/auth/me').catch(() => null),
+            lastPortal
+              ? fetch(`/api/portal/${encodeURIComponent(lastPortal)}/verify-auth`, {
+                  headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
+                }).catch(() => null)
+              : Promise.resolve(null)
+          ]);
+
+          if (therapistRes?.ok) {
             const session = await therapistRes.json();
             if (session.user?.loginCode) {
               localStorage.setItem('wisecare_user', JSON.stringify(session.user));
@@ -69,13 +98,7 @@ export default function IntroManager() {
             }
           }
 
-          const lastPortal = localStorage.getItem('wisecare_last_portal');
-          if (!lastPortal) return;
-          const portalToken = localStorage.getItem('wisecare_portal_token');
-          const portalRes = await fetch(`/api/portal/${encodeURIComponent(lastPortal)}/verify-auth`, {
-            headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
-          });
-          if (portalRes.ok) {
+          if (portalRes?.ok && lastPortal) {
             const session = await portalRes.json();
             if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
             window.location.replace(`/portal/${encodeURIComponent(lastPortal)}`);

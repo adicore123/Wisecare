@@ -16,6 +16,7 @@ export interface UserPayload {
   userId: string;
   role: 'therapist' | 'superadmin' | 'client';
   username: string;
+  loginCode?: string;
 }
 
 export interface ClientPayload {
@@ -27,10 +28,10 @@ export interface ClientPayload {
 /**
  * Sign a JWT for a therapist or superadmin user
  */
-export function signToken(user: { id: string; role: string; username: string }): string {
+export function signToken(user: { id: string; role: string; username: string; loginCode?: string }): string {
   const secret = getSecret();
   return jwt.sign(
-    { userId: user.id, role: user.role, username: user.username },
+    { userId: user.id, role: user.role, username: user.username, loginCode: user.loginCode },
     secret,
     { expiresIn: '30d', issuer: 'wisecare', audience: 'wisecare-app' }
   );

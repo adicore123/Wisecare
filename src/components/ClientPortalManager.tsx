@@ -1683,17 +1683,18 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               className="mobile-menu-btn"
               onClick={() => setMobileMenuOpen(true)}
               title="פתח תפריט אישי"
+              aria-label="פתח תפריט אישי"
             >
               <Menu size={22} />
             </button>
 
             <div className="portal-security-pill">
               <ShieldCheck size={16} aria-hidden="true" />
-              <span>מרחב אישי מוצפן • {portalInfo.clinicName}</span>
+              <span className="portal-security-text">מרחב אישי מוצפן • {portalInfo.clinicName}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="portal-navbar-actions">
             <div className="portal-date-summary">
               <div>
                 <Calendar size={14} aria-hidden="true" />
@@ -1709,24 +1710,12 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               <button
                 type="button"
                 onClick={handleLockPortalNow}
-                style={{
-                  background: 'rgba(13, 148, 136, 0.1)',
-                  color: '#0d9488',
-                  border: '1px solid rgba(13, 148, 136, 0.3)',
-                  padding: '5px 11px',
-                  borderRadius: '8px',
-                  fontSize: '0.82rem',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  whiteSpace: 'nowrap'
-                }}
+                className="portal-nav-btn portal-nav-btn-lock"
                 title="נעילת מסך מהירה עם קוד PIN"
+                aria-label="נעילת מסך מהירה"
               >
-                <Lock size={13} />
-                <span>נעילה</span>
+                <Lock size={14} />
+                <span className="portal-btn-label">נעילה</span>
               </button>
             )}
 
@@ -1736,47 +1725,23 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                 setSettingsMsg(null);
                 setIsSettingsModalOpen(true);
               }}
-              style={{
-                background: 'rgba(100, 116, 139, 0.1)',
-                color: '#334155',
-                border: '1px solid rgba(100, 116, 139, 0.25)',
-                padding: '5px 12px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                whiteSpace: 'nowrap'
-              }}
+              className="portal-nav-btn portal-nav-btn-settings"
               title="הגדרות אבטחה ופרטיות המרחב"
+              aria-label="הגדרות אבטחה ופרטיות המרחב"
             >
               <Settings size={14} />
-              <span>הגדרות</span>
+              <span className="portal-btn-label">הגדרות</span>
             </button>
 
             <button
               type="button"
               onClick={handlePortalLogout}
-              style={{
-                background: 'rgba(239, 68, 68, 0.08)',
-                color: '#dc2626',
-                border: '1px solid rgba(239, 68, 68, 0.25)',
-                padding: '5px 12px',
-                borderRadius: '8px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '5px',
-                whiteSpace: 'nowrap'
-              }}
+              className="portal-nav-btn portal-nav-btn-logout"
               title="התנתקות מהמרחב"
+              aria-label="התנתקות מהמרחב"
             >
-              <LogOut size={13} />
-              <span>התנתקות</span>
+              <LogOut size={14} />
+              <span className="portal-btn-label">התנתקות</span>
             </button>
           </div>
         </header>
