@@ -162,13 +162,13 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
       if (!currentTherapist) {
         const u = localStorage.getItem('wisecare_user');
         if (u) {
-          try { setCurrentTherapist(JSON.parse(u)); } catch {}
+          try { setCurrentTherapist(JSON.parse(u)); } catch { }
         }
       }
       if (clients.length === 0) {
         api.getClients().then((data: any) => {
           if (Array.isArray(data)) setClients(data);
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
   }, [currentTherapist, clients.length]);
@@ -228,7 +228,7 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
             }
           }
         })
-        .catch(() => {})
+        .catch(() => { })
         .finally(() => {
           setPreviewLoading(false);
         });
@@ -386,9 +386,9 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
     try {
       const fallbackTitle = form.title.trim() || (
         form.type === 'video' ? `סרטון (${form.sourceName || 'מהרשת'})` :
-        form.type === 'post' ? `פוסט (${form.sourceName || 'מרשת חברתית'})` :
-        form.type === 'article' ? (form.description.trim().split('\n')[0].replace(/^[#*-\s]+/, '').slice(0, 50) || 'מאמר טיפולי') :
-        `תוכן (${form.sourceName || 'כללי'})`
+          form.type === 'post' ? `פוסט (${form.sourceName || 'מרשת חברתית'})` :
+            form.type === 'article' ? (form.description.trim().split('\n')[0].replace(/^[#*-\s]+/, '').slice(0, 50) || 'מאמר טיפולי') :
+              `תוכן (${form.sourceName || 'כללי'})`
       );
       const item = await api.createContentItem({
         ...form,

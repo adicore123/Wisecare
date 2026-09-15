@@ -14,6 +14,7 @@ export async function GET(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -38,6 +39,7 @@ export async function PUT(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -70,6 +72,7 @@ export async function PUT(
     }
 
     const updated = db.collection('contentItems').updateById(id, updateData);
+    await db.flush();
     const enriched = enrichItems([updated]);
     return NextResponse.json(enriched[0]);
   } catch (err: unknown) {
@@ -83,6 +86,7 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -99,6 +103,8 @@ export async function DELETE(
     const relatedAssignments = assignments.find({ contentId: item.id });
     relatedAssignments.forEach((assignment: any) => assignments.deleteById(assignment.id));
     items.deleteById(item.id);
+
+    await db.flush();
 
     return NextResponse.json({ success: true, message: 'הפריט נמחק מהספרייה והוסר מכל המטופלים' });
   } catch (err: unknown) {

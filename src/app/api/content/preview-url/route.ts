@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
               bytesRead += value.length;
               if (html.includes('</head>')) break;
             }
-            reader.cancel().catch(() => {});
+            reader.cancel().catch(() => { });
 
             const ogTitleMatch =
               html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ||
@@ -115,14 +115,21 @@ export async function POST(request: NextRequest) {
               sourceName = decodeHtmlEntities(ogSiteNameMatch[1].trim());
             }
 
+            const isExplicitPost = (url.includes('facebook.com') || url.includes('fb.com')) &&
+              (url.includes('/share/p/') || url.includes('/posts/') || url.includes('permalink.php'));
             const ogTypeMatch = html.match(/<meta[^>]+property=["']og:type["'][^>]+content=["']([^"']+)["']/i);
-            if (ogTypeMatch?.[1]?.toLowerCase().includes('video')) {
+            if (!isExplicitPost && ogTypeMatch?.[1]?.toLowerCase().includes('video')) {
               type = 'video';
               if (!sourceName.toLowerCase().includes('video') && !sourceName.toLowerCase().includes('reel')) {
                 sourceName = `${sourceName} Video`;
               }
             } else if (ogTypeMatch?.[1]?.toLowerCase().includes('article')) {
               type = 'article';
+            } else if (isExplicitPost) {
+              type = 'post';
+              if (!sourceName.includes('Post') && !sourceName.includes('פוסט')) {
+                sourceName = 'Facebook Post';
+              }
             }
 
             let cleanTitle = decodeHtmlEntities(rawTitle);

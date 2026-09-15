@@ -6,6 +6,7 @@ export async function POST(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { url, title, description, type = 'video', imageData, sourceName, category = 'אישי' } = body;
@@ -21,8 +22,8 @@ export async function POST(
 
     const finalTitle = (title && String(title).trim()) ? String(title).trim() : (
       type === 'video' ? `סרטון (${sourceName || 'מהרשת'})` :
-      type === 'post' ? `פוסט (${sourceName || 'מרשת חברתית'})` :
-      'פריט תוכן'
+        type === 'post' ? `פוסט (${sourceName || 'מרשת חברתית'})` :
+          'פריט תוכן'
     );
 
     const item = db.collection('contentItems').insertOne({
@@ -35,6 +36,7 @@ export async function POST(
       sourceName: sourceName ? String(sourceName).trim() : '',
       category: category ? String(category).trim() : 'אישי',
       customNote: '',
+      archived: false,
       createdAt: new Date().toISOString()
     });
 
@@ -44,6 +46,8 @@ export async function POST(
       notificationStatus: 'none',
       createdAt: new Date().toISOString()
     });
+
+    await db.flush();
 
     return NextResponse.json({
       id: item.id,

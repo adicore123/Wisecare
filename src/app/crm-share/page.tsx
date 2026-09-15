@@ -2,16 +2,16 @@
 
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { 
-  Share2, 
-  Video, 
-  ExternalLink, 
-  Loader2, 
-  Sparkles, 
-  CheckCircle2, 
-  ArrowLeft, 
-  User, 
-  BookOpen, 
+import {
+  Share2,
+  Video,
+  ExternalLink,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  ArrowLeft,
+  User,
+  BookOpen,
   HeartHandshake
 } from 'lucide-react';
 import Link from 'next/link';
@@ -26,7 +26,11 @@ function detectPlatform(urlStr: string) {
 
     if (host.includes('facebook.com') || host.includes('fb.watch') || host.includes('fb.com')) {
       const isReel = path.includes('/reel') || path.includes('/share/r');
-      return { type: 'video', name: isReel ? 'Facebook Reel' : 'Facebook Video', color: '#1877f2' };
+      const isVideo = isReel || path.includes('/watch') || path.includes('/share/v') || path.includes('/videos/') || path.includes('/video.php') || host.includes('fb.watch') || parsed.searchParams.has('v');
+      if (isVideo) {
+        return { type: 'video', name: isReel ? 'Facebook Reel' : 'Facebook Video', color: '#1877f2' };
+      }
+      return { type: 'post', name: 'Facebook Post', color: '#1877f2' };
     }
     if (host.includes('youtube.com') || host.includes('youtu.be')) {
       const isShorts = path.includes('/shorts/');
@@ -111,7 +115,7 @@ function ShareTargetContent() {
     if (detectedUrl || cleanTitle || cleanDesc) {
       try {
         localStorage.setItem('wisecare_pending_share', JSON.stringify(data));
-      } catch {}
+      } catch { }
     }
 
     // 2. Check Authentication & Auto-Route
@@ -145,6 +149,7 @@ function ShareTargetContent() {
 
         const timer = setTimeout(() => {
           const q = new URLSearchParams();
+          q.set('tab', 'content');
           q.set('share', '1');
           if (detectedUrl) q.set('share_url', detectedUrl);
           if (cleanTitle) q.set('share_title', cleanTitle);
@@ -179,6 +184,7 @@ function ShareTargetContent() {
     if (!portalCodeInput.trim()) return;
     const code = portalCodeInput.trim();
     const q = new URLSearchParams();
+    q.set('tab', 'content');
     q.set('share', '1');
     if (shareData.url) q.set('share_url', shareData.url);
     if (shareData.title) q.set('share_title', shareData.title);
@@ -222,7 +228,7 @@ function ShareTargetContent() {
             {/* Shared Item Preview */}
             <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-4 text-slate-700">
               <div className="flex items-center justify-between mb-2">
-                <span 
+                <span
                   className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full text-white shadow-sm"
                   style={{ backgroundColor: shareData.platform.color }}
                 >
@@ -239,10 +245,10 @@ function ShareTargetContent() {
               )}
 
               {shareData.url ? (
-                <a 
-                  href={shareData.url} 
-                  target="_blank" 
-                  rel="noreferrer" 
+                <a
+                  href={shareData.url}
+                  target="_blank"
+                  rel="noreferrer"
                   className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1 truncate font-mono dir-ltr mt-1"
                 >
                   <ExternalLink size={12} className="shrink-0" />
@@ -319,8 +325,8 @@ function ShareTargetContent() {
             </form>
 
             <div className="text-center pt-2">
-              <Link 
-                href="/" 
+              <Link
+                href="/"
                 className="text-xs text-slate-400 hover:text-slate-600 transition-colors"
               >
                 חזרה לדף הבית של WiseCare

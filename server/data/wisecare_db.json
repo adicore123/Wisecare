@@ -183,6 +183,22 @@
       "therapistId": "id-1789280216249-ghmjw2",
       "whatsappStatus": "sent",
       "updatedAt": "2026-09-14T13:46:10.246Z"
+    },
+    {
+      "createdAt": "2026-09-14T17:55:54.517Z",
+      "email": "elior12345@gmail.com",
+      "firstName": "אלי",
+      "goal": "נשימות, ויסות לחצים ורוגע נפשי",
+      "id": "id-1789408554517-7994f960",
+      "isSelfCare": true,
+      "lastName": "טריק",
+      "password": "b1141d00eddfd6719377b0e19faec4b4:535f00e2d46e82e0c217ae6b4edeccbed61d7aa8a185ec81f6522b396d6e7e4e668700be2fdda0f45373d49fb6927dbad44f6e07d2f67580719fec7f1a0791e3",
+      "phone": "0504312884",
+      "portalCode": "my-248315",
+      "source": "self_join",
+      "status": "active",
+      "therapistId": null,
+      "username": "elior"
     }
   ],
   "tasks": [
@@ -228,6 +244,19 @@
       "id": "id-1789393189451-e5529e16",
       "therapistId": "therapist-1",
       "title": "שאלון מעקב שבועי - תחושות וחוויות"
+    },
+    {
+      "category": "רוגע וויסות",
+      "clientId": "id-1789408554517-7994f960",
+      "clientNotes": "",
+      "completed": false,
+      "createdAt": "2026-09-14T17:58:11.310Z",
+      "description": "חשוב לקפוץ 10 פעמים",
+      "dueDate": "2026-09-22",
+      "id": "id-1789408691310-116bcbf3",
+      "isSelfCreated": true,
+      "therapistId": null,
+      "title": "תרגיל קפיצה על רגל אחת"
     }
   ],
   "contentItems": [
@@ -685,6 +714,72 @@
       "title": "Secret Tel Aviv | יש לי נטייה קצת מעצבנת להפוך כמעט כל דבר שקורה לי בחיים לתובנה  | Facebook",
       "type": "video",
       "url": "https://www.facebook.com/share/p/1LJbPq6my2/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T17:30:51.706Z",
+      "customNote": "",
+      "description": "Jonathan Corrigan on Reels",
+      "id": "id-1789407051706-d44f4bf5",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/764854950_1713637113200979_4262233115885165349_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=a27664&_nc_ohc=Tc7aoNq6-2QQ7kNvwGdth9I&_nc_oc=AdpwN1Pa4b88OX5XdDd_V1TqpH-eOOyMtGsFZEfqW6jFyQehgviAcnlCmuSqMqZsrNw&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=aOGE1KfcO49sNYaI5lpoug&_nc_ss=7f180&oh=00_AQL4dTrwt7hgOD-BCDvoV1HhhSUaehb7dZTT3GcwhQFgtg&oe=6AADF383",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Jonathan Corrigan on Reels",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DjAwHLtQo/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-14T20:58:01.894Z",
+      "customNote": "",
+      "description": "#garyvee #motivation #advice #positivity",
+      "id": "id-1789419481894-a68533f3",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/777800384_1123892980589372_6665970607034468065_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=596eb7&_nc_ohc=-r9b7K8Nyr0Q7kNvwE8Jg9D&_nc_oc=Adq17yil-P-TVMUnP3vB8rB3KpMFrxcUW2srRj-cCCGZ-zWBh37mi0YoJGAE2z9NpVc&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=0wiaFC7y_4pEsPM4ouJLNw&_nc_ss=7f180&oh=00_AQIPlApenlr5pjupYTUc-kfJ5S_OWR0lFq2gfOMmQRcGLA&oe=6AAE1C41",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "#garyvee #motivation #advice #positivity | GaryVee Video Experience",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1EXfNxz5D8/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-15T05:36:53.147Z",
+      "customNote": "",
+      "description": "שכחת מי אתה. שכחת את הכוחות שלך, והעוצמות הפנימיות שיש בך. זה בסדר, זה קורה לטובים, למצליחים ולחזקים ביותר.\n\nבזמן של משבר, עסקי או אישי, אנחנו לפעמים שוכחים מי אנחנו, מה עשינו בעבר, ומה אנחנו עדיין...",
+      "id": "id-1789450613148-fbcf80ce",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/686539788_26729469580005909_3135749586298562564_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=a27664&_nc_ohc=ItH8rPfLxpMQ7kNvwEZRILI&_nc_oc=AdoMrjffO8y7sCjV-4-s2Lckm-GZOiFiKCp1DB9q2PhP0NIS-qvwsLmvErXiXek_VrY&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=sm_sfM8yWVXfS02nJxSHfA&_nc_ss=7f180&oh=00_AQJ2WeSwUzi0M9-mvTLvVLoDktXSvPF8ft-RogQU7ahr7Q&oe=6AAEBCDD",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "שכחת מי אתה. שכחת את הכוחות שלך, והעוצמות הפנימיות שיש בך. זה בסדר, זה קורה לטובים, למצליחים ולחזקים ביותר.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1JZ1aM4Qbh/"
+    },
+    {
+      "category": "אישי",
+      "createdAt": "2026-09-15T05:44:53.925Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789451093925-6d14a171",
+      "imageData": "",
+      "sourceName": "",
+      "therapistId": null,
+      "title": "פוסט בדיקה",
+      "type": "post",
+      "url": "https://www.facebook.com/share/p/1EwJtRAh2Q/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-15T06:08:46.133Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789452526133-456a9323",
+      "imageData": "",
+      "sourceName": "Facebook Post",
+      "therapistId": null,
+      "title": "בדיקת פוסט פייסבוק חי",
+      "type": "post",
+      "url": "https://www.facebook.com/share/p/1EwJtRAh2Q/"
     }
   ],
   "contentAssignments": [
@@ -886,13 +981,6 @@
     },
     {
       "clientId": "id-1789391820252-e1468943",
-      "contentId": "id-1789392455604-1396b39b",
-      "createdAt": "2026-09-14T13:27:35.605Z",
-      "id": "id-1789392455605-bd3a0118",
-      "notificationStatus": "none"
-    },
-    {
-      "clientId": "id-1789391820252-e1468943",
       "contentId": "id-1789392480602-f680ab2a",
       "createdAt": "2026-09-14T13:28:00.603Z",
       "id": "id-1789392480603-f89b4316",
@@ -924,6 +1012,41 @@
       "contentId": "id-1789397098420-7c463e1c",
       "createdAt": "2026-09-14T14:44:58.421Z",
       "id": "id-1789397098421-4d1c9b69",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789407051706-d44f4bf5",
+      "createdAt": "2026-09-14T17:30:51.708Z",
+      "id": "id-1789407051708-acb77cb4",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789419481894-a68533f3",
+      "createdAt": "2026-09-14T20:58:01.895Z",
+      "id": "id-1789419481895-ff9f716b",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789450613148-fbcf80ce",
+      "createdAt": "2026-09-15T05:36:53.149Z",
+      "id": "id-1789450613149-3c63108c",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789451093925-6d14a171",
+      "createdAt": "2026-09-15T05:44:53.927Z",
+      "id": "id-1789451093927-999a489e",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789452526133-456a9323",
+      "createdAt": "2026-09-15T06:08:46.137Z",
+      "id": "id-1789452526137-1999af55",
       "notificationStatus": "none"
     }
   ],

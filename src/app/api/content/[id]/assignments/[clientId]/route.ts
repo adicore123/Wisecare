@@ -7,6 +7,7 @@ export async function DELETE(
   props: { params: Promise<{ id: string; clientId: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -23,6 +24,7 @@ export async function DELETE(
     }
 
     db.collection('contentAssignments').deleteById(assignment.id);
+    await db.flush();
     return NextResponse.json({ success: true, message: 'התוכן הוסר מהמטופל שנבחר' });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בהסרת שיוך תוכן';

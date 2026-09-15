@@ -6,6 +6,7 @@ export async function DELETE(
   props: { params: Promise<{ portalCode: string; contentId: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
@@ -16,6 +17,8 @@ export async function DELETE(
     for (const a of assignments) {
       db.collection('contentAssignments').deleteById(a.id);
     }
+
+    await db.flush();
 
     return NextResponse.json({ success: true, message: 'התוכן הוסר מהמרחב האישי' });
   } catch (error: any) {
@@ -29,6 +32,7 @@ export async function PUT(
   props: { params: Promise<{ portalCode: string; contentId: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
     const body = await request.json().catch(() => ({}));
     const { url, title, description, type, imageData, sourceName, category } = body;
@@ -56,6 +60,8 @@ export async function PUT(
     if (sourceName !== undefined) updateFields.sourceName = String(sourceName).trim();
 
     const updated = db.collection('contentItems').updateById(contentId, updateFields);
+
+    await db.flush();
 
     return NextResponse.json({
       success: true,

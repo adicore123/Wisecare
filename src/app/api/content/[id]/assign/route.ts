@@ -8,6 +8,7 @@ export async function POST(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -72,6 +73,8 @@ export async function POST(
         status: assignment.notificationStatus
       });
     }
+
+    await db.flush();
 
     return NextResponse.json({ item: enrichItems([item])[0], results });
   } catch (err: unknown) {

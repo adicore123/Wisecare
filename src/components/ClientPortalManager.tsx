@@ -654,9 +654,14 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     const detectedUrl = shareUrl || shareText.match(/https?:\/\/[^\s]+/)?.[0] || '';
     const shareTitle = params.get('share_title') || params.get('title') || '';
     if (detectedUrl || shareTitle) {
+      setActiveTab('content');
+      const isPostUrl = (detectedUrl.includes('facebook.com') || detectedUrl.includes('fb.com')) &&
+        (detectedUrl.includes('/share/p/') || detectedUrl.includes('/posts/') || detectedUrl.includes('permalink.php'));
       setSelfContentForm(prev => ({
         ...prev,
         url: detectedUrl,
+        type: isPostUrl ? 'post' : prev.type,
+        sourceName: isPostUrl ? 'Facebook Post' : prev.sourceName,
         title: (shareTitle && shareTitle !== 'Facebook') ? shareTitle : prev.title,
         description: detectedUrl ? shareText.replace(detectedUrl, '').trim() : shareText
       }));
@@ -693,12 +698,24 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     setIsSubmittingSelfContent(true);
     try {
       if (editingContentId) {
-        await api.updatePortalSelfContent(portalCode, editingContentId, selfContentForm);
+        const res = await api.updatePortalSelfContent(portalCode, editingContentId, selfContentForm);
         showToast('התוכן עודכן בהצלחה! ✨');
+        if (res?.item) {
+          setData(prev => ({
+            ...prev,
+            content: (prev?.content || []).map(c => c.id === editingContentId ? { ...c, ...res.item } : c)
+          }));
+        }
       } else {
-        await api.addPortalSelfContent(portalCode, selfContentForm);
+        const newItem = await api.addPortalSelfContent(portalCode, selfContentForm);
         showToast('התוכן נוסף לספרייה האישית שלך בהצלחה! 🎬');
         confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
+        if (newItem && newItem.id) {
+          setData(prev => ({
+            ...prev,
+            content: [newItem, ...(prev?.content || []).filter(c => c.id !== newItem.id)]
+          }));
+        }
       }
       setIsSelfContentModalOpen(false);
       setEditingContentId(null);
@@ -711,8 +728,12 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
         sourceName: '',
         category: 'אישי'
       });
+      // Switch to content tab so the user sees the saved post/video immediately
+      setActiveTab('content');
       const updated = await api.getPortalData(portalCode);
-      setData(updated);
+      if (updated) {
+        setData(updated);
+      }
     } catch (err: any) {
       showToast(err.message || 'שגיאה בשמירת תוכן', 'error');
     } finally {
@@ -2011,7 +2032,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                     style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <Plus size={16} />
-                    <span>הוסף סרטון או מאמר</span>
+                    <span>הוסף סרטון, פוסט או מאמר</span>
                   </button>
                 </div>}
               </div>
@@ -3290,7 +3311,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
         <div className="modal-overlay" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
           <div className="modal-card" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingContentId ? 'עריכת פריט תוכן במרחב שלי' : 'הוספת סרטון או מאמר למרחב שלי'}</h2>
+              <h2>{editingContentId ? 'עריכת פריט תוכן במרחב שלי' : 'הוספת סרטון, פוסט או מאמר למרחב שלי'}</h2>
               <button type="button" className="close-btn" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
                 <X size={20} />
               </button>
@@ -3299,7 +3320,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
             <form onSubmit={handleCreateSelfContent}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
-                  הדבק/י קישור מ-<strong>YouTube, Facebook Reels, TikTok, Instagram</strong> או מאמר אינטרנטי. המערכת תזהה את הפרטים באופן אוטומטי.
+                  הדבק/י קישור מ-<strong>YouTube, Facebook (סרטונים ופוסטים), TikTok, Instagram</strong> או מאמר אינטרנטי. המערכת תזהה את הפרטים באופן אוטומטי.
                 </p>
 
                 <div className="form-group">
@@ -3308,7 +3329,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                     <input
                       type="url"
                       className="form-control"
-                      placeholder="https://www.youtube.com/watch?v=... או קישור פייסבוק רילס"
+                      placeholder="https://... קישור ליוטיוב, פייסבוק (פוסט/סרטון), טיקטוק או אינסטגרם"
                       value={selfContentForm.url}
                       onChange={e => {
                         const val = e.target.value;

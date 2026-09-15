@@ -153,12 +153,12 @@ export class Database {
           const rawBundle = fs.readFileSync(bundleFile, 'utf-8');
           try {
             fs.writeFileSync(DB_FILE, rawBundle, 'utf-8');
-          } catch {}
+          } catch { }
           return JSON.parse(rawBundle);
         }
         try {
           fs.writeFileSync(DB_FILE, JSON.stringify(defaultData, null, 2), 'utf-8');
-        } catch {}
+        } catch { }
         return defaultData;
       }
       const raw = fs.readFileSync(DB_FILE, 'utf-8');

@@ -11,6 +11,7 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
@@ -92,6 +94,8 @@ export async function POST(request: NextRequest) {
       sourceName,
       archived: false
     });
+
+    await db.flush();
 
     return NextResponse.json({ ...item, assignments: [] }, { status: 201 });
   } catch (err: unknown) {
