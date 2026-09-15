@@ -39,7 +39,8 @@ import {
   ChevronDown,
   UserCheck,
   X,
-  Trash2
+  Trash2,
+  FileText
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
@@ -441,6 +442,7 @@ export default function SuperAdminPage({
   const [deletingClient, setDeletingClient] = useState(false);
 
   // SuperAdmin Automation & WhatsApp Settings State
+  const [activeTemplateKey, setActiveTemplateKey] = useState<'therapist' | 'article' | 'media'>('therapist');
   const [superadminSettings, setSuperadminSettings] = useState({
     autoSendTherapistInviteWhatsApp: true,
     therapistInviteMessageTemplate: `שלום {{name}} יקר/ה,
@@ -458,6 +460,23 @@ export default function SuperAdminPage({
 
 בברכה,
 הנהלת המערכת WiseCare`,
+    autoSendContentNotificationWhatsApp: true,
+    articleNotificationTemplate: `שלום {{firstName}} יקר/ה,
+שותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:
+📖 *{{title}}*
+
+לקריאת המאמר במרחב הטיפולי שלך:
+{{portalUrl}}
+
+קריאה מעשירה ויום נעים! 🌿`,
+    mediaNotificationTemplate: `שלום {{firstName}} יקר/ה,
+שותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:
+🎬 *{{title}}*
+
+לצפייה בתוכן במרחב הטיפולי שלך:
+{{portalUrl}}
+
+צפייה מהנה ויום נפלא! ✨`,
     greenApiInstanceId: '',
     greenApiToken: '',
     clinicName: 'WiseCare'
@@ -633,16 +652,59 @@ export default function SuperAdminPage({
     }
   };
 
-  const handleInsertPlaceholder = (tag) => {
-    setSuperadminSettings(prev => ({
-      ...prev,
-      therapistInviteMessageTemplate: (prev.therapistInviteMessageTemplate || '') + ' ' + tag + ' '
-    }));
+  const handleInsertPlaceholder = (tag: string) => {
+    setSuperadminSettings(prev => {
+      if (activeTemplateKey === 'article') {
+        return {
+          ...prev,
+          articleNotificationTemplate: (prev.articleNotificationTemplate || '') + ' ' + tag + ' '
+        };
+      }
+      if (activeTemplateKey === 'media') {
+        return {
+          ...prev,
+          mediaNotificationTemplate: (prev.mediaNotificationTemplate || '') + ' ' + tag + ' '
+        };
+      }
+      return {
+        ...prev,
+        therapistInviteMessageTemplate: (prev.therapistInviteMessageTemplate || '') + ' ' + tag + ' '
+      };
+    });
   };
 
   const getPreviewMessage = () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wisecare.health';
+
+    if (activeTemplateKey === 'article') {
+      let tpl = superadminSettings.articleNotificationTemplate || 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿';
+      const samplePortalUrl = `${origin}/portal/patient-sample?tab=content&subtab=articles&content=article-1`;
+      return tpl
+        .replace(/\{\{firstName\}\}/g, 'יונתן')
+        .replace(/\{firstName\}/g, 'יונתן')
+        .replace(/\{\{title\}\}/g, 'כלים מעשיים לוויסות רגשי והרגעת חרדה')
+        .replace(/\{title\}/g, 'כלים מעשיים לוויסות רגשי והרגעת חרדה')
+        .replace(/\{\{portalUrl\}\}/g, samplePortalUrl)
+        .replace(/\{portalUrl\}/g, samplePortalUrl)
+        .replace(/\{\{clinicName\}\}/g, superadminSettings.clinicName || 'WiseCare')
+        .replace(/\{\{therapistName\}\}/g, 'ד״ר מיכל כהן');
+    }
+
+    if (activeTemplateKey === 'media') {
+      let tpl = superadminSettings.mediaNotificationTemplate || 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨';
+      const samplePortalUrl = `${origin}/portal/patient-sample?tab=content&subtab=media&content=video-1`;
+      return tpl
+        .replace(/\{\{firstName\}\}/g, 'יונתן')
+        .replace(/\{firstName\}/g, 'יונתן')
+        .replace(/\{\{title\}\}/g, 'תרגול נשימות מודרך מיוטיוב להורדת סטרס')
+        .replace(/\{title\}/g, 'תרגול נשימות מודרך מיוטיוב להורדת סטרס')
+        .replace(/\{\{portalUrl\}\}/g, samplePortalUrl)
+        .replace(/\{portalUrl\}/g, samplePortalUrl)
+        .replace(/\{\{clinicName\}\}/g, superadminSettings.clinicName || 'WiseCare')
+        .replace(/\{\{therapistName\}\}/g, 'ד״ר מיכל כהן');
+    }
+
     let tpl = superadminSettings.therapistInviteMessageTemplate || '';
-    const origin = window.location.origin;
     const sampleLoginUrl = `${origin}/login/dr-cohen-4921`;
     const sampleCrmUrl = `${origin}/crm/dr-cohen-4921`;
 
@@ -1838,13 +1900,79 @@ export default function SuperAdminPage({
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
-                      עריכת תבנית הודעת ה-WhatsApp
+                    <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                      עריכת תבניות הודעות WhatsApp במערכת
                     </h3>
-                    <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                      לחץ על תגית כדי להוסיף אותה לתבנית ההודעה. המערכת תחליף את התגיות בערכים האמיתיים של המטפל.
+                    <p style={{ margin: '3px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+                      בחר/י את סוג ההודעה שברצונך להגדיר. המערכת תחליף את התגיות בערכים האמיתיים בזמן שליחה.
                     </p>
                   </div>
+                </div>
+
+                {/* Template Switcher Tabs */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTemplateKey('therapist')}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      background: activeTemplateKey === 'therapist' ? '#4f46e5' : '#f1f5f9',
+                      color: activeTemplateKey === 'therapist' ? '#ffffff' : '#475569',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <User size={15} />
+                    <span>הזמנת מטפל חדש</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTemplateKey('article')}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      background: activeTemplateKey === 'article' ? '#0d9488' : '#f1f5f9',
+                      color: activeTemplateKey === 'article' ? '#ffffff' : '#475569',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <FileText size={15} />
+                    <span>הודעת שיתוף מאמר למטופל 📖</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTemplateKey('media')}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.86rem',
+                      fontWeight: 700,
+                      background: activeTemplateKey === 'media' ? '#7c3aed' : '#f1f5f9',
+                      color: activeTemplateKey === 'media' ? '#ffffff' : '#475569',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <Share2 size={15} />
+                    <span>הודעת שיתוף סרטון / פוסט למטופל 🎬</span>
+                  </button>
                 </div>
 
                 {/* Placeholders Quick Insertion Bar */}
@@ -1858,14 +1986,21 @@ export default function SuperAdminPage({
                   borderRadius: '10px',
                   border: '1px solid #e2e8f0'
                 }}>
-                  {[
+                  {(activeTemplateKey === 'therapist' ? [
                     { tag: '{{name}}', label: 'שם המטפל' },
                     { tag: '{{loginUrl}}', label: 'קישור התחברות אישי' },
                     { tag: '{{username}}', label: 'שם משתמש' },
                     { tag: '{{password}}', label: 'סיסמה ראשונית' },
                     { tag: '{{crmUrl}}', label: 'קישור למרחב הטיפול (CRM)' },
                     { tag: '{{clinicName}}', label: 'שם הקליניקה/המערכת' },
-                  ].map(p => (
+                  ] : [
+                    { tag: '{{firstName}}', label: 'שם המטופל' },
+                    { tag: '{{title}}', label: 'כותרת המאמר/התוכן' },
+                    { tag: '{{portalUrl}}', label: 'קישור ישיר למרחב האישי' },
+                    { tag: '{{type}}', label: 'סוג התוכן (מאמר / סרטון)' },
+                    { tag: '{{clinicName}}', label: 'שם הקליניקה' },
+                    { tag: '{{therapistName}}', label: 'שם המטפל/ת' }
+                  ]).map(p => (
                     <button
                       key={p.tag}
                       type="button"
@@ -1884,33 +2019,81 @@ export default function SuperAdminPage({
                       }}
                       title={`הוסף את ${p.label} למיקום הסמן`}
                     >
-                      <span style={{ color: '#4f46e5', fontWeight: 700, direction: 'ltr' }}>{p.tag}</span>
+                      <span style={{ color: activeTemplateKey === 'article' ? '#0d9488' : activeTemplateKey === 'media' ? '#7c3aed' : '#4f46e5', fontWeight: 700, direction: 'ltr' }}>{p.tag}</span>
                       <span style={{ color: '#64748b', fontSize: '0.72rem' }}>({p.label})</span>
                     </button>
                   ))}
                 </div>
 
                 <div className="form-group" style={{ marginBottom: 0 }}>
-                  <textarea
-                    rows={12}
-                    className="form-control"
-                    style={{
-                      fontFamily: 'inherit',
-                      fontSize: '0.9rem',
-                      lineHeight: '1.6',
-                      padding: '14px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      whiteSpace: 'pre-wrap',
-                      direction: 'rtl'
-                    }}
-                    value={superadminSettings.therapistInviteMessageTemplate || ''}
-                    onChange={e => setSuperadminSettings({
-                      ...superadminSettings,
-                      therapistInviteMessageTemplate: e.target.value
-                    })}
-                    placeholder="הזן את נוסח ההודעה שתישלח למטפל בוואטסאפ..."
-                  />
+                  {activeTemplateKey === 'therapist' && (
+                    <textarea
+                      rows={10}
+                      className="form-control"
+                      style={{
+                        fontFamily: 'inherit',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.6',
+                        padding: '14px',
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        whiteSpace: 'pre-wrap',
+                        direction: 'rtl'
+                      }}
+                      value={superadminSettings.therapistInviteMessageTemplate || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        therapistInviteMessageTemplate: e.target.value
+                      })}
+                      placeholder="הזן את נוסח ההודעה שתישלח למטפל בוואטסאפ..."
+                    />
+                  )}
+
+                  {activeTemplateKey === 'article' && (
+                    <textarea
+                      rows={10}
+                      className="form-control"
+                      style={{
+                        fontFamily: 'inherit',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.6',
+                        padding: '14px',
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        whiteSpace: 'pre-wrap',
+                        direction: 'rtl'
+                      }}
+                      value={superadminSettings.articleNotificationTemplate || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        articleNotificationTemplate: e.target.value
+                      })}
+                      placeholder="הזן את נוסח ההודעה שתישלח למטופל בעת שיתוף מאמר..."
+                    />
+                  )}
+
+                  {activeTemplateKey === 'media' && (
+                    <textarea
+                      rows={10}
+                      className="form-control"
+                      style={{
+                        fontFamily: 'inherit',
+                        fontSize: '0.9rem',
+                        lineHeight: '1.6',
+                        padding: '14px',
+                        borderRadius: '10px',
+                        border: '1px solid #cbd5e1',
+                        whiteSpace: 'pre-wrap',
+                        direction: 'rtl'
+                      }}
+                      value={superadminSettings.mediaNotificationTemplate || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        mediaNotificationTemplate: e.target.value
+                      })}
+                      placeholder="הזן את נוסח ההודעה שתישלח למטופל בעת שיתוף סרטון או פוסט..."
+                    />
+                  )}
                 </div>
               </div>
 
@@ -2034,15 +2217,17 @@ export default function SuperAdminPage({
                   marginBottom: '16px'
                 }}>
                   <span style={{
-                    background: '#e1f3fb',
-                    color: '#0284c7',
+                    background: activeTemplateKey === 'article' ? '#ccfbf1' : activeTemplateKey === 'media' ? '#ede9fe' : '#e1f3fb',
+                    color: activeTemplateKey === 'article' ? '#0f766e' : activeTemplateKey === 'media' ? '#6d28d9' : '#0284c7',
                     fontSize: '0.7rem',
                     fontWeight: 700,
                     padding: '3px 10px',
                     borderRadius: '12px',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
                   }}>
-                    הודעה אוטומטית שתישלח למטפל
+                    {activeTemplateKey === 'article' ? 'הודעת שיתוף מאמר שתישלח למטופל בוואטסאפ 📖' :
+                     activeTemplateKey === 'media' ? 'הודעת שיתוף סרטון/מדיה שתישלח למטופל בוואטסאפ 🎬' :
+                     'הודעה אוטומטית שתישלח למטפל בעת פתיחת חשבון'}
                   </span>
                 </div>
 
@@ -2088,7 +2273,9 @@ export default function SuperAdminPage({
                 color: '#64748b',
                 textAlign: 'center'
               }}>
-                תצוגה מקדימה בזמן אמת של הודעת הוואטסאפ שתגיע למטפל
+                {activeTemplateKey === 'article' ? 'תצוגה מקדימה של הודעת WhatsApp עבור שיתוף מאמר' :
+                 activeTemplateKey === 'media' ? 'תצוגה מקדימה של הודעת WhatsApp עבור שיתוף סרטון / פוסט' :
+                 'תצוגה מקדימה בזמן אמת של הודעת הוואטסאפ שתגיע למטפל'}
               </div>
             </div>
           </div>

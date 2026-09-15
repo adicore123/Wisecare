@@ -49,7 +49,8 @@ import {
   Check,
   Delete,
   Edit,
-  Edit3
+  Edit3,
+  Copy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api';
@@ -126,6 +127,8 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const [featuredContentId, setFeaturedContentId] = useState('');
   const [isSuperAdminImpersonating, setIsSuperAdminImpersonating] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
+  const [contentSubTab, setContentSubTab] = useState<'all' | 'media' | 'articles'>('all');
+  const [readingArticle, setReadingArticle] = useState<any | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -134,6 +137,12 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       setIsSuperAdminImpersonating(portalQuery.get('superadmin') === '1');
       if (portalQuery.get('tab') === 'content') {
         setActiveTab('content');
+      }
+      const rawSubtab = portalQuery.get('subtab');
+      if (rawSubtab === 'articles' || rawSubtab === 'article') {
+        setContentSubTab('articles');
+      } else if (rawSubtab === 'media' || rawSubtab === 'video' || rawSubtab === 'post') {
+        setContentSubTab('media');
       }
     }
   }, []);
@@ -514,6 +523,18 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
     return () => window.cancelAnimationFrame(frameId);
   }, [activeTab, data, featuredContentId]);
+
+  useEffect(() => {
+    if (!featuredContentId || !data?.content?.length) return;
+    const item = data.content.find((c: any) => c.id === featuredContentId);
+    if (item) {
+      if (item.type === 'article') {
+        setContentSubTab('articles');
+      } else {
+        setContentSubTab('media');
+      }
+    }
+  }, [data, featuredContentId]);
 
   const loadPortalAll = async () => {
     try {
@@ -1276,10 +1297,19 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   }
 
   const { portalInfo, tasks, content = [] } = data;
+  const articleItems = content.filter((item: any) => item.type === 'article');
+  const mediaItems = content.filter((item: any) => item.type !== 'article');
+
+  const contentToDisplay = contentSubTab === 'articles'
+    ? articleItems
+    : contentSubTab === 'media'
+      ? mediaItems
+      : content;
+
   const isDirectContentView = activeTab === 'content' && Boolean(featuredContentId);
   const displayedContent = isDirectContentView
-    ? [...content].sort((a, b) => Number(b.id === featuredContentId) - Number(a.id === featuredContentId))
-    : content;
+    ? [...contentToDisplay].sort((a, b) => Number(b.id === featuredContentId) - Number(a.id === featuredContentId))
+    : contentToDisplay;
   const completedTasks = tasks.filter(t => t.completed);
   const pendingTasks = tasks.filter(t => !t.completed);
   const progressPercent = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
@@ -2037,13 +2067,127 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                 </div>}
               </div>
 
+              {content.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginBottom: '24px',
+                  background: '#f1f5f9',
+                  padding: '6px',
+                  borderRadius: '14px',
+                  width: 'fit-content',
+                  maxWidth: '100%',
+                  overflowX: 'auto'
+                }}>
+                  <button
+                    type="button"
+                    onClick={() => setContentSubTab('all')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      background: contentSubTab === 'all' ? '#ffffff' : 'transparent',
+                      color: contentSubTab === 'all' ? '#0f172a' : '#64748b',
+                      boxShadow: contentSubTab === 'all' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    <Sparkles size={16} color={contentSubTab === 'all' ? '#0d9488' : '#94a3b8'} />
+                    <span>כל התכנים</span>
+                    <span style={{
+                      background: contentSubTab === 'all' ? '#e2e8f0' : '#e2e8f0',
+                      color: '#475569',
+                      fontSize: '0.74rem',
+                      padding: '2px 7px',
+                      borderRadius: '20px',
+                      fontWeight: 700
+                    }}>
+                      {content.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setContentSubTab('media')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      background: contentSubTab === 'media' ? '#ffffff' : 'transparent',
+                      color: contentSubTab === 'media' ? '#0f172a' : '#64748b',
+                      boxShadow: contentSubTab === 'media' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    <Video size={16} color={contentSubTab === 'media' ? '#7c3aed' : '#94a3b8'} />
+                    <span>מדיה וסרטונים</span>
+                    <span style={{
+                      background: contentSubTab === 'media' ? '#ede9fe' : '#e2e8f0',
+                      color: contentSubTab === 'media' ? '#6d28d9' : '#475569',
+                      fontSize: '0.74rem',
+                      padding: '2px 7px',
+                      borderRadius: '20px',
+                      fontWeight: 700
+                    }}>
+                      {mediaItems.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setContentSubTab('articles')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      background: contentSubTab === 'articles' ? '#ffffff' : 'transparent',
+                      color: contentSubTab === 'articles' ? '#0f172a' : '#64748b',
+                      boxShadow: contentSubTab === 'articles' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    <FileText size={16} color={contentSubTab === 'articles' ? '#0d9488' : '#94a3b8'} />
+                    <span>מאמרים והדרכות</span>
+                    <span style={{
+                      background: contentSubTab === 'articles' ? '#ccfbf1' : '#e2e8f0',
+                      color: contentSubTab === 'articles' ? '#0f766e' : '#475569',
+                      fontSize: '0.74rem',
+                      padding: '2px 7px',
+                      borderRadius: '20px',
+                      fontWeight: 700
+                    }}>
+                      {articleItems.length}
+                    </span>
+                  </button>
+                </div>
+              )}
+
               {content.length === 0 ? (
                 <div className="content-empty">
                   <div className="content-empty-icon"><Library size={30} /></div>
                   <h2>{portalInfo.isSelfCare ? 'הספרייה האישית שלך ריקה כרגע' : 'עדיין לא נוסף תוכן למרחב שלך'}</h2>
                   <p>
                     {portalInfo.isSelfCare 
-                      ? 'תוכל/י להדביק קישורים מיוטיוב, פייסבוק רילס, טיקטוק או מאמרים שעושים לך טוב!' 
+                      ? 'תוכל/י להדביק קישורים מיוטיוב, פייסבוק רילס ופוסטים, טיקטוק או מאמרים שעושים לך טוב!' 
                       : 'כאשר המטפל/ת ישתפו איתך תוכן מתאים, הוא יופיע כאן באופן מסודר.'}
                   </p>
                   {portalInfo.isSelfCare && (
@@ -2058,6 +2202,28 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                     </button>
                   )}
                 </div>
+              ) : displayedContent.length === 0 ? (
+                <div className="content-empty" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '36px 20px', borderRadius: '16px', textAlign: 'center' }}>
+                  <div style={{ color: '#0d9488', marginBottom: '12px' }}>
+                    {contentSubTab === 'articles' ? <FileText size={36} /> : <Video size={36} />}
+                  </div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
+                    {contentSubTab === 'articles' ? 'לא נמצאו מאמרים כרגע' : 'לא נמצאו פריטי מדיה כרגע'}
+                  </h3>
+                  <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 auto 16px', maxWidth: '420px', lineHeight: 1.5 }}>
+                    {contentSubTab === 'articles' 
+                      ? 'חומרי קריאה ומאמרים שהמטפל/ת שלך ישתפו יופיעו כאן באופן מסודר לקריאה בנחת.' 
+                      : 'סרטונים, פוסטים ותכני מדיה שהמטפל/ת ישתפו יופיעו כאן.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setContentSubTab('all')}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem' }}
+                  >
+                    חזור לכל התכנים ({content.length})
+                  </button>
+                </div>
               ) : (
                 <div className="portal-content-grid">
                   {displayedContent.map(item => {
@@ -2065,15 +2231,19 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                     const ContentIcon = config.Icon;
                     const isFeatured = item.id === featuredContentId;
                     const isExpanded = expandedContentIds.has(item.id);
-                    const canExpand = Boolean(item.description) && (item.type === 'article' || !item.url);
+                    const isArticle = item.type === 'article';
+                    const wordsCount = (item.description || '').trim().split(/\s+/).filter(Boolean).length;
+                    const readingMinutes = Math.max(1, Math.ceil(wordsCount / 130));
+                    const canExpand = Boolean(item.description) && !isArticle;
                     return (
                       <article
                         id={`portal-content-${item.id}`}
-                        className={`portal-content-card ${!item.url && !item.imageData ? 'is-text-only' : ''} ${isFeatured ? 'is-featured' : ''} ${isExpanded ? 'is-expanded' : ''}`}
+                        className={`portal-content-card ${!item.url && !item.imageData ? 'is-text-only' : ''} ${isFeatured ? 'is-featured' : ''} ${isExpanded ? 'is-expanded' : ''} ${isArticle ? 'is-article-card' : ''}`}
                         key={item.assignmentId || item.id}
                         tabIndex={isFeatured ? -1 : undefined}
+                        style={isArticle ? { borderTop: '4px solid #0d9488' } : {}}
                       >
-                        <div className="portal-content-card-media">
+                        <div className="portal-content-card-media" style={isArticle ? { background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)', color: '#0d9488' } : {}}>
                           {item.imageData
                             ? <img src={item.imageData} alt="" loading="lazy" />
                             : <ContentIcon size={40} aria-hidden="true" />}
@@ -2085,30 +2255,69 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                               התוכן שנשלח אליך עכשיו
                             </span>
                           )}
-                          <div className="portal-content-card-meta">
-                            <ContentIcon size={14} aria-hidden="true" />
-                            <span>{config.label}</span>
-                            <span aria-hidden="true">•</span>
-                            <span>{item.category || 'כללי'}</span>
+                          <div className="portal-content-card-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{
+                              background: isArticle ? '#ccfbf1' : '#f1f5f9',
+                              color: isArticle ? '#0f766e' : '#475569',
+                              padding: '2px 8px',
+                              borderRadius: '6px',
+                              fontWeight: 700,
+                              fontSize: '0.74rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              <ContentIcon size={12} aria-hidden="true" />
+                              <span>{isArticle ? 'מאמר קריאה' : config.label}</span>
+                            </span>
+                            {isArticle && (
+                              <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                                ⏱️ {readingMinutes} דק׳ קריאה
+                              </span>
+                            )}
+                            <span aria-hidden="true" style={{ color: '#cbd5e1' }}>•</span>
+                            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{item.category || 'כללי'}</span>
                           </div>
-                          <h3>{item.title}</h3>
+                          <h3 style={{ fontSize: isArticle ? '1.1rem' : '1.02rem', lineHeight: 1.4, margin: '8px 0 4px', color: '#0f172a' }}>
+                            {item.title}
+                          </h3>
                           {item.description && (
                             <p 
                               className={isExpanded ? 'is-expanded' : ''}
-                              style={isExpanded ? { whiteSpace: 'pre-wrap', lineHeight: 1.7, marginTop: '8px', color: '#1e293b' } : {}}
+                              style={isExpanded ? { whiteSpace: 'pre-wrap', lineHeight: 1.7, marginTop: '8px', color: '#1e293b' } : {
+                                display: '-webkit-box',
+                                WebkitLineClamp: isArticle ? 3 : 2,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                color: '#475569',
+                                fontSize: '0.88rem',
+                                lineHeight: 1.55
+                              }}
                             >
                               {item.description}
                             </p>
                           )}
                         </div>
                         <div className="portal-content-card-actions">
-                          {item.url && item.type !== 'article' && (
+                          {isArticle && (
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={() => setReadingArticle(item)}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0d9488', borderColor: '#0d9488' }}
+                            >
+                              <BookOpen size={16} aria-hidden="true" />
+                              <span>קרא את המאמר המלא</span>
+                            </button>
+                          )}
+                          {item.url && !isArticle && (
                             <a className="btn btn-primary" href={item.url} target="_blank" rel="noreferrer">
                               <ExternalLink size={16} aria-hidden="true" />
                               <span>{config.actionLabel}</span>
                             </a>
                           )}
-                          {item.url && item.type === 'article' && (
+                          {item.url && isArticle && (
                             <a className="btn btn-secondary" href={item.url} target="_blank" rel="noreferrer" style={{ fontSize: '0.8rem' }}>
                               <ExternalLink size={14} aria-hidden="true" />
                               <span>קישור מקור</span>
@@ -2128,7 +2337,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
                               aria-expanded={isExpanded}
                             >
                               <BookOpen size={16} aria-hidden="true" />
-                              <span>{isExpanded ? 'סגור תוכן' : item.type === 'article' ? 'קרא את המאמר המלא' : 'קרא עוד'}</span>
+                              <span>{isExpanded ? 'סגור תוכן' : 'קרא עוד'}</span>
                             </button>
                           )}
                           {(portalInfo.isSelfCare || !portalInfo.therapist || item.category === 'אישי') && (
@@ -3773,6 +3982,176 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
               >
                 <LogOut size={16} />
                 <span>התנתקות מלאה מהמרחב</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: חוויית קריאת מאמר מלאה ומרווחת למטופל                             */}
+      {/* ========================================================================= */}
+      {readingArticle && (
+        <div 
+          className="modal-overlay" 
+          onClick={() => setReadingArticle(null)}
+          style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(6px)', zIndex: 1100 }}
+        >
+          <div 
+            className="modal-card" 
+            style={{ 
+              maxWidth: '720px', 
+              width: '94%', 
+              maxHeight: '90vh', 
+              display: 'flex', 
+              flexDirection: 'column',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden'
+            }} 
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '14px',
+              background: 'linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: '#ccfbf1',
+                  color: '#0d9488',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <BookOpen size={22} />
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      background: '#0d9488',
+                      color: 'white',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '12px'
+                    }}>
+                      מאמר והדרכה
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      ⏱️ {Math.max(1, Math.ceil((readingArticle.description || '').split(/\s+/).filter(Boolean).length / 130))} דקות קריאה
+                    </span>
+                  </div>
+                  <h3 style={{ margin: '4px 0 0', fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>
+                    {readingArticle.title}
+                  </h3>
+                </div>
+              </div>
+
+              <button 
+                type="button" 
+                className="btn-icon" 
+                onClick={() => setReadingArticle(null)}
+                style={{ borderRadius: '50%', background: '#f1f5f9', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="סגור קריאה"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Article Content Body */}
+            <div style={{
+              padding: '28px 32px',
+              overflowY: 'auto',
+              flex: 1,
+              direction: 'rtl'
+            }}>
+              {readingArticle.category && (
+                <div style={{ marginBottom: '14px' }}>
+                  <span style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    color: '#0d9488',
+                    background: '#f0fdfa',
+                    padding: '4px 10px',
+                    borderRadius: '8px',
+                    border: '1px solid #ccfbf1'
+                  }}>
+                    נושא: {readingArticle.category}
+                  </span>
+                </div>
+              )}
+
+              {readingArticle.description ? (
+                <div style={{
+                  fontSize: '1.05rem',
+                  lineHeight: 1.85,
+                  color: '#1e293b',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  fontFamily: 'inherit'
+                }}>
+                  {readingArticle.description}
+                </div>
+              ) : (
+                <p style={{ color: '#64748b', fontStyle: 'italic' }}>
+                  אין תוכן טקסטואלי מורחב עבור מאמר זה.
+                </p>
+              )}
+            </div>
+
+            {/* Footer with actions */}
+            <div style={{
+              padding: '16px 24px',
+              borderTop: '1px solid #e2e8f0',
+              background: '#f8fafc',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {readingArticle.url && (
+                  <a
+                    href={readingArticle.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <ExternalLink size={14} />
+                    <span>פתח מקור חיצוני</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${readingArticle.title}\n\n${readingArticle.description || ''}`);
+                    showToast('תוכן המאמר הועתק ללוח! 📋');
+                  }}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <Copy size={14} />
+                  <span>העתק טקסט</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setReadingArticle(null)}
+                style={{ padding: '8px 20px', fontSize: '0.88rem' }}
+              >
+                סגור קריאה
               </button>
             </div>
           </div>

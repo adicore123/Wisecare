@@ -148,11 +148,41 @@ export function enrichItems(items: any[]) {
 }
 
 export async function notifyClient(client: any, assignment: any, item: any) {
+  const isArticle = item.type === 'article';
   const clientAppUrl = getBaseUrl();
   const portalUrl = new URL(`/portal/${encodeURIComponent(client.portalCode)}`, clientAppUrl);
   portalUrl.searchParams.set('tab', 'content');
+  portalUrl.searchParams.set('subtab', isArticle ? 'articles' : 'media');
   portalUrl.searchParams.set('content', item.id);
-  const message = `שלום ${client.firstName},\nנוסף עבורך תוכן חדש במרחב האישי של WiseCare.\n\nלצפייה בתוכן:\n${portalUrl}`;
+
+  const settings = db.getSettings();
+  let therapistName = '';
+  if (item.therapistId) {
+    const therapist = db.collection('users').findById(item.therapistId);
+    if (therapist?.name) therapistName = therapist.name;
+  }
+
+  const defaultArticleTpl = 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿';
+  const defaultMediaTpl = 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨';
+
+  const template = isArticle
+    ? (settings.articleNotificationTemplate || defaultArticleTpl)
+    : (settings.mediaNotificationTemplate || defaultMediaTpl);
+
+  const message = template
+    .replace(/\{\{firstName\}\}/g, client.firstName || '')
+    .replace(/\{firstName\}/g, client.firstName || '')
+    .replace(/\{\{title\}\}/g, item.title || (isArticle ? 'מאמר חדש' : 'סרטון/פוסט'))
+    .replace(/\{title\}/g, item.title || (isArticle ? 'מאמר חדש' : 'סרטון/פוסט'))
+    .replace(/\{\{portalUrl\}\}/g, portalUrl.toString())
+    .replace(/\{portalUrl\}/g, portalUrl.toString())
+    .replace(/\{\{type\}\}/g, isArticle ? 'מאמר' : 'סרטון / פוסט')
+    .replace(/\{type\}/g, isArticle ? 'מאמר' : 'סרטון / פוסט')
+    .replace(/\{\{clinicName\}\}/g, settings.clinicName || 'WiseCare')
+    .replace(/\{clinicName\}/g, settings.clinicName || 'WiseCare')
+    .replace(/\{\{therapistName\}\}/g, therapistName)
+    .replace(/\{therapistName\}/g, therapistName);
+
   const attemptedAt = new Date().toISOString();
 
   try {

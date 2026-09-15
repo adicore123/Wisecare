@@ -194,8 +194,9 @@ export const api = {
     return res.json();
   },
 
-  getContentItems: async (therapistId) => {
-    const query = new URLSearchParams({ therapistId });
+  getContentItems: async (arg) => {
+    const therapistId = typeof arg === 'string' ? arg : (arg?.therapistId || '');
+    const query = new URLSearchParams(therapistId ? { therapistId } : {});
     const res = await fetch(`${API_BASE}/content?${query.toString()}`, { headers: authHeaders() });
     if (!res.ok) throw new Error('שגיאה בטעינת ספריית התוכן');
     return res.json();

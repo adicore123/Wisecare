@@ -22,7 +22,11 @@ import {
   Video,
   Phone,
   AlertCircle,
-  Lock
+  Lock,
+  BookOpen,
+  Library,
+  Share2,
+  RefreshCw
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
@@ -70,6 +74,29 @@ export default function ClientDetailsModal({
   });
   const [isSubmittingAppointment, setIsSubmittingAppointment] = useState(false);
   const [actionAptId, setActionAptId] = useState(null);
+
+  // Content & Articles State
+  const [clientContent, setClientContent] = useState<any[]>([]);
+  const [allTherapistContent, setAllTherapistContent] = useState<any[]>([]);
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [contentSubFilter, setContentSubFilter] = useState<'all' | 'articles' | 'media'>('all');
+  const [showAssignContent, setShowAssignContent] = useState(false);
+  const [assignForm, setAssignForm] = useState({
+    selectedContentId: '',
+    sendWhatsApp: true
+  });
+  const [isSubmittingAssign, setIsSubmittingAssign] = useState(false);
+  const [actionContentId, setActionContentId] = useState<string | null>(null);
+  const [showQuickCreateContent, setShowQuickCreateContent] = useState(false);
+  const [quickContentForm, setQuickContentForm] = useState({
+    type: 'article',
+    title: '',
+    description: '',
+    url: '',
+    category: 'חומרי העשרה',
+    sendWhatsApp: true
+  });
+  const [isSubmittingQuickContent, setIsSubmittingQuickContent] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setModalToast({ message, type });
@@ -130,11 +157,119 @@ export default function ClientDetailsModal({
     }
   }, [client]);
 
+  const loadClientContent = useCallback(async () => {
+    if (!client?.id) return;
+    setLoadingContent(true);
+    try {
+      const therapistId = client.therapistId || 'therapist-1';
+      const allItems = await api.getContentItems({ therapistId });
+      setAllTherapistContent(allItems || []);
+      const assigned = (allItems || [])
+        .filter((item: any) => (item.assignments || []).some((a: any) => a.clientId === client.id))
+        .map((item: any) => {
+          const myAssignment = (item.assignments || []).find((a: any) => a.clientId === client.id);
+          return {
+            ...item,
+            assignment: myAssignment
+          };
+        });
+      setClientContent(assigned);
+    } catch (err) {
+      console.error('Error fetching client content:', err);
+    } finally {
+      setLoadingContent(false);
+    }
+  }, [client]);
+
+  const handleAssignExistingContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!assignForm.selectedContentId) {
+      showToast('נא לבחור פריט תוכן מהרשימה', 'error');
+      return;
+    }
+    setIsSubmittingAssign(true);
+    try {
+      await api.assignContentItem(assignForm.selectedContentId, [client.id], assignForm.sendWhatsApp);
+      showToast(assignForm.sendWhatsApp ? 'התוכן שויך למטופל ונשלחה הודעת WhatsApp! ✨' : 'התוכן שויך בהצלחה למרחב המטופל');
+      setShowAssignContent(false);
+      setAssignForm({ selectedContentId: '', sendWhatsApp: true });
+      loadClientContent();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשיוך תוכן', 'error');
+    } finally {
+      setIsSubmittingAssign(false);
+    }
+  };
+
+  const handleQuickCreateAndAssignContent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickContentForm.title.trim()) {
+      showToast('נא להזין כותרת', 'error');
+      return;
+    }
+    setIsSubmittingQuickContent(true);
+    try {
+      const therapistId = client.therapistId || 'therapist-1';
+      const createdItem = await api.createContentItem({
+        therapistId,
+        title: quickContentForm.title.trim(),
+        description: quickContentForm.description.trim(),
+        type: quickContentForm.type,
+        url: quickContentForm.url.trim(),
+        category: quickContentForm.category
+      });
+      await api.assignContentItem(createdItem.id, [client.id], quickContentForm.sendWhatsApp);
+      showToast(
+        quickContentForm.sendWhatsApp
+          ? (quickContentForm.type === 'article' ? 'המאמר נוצר, שויך למטופל ונשלחה התראת WhatsApp! 📖' : 'התוכן נוצר, שויך למטופל ונשלחה התראת WhatsApp! 🎬')
+          : 'הפריט נוצר ושויך בהצלחה'
+      );
+      setShowQuickCreateContent(false);
+      setQuickContentForm({
+        type: 'article',
+        title: '',
+        description: '',
+        url: '',
+        category: 'חומרי העשרה',
+        sendWhatsApp: true
+      });
+      loadClientContent();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה ביצירה ושיוך', 'error');
+    } finally {
+      setIsSubmittingQuickContent(false);
+    }
+  };
+
+  const handleRemoveContent = async (contentId: string) => {
+    try {
+      await api.removeContentAssignment(contentId, client.id);
+      showToast('התוכן הוסר ממרחב המטופל');
+      loadClientContent();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בהסרת התוכן', 'error');
+    }
+  };
+
+  const handleResendContentWhatsApp = async (contentId: string) => {
+    setActionContentId(contentId);
+    try {
+      await api.retryContentNotification(contentId, client.id);
+      showToast('הודעת WhatsApp נשלחה בהצלחה למטופל! 📲');
+      loadClientContent();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשליחת התראה', 'error');
+    } finally {
+      setActionContentId(null);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && client?.id) {
       loadClientAppointments();
+      loadClientContent();
     }
-  }, [isOpen, client?.id, loadClientAppointments]);
+  }, [isOpen, client?.id, loadClientAppointments, loadClientContent]);
 
   if (!isOpen || !client) return null;
 
@@ -409,6 +544,24 @@ export default function ClientDetailsModal({
               }}
             >
               📅 יומן ותורים ({clientAppointments.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setModalTab('content')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '10px 16px',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                color: modalTab === 'content' ? '#0d9488' : '#64748b',
+                borderBottom: modalTab === 'content' ? '3px solid #0d9488' : '3px solid transparent',
+                marginBottom: '-2px'
+              }}
+            >
+              📚 מאמרים ותוכן ({clientContent.length})
             </button>
           </div>
 
@@ -886,6 +1039,497 @@ export default function ClientDetailsModal({
               )}
             </div>
           )}
+
+          {/* TAB 4: Content & Articles Section */}
+          {modalTab === 'content' && (() => {
+            const assignedArticles = clientContent.filter(item => item.type === 'article');
+            const assignedMedia = clientContent.filter(item => item.type !== 'article');
+            const filteredContent = contentSubFilter === 'articles' 
+              ? assignedArticles 
+              : contentSubFilter === 'media' 
+                ? assignedMedia 
+                : clientContent;
+
+            const unassignedItems = allTherapistContent.filter(
+              item => !(item.assignments || []).some((a: any) => a.clientId === client.id)
+            );
+
+            return (
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                  <div>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>מאמרים ותוכן טיפולי למטופל</span>
+                      <span style={{ fontSize: '0.8rem', background: '#e2e8f0', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                        {clientContent.length}
+                      </span>
+                    </h4>
+                    <span style={{ fontSize: '0.84rem', color: '#64748b' }}>
+                      תכנים ומאמרים המשויכים למרחב של {client.firstName}. מאמרים מופיעים בלשונית מאמרים ייעודית.
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => {
+                        setShowQuickCreateContent(!showQuickCreateContent);
+                        setShowAssignContent(false);
+                      }}
+                    >
+                      <Plus size={15} />
+                      <span>{showQuickCreateContent ? 'סגור' : 'מאמר / תוכן חדש מהיר'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      onClick={() => {
+                        setShowAssignContent(!showAssignContent);
+                        setShowQuickCreateContent(false);
+                      }}
+                    >
+                      <Library size={15} />
+                      <span>{showAssignContent ? 'סגור' : 'שייך מהספרייה'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sub-tabs / Filter pills for assigned content */}
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setContentSubFilter('all')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      background: contentSubFilter === 'all' ? '#0d9488' : '#f1f5f9',
+                      color: contentSubFilter === 'all' ? '#ffffff' : '#475569'
+                    }}
+                  >
+                    הכל ({clientContent.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContentSubFilter('articles')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      background: contentSubFilter === 'articles' ? '#0d9488' : '#f1f5f9',
+                      color: contentSubFilter === 'articles' ? '#ffffff' : '#475569'
+                    }}
+                  >
+                    📖 מאמרים ({assignedArticles.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setContentSubFilter('media')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '8px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      background: contentSubFilter === 'media' ? '#0d9488' : '#f1f5f9',
+                      color: contentSubFilter === 'media' ? '#ffffff' : '#475569'
+                    }}
+                  >
+                    🎬 מדיה וסרטונים ({assignedMedia.length})
+                  </button>
+                </div>
+
+                {/* Subform: Assign existing item from therapist library */}
+                {showAssignContent && (
+                  <form onSubmit={handleAssignExistingContent} style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '18px',
+                    marginBottom: '20px'
+                  }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '0.98rem', fontWeight: 700, color: '#0f172a' }}>
+                      שיוך פריט קיים מספריית התוכן שלך אל {client.firstName}
+                    </h5>
+
+                    {unassignedItems.length === 0 ? (
+                      <p style={{ fontSize: '0.88rem', color: '#64748b' }}>
+                        כל פריטי התוכן והמאמרים מהספרייה שלך כבר משויכים למטופל זה! ניתן ליצור פריט חדש באמצעות הכפתור "מאמר / תוכן חדש מהיר".
+                      </p>
+                    ) : (
+                      <>
+                        <div className="form-group" style={{ marginBottom: '14px' }}>
+                          <label>בחר/י מאמר או פריט תוכן מהספרייה *</label>
+                          <select
+                            className="form-control"
+                            value={assignForm.selectedContentId}
+                            onChange={e => setAssignForm({ ...assignForm, selectedContentId: e.target.value })}
+                            required
+                          >
+                            <option value="">-- בחר פריט תוכן או מאמר --</option>
+                            <optgroup label="📖 מאמרים וחומרי קריאה">
+                              {unassignedItems.filter(i => i.type === 'article').map(i => (
+                                <option key={i.id} value={i.id}>{i.title} ({i.category || 'כללי'})</option>
+                              ))}
+                            </optgroup>
+                            <optgroup label="🎬 סרטונים ומדיה">
+                              {unassignedItems.filter(i => i.type !== 'article').map(i => (
+                                <option key={i.id} value={i.id}>{i.title} ({i.type === 'video' ? 'סרטון' : i.type === 'post' ? 'פוסט' : 'קישור'})</option>
+                              ))}
+                            </optgroup>
+                          </select>
+                        </div>
+
+                        <div style={{ marginBottom: '16px' }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: '#1e293b' }}>
+                            <input
+                              type="checkbox"
+                              checked={assignForm.sendWhatsApp}
+                              onChange={e => setAssignForm({ ...assignForm, sendWhatsApp: e.target.checked })}
+                            />
+                            <WhatsAppIcon size={16} />
+                            <span>שלח הודעת WhatsApp מיידית למטופל עם קישור ישיר לפורטל (לפי תבנית SuperAdmin)</span>
+                          </label>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <button type="submit" disabled={isSubmittingAssign} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
+                            {isSubmittingAssign ? 'משייך...' : 'שייך תוכן למטופל ✨'}
+                          </button>
+                          <button type="button" onClick={() => setShowAssignContent(false)} className="btn btn-secondary" style={{ fontSize: '0.85rem' }}>
+                            ביטול
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </form>
+                )}
+
+                {/* Subform: Quick create article or media */}
+                {showQuickCreateContent && (
+                  <form onSubmit={handleQuickCreateAndAssignContent} style={{
+                    background: '#f0fdfa',
+                    border: '1px solid #99f6e4',
+                    borderRadius: '12px',
+                    padding: '18px',
+                    marginBottom: '20px'
+                  }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '0.98rem', fontWeight: 700, color: '#0f766e' }}>
+                      יצירה מהירה של מאמר או תוכן חדש ושיוך מיידי
+                    </h5>
+
+                    {/* Content Type Selector */}
+                    <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setQuickContentForm({ ...quickContentForm, type: 'article' })}
+                        style={{
+                          flex: 1,
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: quickContentForm.type === 'article' ? '2px solid #0d9488' : '1px solid #cbd5e1',
+                          background: quickContentForm.type === 'article' ? '#ffffff' : '#f8fafc',
+                          color: quickContentForm.type === 'article' ? '#0d9488' : '#64748b',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <BookOpen size={16} />
+                        <span>מאמר והדרכה 📖</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setQuickContentForm({ ...quickContentForm, type: 'video' })}
+                        style={{
+                          flex: 1,
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: quickContentForm.type === 'video' ? '2px solid #7c3aed' : '1px solid #cbd5e1',
+                          background: quickContentForm.type === 'video' ? '#ffffff' : '#f8fafc',
+                          color: quickContentForm.type === 'video' ? '#7c3aed' : '#64748b',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Video size={16} />
+                        <span>סרטון מהרשת 🎬</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setQuickContentForm({ ...quickContentForm, type: 'post' })}
+                        style={{
+                          flex: 1,
+                          padding: '8px',
+                          borderRadius: '8px',
+                          border: quickContentForm.type === 'post' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                          background: quickContentForm.type === 'post' ? '#ffffff' : '#f8fafc',
+                          color: quickContentForm.type === 'post' ? '#2563eb' : '#64748b',
+                          fontWeight: 700,
+                          fontSize: '0.85rem',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Share2 size={16} />
+                        <span>פוסט / רשתות 📱</span>
+                      </button>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label>כותרת הפריט *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder={quickContentForm.type === 'article' ? 'למשל: תרגול מיינדפולנס לוויסות חרדה' : 'למשל: סרטון הדרכה לנשימה עמוקה'}
+                        value={quickContentForm.title}
+                        onChange={e => setQuickContentForm({ ...quickContentForm, title: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    {quickContentForm.type !== 'article' && (
+                      <div className="form-group" style={{ marginBottom: '12px' }}>
+                        <label>כתובת קישור (URL) *</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://... קישור ליוטיוב, פייסבוק, טיקטוק וכד'"
+                          value={quickContentForm.url}
+                          onChange={e => setQuickContentForm({ ...quickContentForm, url: e.target.value })}
+                          required
+                        />
+                      </div>
+                    )}
+
+                    {quickContentForm.type === 'article' && (
+                      <div className="form-group" style={{ marginBottom: '12px' }}>
+                        <label>קישור למאמר מקורי באינטרנט (אופציונלי)</label>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://... אם המאמר פורסם באתר חיצוני"
+                          value={quickContentForm.url}
+                          onChange={e => setQuickContentForm({ ...quickContentForm, url: e.target.value })}
+                        />
+                      </div>
+                    )}
+
+                    <div className="form-group" style={{ marginBottom: '12px' }}>
+                      <label>
+                        {quickContentForm.type === 'article' ? 'תוכן המאמר / דף הדרכה טיפולי לקריאה *' : 'תיאור או הנחיות לצפייה'}
+                      </label>
+                      <textarea
+                        rows={quickContentForm.type === 'article' ? 6 : 3}
+                        className="form-control"
+                        placeholder={quickContentForm.type === 'article' ? 'כתוב/י כאן את גוף המאמר המלא. המטופל יוכל לקרוא אותו בנוחות במרחב האישי שלו...' : 'דגשים שחשוב שהמטופל ישים לב אליהם במהלך הצפייה...'}
+                        value={quickContentForm.description}
+                        onChange={e => setQuickContentForm({ ...quickContentForm, description: e.target.value })}
+                        required={quickContentForm.type === 'article'}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '14px' }}>
+                      <label>קטגוריה</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="חומרי העשרה / ויסות רגשי / CBT"
+                        value={quickContentForm.category}
+                        onChange={e => setQuickContentForm({ ...quickContentForm, category: e.target.value })}
+                      />
+                    </div>
+
+                    <div style={{ marginBottom: '16px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: '#1e293b' }}>
+                        <input
+                          type="checkbox"
+                          checked={quickContentForm.sendWhatsApp}
+                          onChange={e => setQuickContentForm({ ...quickContentForm, sendWhatsApp: e.target.checked })}
+                        />
+                        <WhatsAppIcon size={16} />
+                        <span>שלח הודעת WhatsApp מיידית למטופל (עם קישור ישיר ללשונית {quickContentForm.type === 'article' ? 'המאמרים' : 'המדיה'})</span>
+                      </label>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button type="submit" disabled={isSubmittingQuickContent} className="btn btn-primary" style={{ fontSize: '0.85rem' }}>
+                        {isSubmittingQuickContent ? 'יוצר ומשייך...' : (quickContentForm.type === 'article' ? 'צור מאמר ושייך למטופל 📖' : 'צור תוכן ושייך למטופל 🎬')}
+                      </button>
+                      <button type="button" onClick={() => setShowQuickCreateContent(false)} className="btn btn-secondary" style={{ fontSize: '0.85rem' }}>
+                        ביטול
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Assigned Content List */}
+                {loadingContent ? (
+                  <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
+                    טוען מאמרים ותוכן...
+                  </div>
+                ) : filteredContent.length === 0 ? (
+                  <div style={{
+                    background: '#f8fafc',
+                    border: '1px dashed #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '30px 20px',
+                    textAlign: 'center',
+                    color: '#64748b'
+                  }}>
+                    <Library size={32} style={{ margin: '0 auto 10px', color: '#94a3b8' }} />
+                    <h5 style={{ margin: '0 0 6px 0', fontSize: '1rem', color: '#1e293b', fontWeight: 700 }}>
+                      {contentSubFilter === 'articles' ? 'לא שויכו מאמרים למטופל זה' :
+                       contentSubFilter === 'media' ? 'לא שויכו סרטונים או פוסטים למטופל זה' :
+                       'טרם שויכו מאמרים או תוכן למטופל זה'}
+                    </h5>
+                    <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                      באפשרותך לבחור פריט מהספרייה או ליצור מאמר חדש שיגיע ישירות למרחב של {client.firstName}.
+                    </p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {filteredContent.map((item: any) => {
+                      const isArticle = item.type === 'article';
+                      const waStatus = item.assignment?.notificationStatus;
+
+                      return (
+                        <div
+                          key={item.id}
+                          style={{
+                            background: '#ffffff',
+                            border: isArticle ? '1px solid #99f6e4' : '1px solid #e2e8f0',
+                            borderRight: isArticle ? '4px solid #0d9488' : '4px solid #7c3aed',
+                            borderRadius: '10px',
+                            padding: '14px 16px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            flexWrap: 'wrap',
+                            gap: '12px',
+                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+                          }}
+                        >
+                          <div style={{ flex: 1, minWidth: '240px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                              <span style={{
+                                background: isArticle ? '#ccfbf1' : '#ede9fe',
+                                color: isArticle ? '#0f766e' : '#6d28d9',
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                padding: '2px 8px',
+                                borderRadius: '6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}>
+                                {isArticle ? <BookOpen size={12} /> : <Video size={12} />}
+                                <span>{isArticle ? 'מאמר טיפולי' : item.type === 'video' ? 'סרטון' : item.type === 'post' ? 'פוסט' : 'מדיה'}</span>
+                              </span>
+                              <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                                {item.category || 'כללי'}
+                              </span>
+                              {item.assignment?.createdAt && (
+                                <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                                  • הוקצה ב-{new Date(item.assignment.createdAt).toLocaleDateString('he-IL')}
+                                </span>
+                              )}
+                            </div>
+
+                            <h5 style={{ margin: '0 0 4px 0', fontSize: '0.96rem', fontWeight: 700, color: '#0f172a' }}>
+                              {item.title}
+                            </h5>
+
+                            {item.description && (
+                              <p style={{ margin: 0, fontSize: '0.84rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '480px' }}>
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {/* WhatsApp Notification Badge */}
+                            {waStatus === 'sent' ? (
+                              <span style={{ fontSize: '0.76rem', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, background: '#f0fdf4', padding: '4px 8px', borderRadius: '6px' }}>
+                                <WhatsAppIcon size={12} /> התראה נמסרה
+                              </span>
+                            ) : waStatus === 'pending' ? (
+                              <span style={{ fontSize: '0.76rem', color: '#d97706', background: '#fef3c7', padding: '4px 8px', borderRadius: '6px', fontWeight: 600 }}>
+                                בהמתנה
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                style={{ padding: '5px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                onClick={() => handleResendContentWhatsApp(item.id)}
+                                disabled={actionContentId === item.id}
+                                title="שלח התראת WhatsApp למטופל עם קישור ישיר"
+                              >
+                                <WhatsAppIcon size={13} />
+                                <span>{actionContentId === item.id ? 'שולח...' : 'שלח בוואטסאפ'}</span>
+                              </button>
+                            )}
+
+                            {/* External URL if exists */}
+                            {item.url && (
+                              <a
+                                href={item.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="btn btn-secondary"
+                                style={{ padding: '5px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                title="פתח קישור חיצוני"
+                              >
+                                <ExternalLink size={13} />
+                                <span>צפה</span>
+                              </a>
+                            )}
+
+                            {/* Unassign Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveContent(item.id)}
+                              className="btn-icon"
+                              style={{ color: '#ef4444', padding: '6px' }}
+                              title="הסר שיוך ממרחב המטופל"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         <div className="modal-footer">

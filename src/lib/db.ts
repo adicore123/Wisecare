@@ -81,7 +81,10 @@ const defaultData = {
     clinicName: 'מרחב טיפולי WiseCare',
     defaultMessageTemplate: 'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור כניסה:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה אישית: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨',
     autoSendTherapistInviteWhatsApp: true,
-    therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare'
+    therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare',
+    autoSendContentNotificationWhatsApp: true,
+    articleNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿',
+    mediaNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨'
   }
 };
 

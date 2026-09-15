@@ -35,10 +35,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
     }
 
+    await db.ensureLoaded();
     const body = await request.json().catch(() => ({}));
     const allowedKeys = [
       'autoSendTherapistInviteWhatsApp',
       'therapistInviteMessageTemplate',
+      'autoSendContentNotificationWhatsApp',
+      'articleNotificationTemplate',
+      'mediaNotificationTemplate',
       'greenApiInstanceId',
       'greenApiToken',
       'greenApiUrl',
