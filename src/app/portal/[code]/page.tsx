@@ -1,4 +1,5 @@
 import ClientPortalPage from '@/components/ClientPortalManager';
+import { getPortalPayload } from '@/app/api/portal/[portalCode]/route';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -8,5 +9,6 @@ export const metadata: Metadata = {
 
 export default async function PortalRoutePage(props: { params: Promise<{ code: string }> }) {
   const { code } = await props.params;
-  return <ClientPortalPage portalCode={code} />;
+  const initialPayload = await getPortalPayload(code).catch(() => null);
+  return <ClientPortalPage portalCode={code} initialPayload={initialPayload} />;
 }

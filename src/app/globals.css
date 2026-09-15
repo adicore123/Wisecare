@@ -4939,3 +4939,9 @@ select option:checked {
 .portal-settings-toggle input:checked + .portal-settings-slider:before {
   transform: translateX(22px);
 }
+
+@keyframes portalSpeedBar {
+  0% { transform: translateX(100%); width: 30%; }
+  50% { width: 70%; }
+  100% { transform: translateX(-100%); width: 30%; }
+}

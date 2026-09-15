@@ -123,7 +123,7 @@ const MOOD_OPTIONS = [
   }
 ];
 
-export default function ClientPortalPage({ portalCode }: { portalCode?: string }) {
+export default function ClientPortalPage({ portalCode, initialPayload }: { portalCode?: string; initialPayload?: any }) {
   const [featuredContentId, setFeaturedContentId] = useState('');
   const [isSuperAdminImpersonating, setIsSuperAdminImpersonating] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
@@ -146,9 +146,32 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
       }
     }
   }, []);
-  const [data, setData] = useState(null);
-  const [insights, setInsights] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  // Instant local cache retriever (Stale-While-Revalidate pattern)
+  const getCachedPayload = () => {
+    if (initialPayload) return initialPayload;
+    if (typeof window === 'undefined' || !portalCode) return null;
+    try {
+      const raw = localStorage.getItem(`wisecare_portal_cache_${portalCode}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed?.data) {
+          return {
+            ...parsed.data,
+            insights: parsed.insights || parsed.data.insights || [],
+            appointments: parsed.appointments || parsed.data.appointments || []
+          };
+        }
+      }
+    } catch {}
+    return null;
+  };
+
+  const initialCached = getCachedPayload();
+
+  const [data, setData] = useState<any>(() => initialPayload || initialCached || null);
+  const [insights, setInsights] = useState<any[]>(() => initialPayload?.insights || initialCached?.insights || []);
+  const [loading, setLoading] = useState(() => !initialPayload && !initialCached);
   const [error, setError] = useState('');
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   // activeTab is initialized and updated above via useEffect
@@ -199,7 +222,7 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   const [breathingCountdown, setBreathingCountdown] = useState(4);
 
   // Appointments state
-  const [portalAppointments, setPortalAppointments] = useState([]);
+  const [portalAppointments, setPortalAppointments] = useState<any[]>(() => initialPayload?.appointments || initialCached?.appointments || []);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({
     preferredDate: '',
@@ -241,8 +264,14 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
   // Portal Authentication & Security Gate State
   const authSessionKey = `wisecare_portal_auth_${portalCode}`;
-  const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(`wisecare_portal_auth_${portalCode}`) === 'true';
+  });
+  const [isAuthChecked, setIsAuthChecked] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(`wisecare_portal_auth_${portalCode}`) === 'true';
+  });
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -503,7 +532,8 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
   };
 
   useEffect(() => {
-    loadPortalAll();
+    // If data is already available (from SSR initialPayload or local cache), refresh silently without blocking UI
+    loadPortalAll(Boolean(data));
   }, [portalCode]);
 
   useEffect(() => {
@@ -536,30 +566,52 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
     }
   }, [data, featuredContentId]);
 
-  const loadPortalAll = async () => {
+  const loadPortalAll = async (isSilentRefresh = false) => {
     try {
-      setLoading(true);
-      const [portalRes, insightsRes, appointmentsRes] = await Promise.all([
-        api.getPortalData(portalCode),
-        api.getPortalInsights(portalCode),
-        api.getPortalAppointments(portalCode).catch(() => [])
-      ]);
+      if (!isSilentRefresh && !data) {
+        setLoading(true);
+      }
+      const portalRes = await api.getPortalData(portalCode);
+      if (!portalRes) throw new Error('מרחב אישי לא נמצא');
+
       setData(portalRes);
-      setInsights(insightsRes || []);
-      setPortalAppointments(appointmentsRes || []);
+      if (Array.isArray(portalRes.insights)) {
+        setInsights(portalRes.insights);
+      } else {
+        api.getPortalInsights(portalCode).then(res => res && setInsights(res)).catch(() => {});
+      }
+      if (Array.isArray(portalRes.appointments)) {
+        setPortalAppointments(portalRes.appointments);
+      } else {
+        api.getPortalAppointments(portalCode).then(res => res && setPortalAppointments(res)).catch(() => {});
+      }
       
       // Synchronize clinic theme palette
       if (portalRes?.portalInfo?.themeId) {
         applyTheme(portalRes.portalInfo.themeId);
       }
 
-      const initialReflections = {};
-      (portalRes.tasks || []).forEach(t => {
+      const initialReflections: Record<string, string> = {};
+      (portalRes.tasks || []).forEach((t: any) => {
         initialReflections[t.id] = t.clientNotes || '';
       });
-      setReflectionTexts(initialReflections);
-    } catch (err) {
-      setError(err.message || 'לא ניתן לטעון את המרחב האישי');
+      setReflectionTexts(prev => ({ ...initialReflections, ...prev }));
+
+      // Cache locally for instant subsequent visits
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem(`wisecare_portal_cache_${portalCode}`, JSON.stringify({
+            data: portalRes,
+            insights: portalRes.insights || [],
+            appointments: portalRes.appointments || [],
+            savedAt: Date.now()
+          }));
+        } catch {}
+      }
+    } catch (err: any) {
+      if (!data) {
+        setError(err.message || 'לא ניתן לטעון את המרחב האישי');
+      }
     } finally {
       setLoading(false);
     }
@@ -963,15 +1015,46 @@ export default function ClientPortalPage({ portalCode }: { portalCode?: string }
 
   if (loading) {
     return (
-      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Sparkles size={46} color="var(--primary, #0d9488)" style={{ animation: 'spin 2s linear infinite' }} />
-          <h3 style={{ marginTop: '18px', color: 'var(--primary-hover, #0f766e)', fontWeight: 800, fontSize: '1.25rem' }}>
-            טוען את המרחב הטיפולי האישי שלך...
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(circle at 50% 40%, #f0fdfa 0%, #f8fafc 100%)' }}>
+        <div style={{ textAlign: 'center', padding: '32px', maxWidth: '380px', width: '90%' }}>
+          <div style={{
+            width: '64px',
+            height: '64px',
+            borderRadius: '20px',
+            background: 'linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 18px',
+            boxShadow: '0 10px 25px -5px rgba(13, 148, 136, 0.2)'
+          }}>
+            <Sparkles size={30} color="#0d9488" style={{ animation: 'spin 2.5s linear infinite' }} />
+          </div>
+          <h3 style={{ margin: '0 0 6px 0', color: '#0f766e', fontWeight: 800, fontSize: '1.2rem' }}>
+            טוען את המרחב האישי...
           </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '6px' }}>
-            מכין את התרגולים, התובנות והכלים השקטים עבורך
+          <p style={{ color: '#64748b', fontSize: '0.86rem', margin: '0 0 20px 0' }}>
+            פתיחה מהירה ומאובטחת ⚡
           </p>
+          <div style={{
+            width: '100%',
+            height: '4px',
+            background: '#e2e8f0',
+            borderRadius: '999px',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              height: '100%',
+              width: '40%',
+              background: 'linear-gradient(90deg, #0d9488, #14b8a6)',
+              borderRadius: '999px',
+              animation: 'portalSpeedBar 0.9s ease-in-out infinite'
+            }} />
+          </div>
         </div>
       </div>
     );

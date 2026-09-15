@@ -105,6 +105,7 @@ export class Database {
   mongoDb: Db | null = null;
   isMongoConnected = false;
   connectingPromise: Promise<boolean> | null = null;
+  syncingPromise: Promise<void> | null = null;
   pendingWrites: Promise<any>[] = [];
   lastSyncTime = 0;
 
@@ -117,8 +118,20 @@ export class Database {
   }
 
   async ensureLoaded(forceSync = false): Promise<boolean> {
+    const hasData = Boolean(this.data && (this.data.clients?.length || this.data.users?.length));
+    
+    // If in-memory data is already available, serve immediately (0ms) and trigger background connect/sync
+    if (!forceSync && hasData) {
+      if (!this.isMongoConnected) {
+        this.connect().catch(() => {});
+      } else if (Date.now() - this.lastSyncTime > 30000) {
+        this.syncWithMongo().catch(() => {});
+      }
+      return true;
+    }
+
     const connected = await this.connect();
-    if (connected && (forceSync || Date.now() - this.lastSyncTime > 1500)) {
+    if (connected && (forceSync || Date.now() - this.lastSyncTime > 30000)) {
       await this.syncWithMongo();
     }
     return connected;
@@ -219,38 +232,64 @@ export class Database {
     return this.connectingPromise;
   }
 
-  async syncWithMongo() {
+  async syncWithMongo(): Promise<void> {
     if (!this.mongoDb) return;
-    this.lastSyncTime = Date.now();
+    if (this.syncingPromise) return this.syncingPromise;
 
-    for (const name of ENTITY_COLLECTIONS) {
+    this.syncingPromise = (async () => {
       try {
-        const col = this.mongoDb.collection(name);
-        const remoteDocs = await col.find({}).toArray();
+        this.lastSyncTime = Date.now();
+        const dbInstance = this.mongoDb;
+        if (!dbInstance) return;
 
-        if (remoteDocs && remoteDocs.length > 0) {
-          this.data[name] = remoteDocs.map(doc => {
-            const item: any = { ...doc };
-            item.id = item.id || item._id?.toString();
-            delete item._id;
-            return item;
-          });
-        } else {
-          const localDocs = this.data[name] || [];
-          if (localDocs.length > 0) {
-            const toInsert = localDocs.map((item: any) => ({
-              ...item,
-              _id: item.id || `id-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
-            }));
-            await col.insertMany(toInsert);
-          }
-        }
-      } catch (err: any) {
-        console.warn(`[MongoDB sync error on ${name}]:`, err.message);
+        // Fetch all collections in parallel for maximum speed
+        await Promise.all([
+          ...ENTITY_COLLECTIONS.map(async (name) => {
+            try {
+              const col = dbInstance.collection(name);
+              const remoteDocs = await col.find({}).toArray();
+
+              if (remoteDocs && remoteDocs.length > 0) {
+                this.data[name] = remoteDocs.map(doc => {
+                  const item: any = { ...doc };
+                  item.id = item.id || item._id?.toString();
+                  delete item._id;
+                  return item;
+                });
+              } else {
+                const localDocs = this.data[name] || [];
+                if (localDocs.length > 0) {
+                  const toInsert = localDocs.map((item: any) => ({
+                    ...item,
+                    _id: item.id || `id-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`
+                  }));
+                  await col.insertMany(toInsert);
+                }
+              }
+            } catch (err: any) {
+              console.warn(`[MongoDB sync error on ${name}]:`, err.message);
+            }
+          }),
+          // Sync settings from MongoDB if present
+          (async () => {
+            try {
+              const settingsDoc = await dbInstance.collection('settings').findOne({ _id: 'global_settings' as any });
+              if (settingsDoc && (settingsDoc as any).data) {
+                this.data.settings = { ...this.data.settings, ...(settingsDoc as any).data };
+              }
+            } catch (err: any) {
+              // Ignore settings sync failure
+            }
+          })()
+        ]);
+
+        this.saveLocal();
+      } finally {
+        this.syncingPromise = null;
       }
-    }
+    })();
 
-    this.saveLocal();
+    return this.syncingPromise;
   }
 
   collection(name: string) {
