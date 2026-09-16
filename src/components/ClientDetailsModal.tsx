@@ -98,6 +98,16 @@ export default function ClientDetailsModal({
   });
   const [isSubmittingQuickContent, setIsSubmittingQuickContent] = useState(false);
 
+  // Digital forms state
+  const [clientForms, setClientForms] = useState<any[]>([]);
+  const [loadingForms, setLoadingForms] = useState(false);
+  const [showSendForm, setShowSendForm] = useState(false);
+  const [sendFormChoice, setSendFormChoice] = useState('');
+  const [isSendingForm, setIsSendingForm] = useState<string | null>(null);
+  const [viewingSignature, setViewingSignature] = useState<any | null>(null);
+  const [isLoadingSignature, setIsLoadingSignature] = useState(false);
+  const [formTemplates, setFormTemplates] = useState<any[]>([]);
+
   const showToast = (message, type = 'success') => {
     setModalToast({ message, type });
     setTimeout(() => setModalToast(null), 3500);
@@ -264,12 +274,70 @@ export default function ClientDetailsModal({
     }
   };
 
+  const loadClientForms = useCallback(async () => {
+    if (!client?.id) return;
+    setLoadingForms(true);
+    try {
+      const forms = await api.getClientForms(client.id);
+      setClientForms(Array.isArray(forms) ? forms : []);
+    } catch {
+      setClientForms([]);
+    } finally {
+      setLoadingForms(false);
+    }
+  }, [client?.id]);
+
+  const handleSendFormToClient = async (templateId?: string) => {
+    const targetId = templateId || sendFormChoice;
+    if (!targetId) {
+      showToast('נא לבחור טופס לשליחה', 'error');
+      return;
+    }
+    setIsSendingForm(targetId);
+    try {
+      const res = await api.sendFormToClient(targetId, client.id);
+      showToast(res.message || 'הטופס נשלח לחתימה');
+      setShowSendForm(false);
+      setSendFormChoice('');
+      loadClientForms();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשליחת הטופס', 'error');
+    } finally {
+      setIsSendingForm(null);
+    }
+  };
+
+  const handleViewSignature = async (signatureId: string) => {
+    setIsLoadingSignature(true);
+    try {
+      const data = await api.getFormSignature(signatureId);
+      setViewingSignature(data);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בטעינת הטופס החתום', 'error');
+    } finally {
+      setIsLoadingSignature(false);
+    }
+  };
+
+  const handleOpenSendFormPicker = async () => {
+    setShowSendForm(true);
+    if (formTemplates.length === 0) {
+      try {
+        const templates = await api.getFormTemplates();
+        setFormTemplates((Array.isArray(templates) ? templates : []).filter((t: any) => t.active !== false));
+      } catch {
+        // toast shown on send attempt if list stays empty
+      }
+    }
+  };
+
   useEffect(() => {
     if (isOpen && client?.id) {
       loadClientAppointments();
       loadClientContent();
+      loadClientForms();
     }
-  }, [isOpen, client?.id, loadClientAppointments, loadClientContent]);
+  }, [isOpen, client?.id, loadClientAppointments, loadClientContent, loadClientForms]);
 
   if (!isOpen || !client) return null;
 
@@ -562,6 +630,24 @@ export default function ClientDetailsModal({
               }}
             >
               📚 מאמרים ותוכן ({clientContent.length})
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setModalTab('forms')}
+              style={{
+                background: 'none',
+                border: 'none',
+                padding: '10px 16px',
+                fontSize: '0.95rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                color: modalTab === 'forms' ? '#0d9488' : '#64748b',
+                borderBottom: modalTab === 'forms' ? '3px solid #0d9488' : '3px solid transparent',
+                marginBottom: '-2px'
+              }}
+            >
+              ✍️ טפסים וחתימות{clientForms.length > 0 ? ` (${clientForms.length})` : ''}
             </button>
           </div>
 
@@ -1530,6 +1616,159 @@ export default function ClientDetailsModal({
               </div>
             );
           })()}
+
+          {/* TAB 5: Digital Forms & Signatures */}
+          {modalTab === 'forms' && (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
+                <div>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>טפסים וחתימות דיגיטליות</span>
+                    {clientForms.length > 0 && (
+                      <span style={{ fontSize: '0.8rem', background: '#e2e8f0', color: '#475569', padding: '2px 8px', borderRadius: '12px', fontWeight: 700 }}>
+                        {clientForms.length}
+                      </span>
+                    )}
+                  </h4>
+                  <span style={{ fontSize: '0.84rem', color: '#64748b' }}>
+                    שלח טופס הסכמה, חוזה או הצהרה לחתימה מהנייד של {client.firstName}. החתימה נשמרת אצלך וניתן להוריד אותה כ-PDF.
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  onClick={handleOpenSendFormPicker}
+                >
+                  <span>✍️</span>
+                  <span>שלח טופס לחתימה</span>
+                </button>
+              </div>
+
+              {/* Send form picker */}
+              {showSendForm && (
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '14px', marginBottom: '16px' }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '10px' }}>בחר טופס לשליחה ל{client.firstName}:</div>
+                  {formTemplates.length === 0 ? (
+                    <div style={{ fontSize: '0.85rem', color: '#64748b', padding: '8px 0' }}>
+                      לא נמצאו טפסים פעילים. ניתן ליצור טפסים בתפריט הצד «טפסים דיגיטליים וחתימות».
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      {formTemplates.map((t: any) => (
+                        <div
+                          key={t.id}
+                          style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                            border: sendFormChoice === t.id ? '2px solid #0d9488' : '1px solid #e2e8f0',
+                            background: sendFormChoice === t.id ? '#f0fdfa' : '#fff',
+                            borderRadius: '10px', padding: '10px 12px', textAlign: 'right'
+                          }}
+                        >
+                          <div style={{ flex: 1 }}>
+                            <span style={{ display: 'block', fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
+                              {t.name}
+                            </span>
+                            <span style={{ fontSize: '0.78rem', color: '#64748b' }}>{t.title} · נשלח {t.sentCount || 0} · חתום {t.signedCount || 0}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            disabled={Boolean(isSendingForm)}
+                            onClick={() => handleSendFormToClient(t.id)}
+                            style={{ fontSize: '0.8rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                          >
+                            {isSendingForm === t.id ? 'שולח...' : 'שלח בוואטסאפ 📲'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <button type="button" className="btn btn-secondary" style={{ marginTop: '10px', fontSize: '0.82rem' }} onClick={() => setShowSendForm(false)}>
+                    סגור
+                  </button>
+                </div>
+              )}
+
+              {/* Forms status list */}
+              {loadingForms ? (
+                <div style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>טוען טפסים...</div>
+              ) : clientForms.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '34px 20px', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  <div style={{ fontSize: '2rem', marginBottom: '8px' }}>✍️</div>
+                  <div style={{ fontWeight: 700, color: '#0f172a' }}>לא נשלחו עדיין טפסים ל{client.firstName}</div>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '4px' }}>
+                    שלח טופס הסכמה מדעת או חוזה טיפולי לפני הפגישה הראשונה — החתימה מהנייד נמשכת פחות מדקה.
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {clientForms.map((f: any) => {
+                    const isSigned = f.status === 'signed';
+                    return (
+                      <div key={f.id} style={{
+                        display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+                        border: `1px solid ${isSigned ? '#bbf7d0' : '#fde68a'}`,
+                        background: isSigned ? '#f0fdf4' : '#fffbeb',
+                        borderRadius: '12px', padding: '12px 14px'
+                      }}>
+                        <div style={{
+                          width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
+                          background: isSigned ? '#dcfce7' : '#fef3c7', color: isSigned ? '#15803d' : '#b45309',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem'
+                        }}>
+                          {isSigned ? '✅' : '⏳'}
+                        </div>
+                        <div style={{ flex: 1, minWidth: '180px' }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>{f.formTitle || f.formName}</div>
+                          <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                            {isSigned
+                              ? `נחתם ע"י ${f.signedName || 'המטופל/ת'} · ${f.signedAt ? new Date(f.signedAt).toLocaleString('he-IL') : ''}`
+                              : `נשלח ${f.sentAt ? new Date(f.sentAt).toLocaleString('he-IL') : ''}${f.notificationStatus === 'failed' ? ' · שליחת הוואטסאפ נכשלה — נסה שוב' : ''}`}
+                          </div>
+                        </div>
+                        {isSigned ? (
+                          <button
+                            type="button" className="btn btn-secondary"
+                            style={{ fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                            onClick={() => handleViewSignature(f.id)}
+                          >
+                            {isLoadingSignature ? 'טוען...' : 'צפה בטופס החתום'}
+                          </button>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              style={{ fontSize: '0.78rem', padding: '5px 9px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              onClick={() => {
+                                const directLink = f.portalUrl || `${window.location.origin}/portal/${client.portalCode}?tab=forms&form=${f.id}`;
+                                navigator.clipboard.writeText(directLink);
+                                showToast('הקישור הישיר לטופס הועתק ללוח 📋');
+                              }}
+                              title="העתק קישור ישיר לטופס"
+                            >
+                              <span>📋 קישור</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              disabled={Boolean(isSendingForm)}
+                              style={{ fontSize: '0.78rem', padding: '5px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              onClick={() => handleSendFormToClient(f.formTemplateId)}
+                            >
+                              <span>{isSendingForm === f.formTemplateId ? 'שולח...' : 'שלח שוב 📲'}</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="modal-footer">
@@ -1554,6 +1793,88 @@ export default function ClientDetailsModal({
         cancelText="ביטול"
         isDanger={true}
       />
+
+      {/* Signed Form Viewer Modal */}
+      {viewingSignature && (
+        <div
+          className="modal-overlay"
+          onClick={e => { if (e.target === e.currentTarget) setViewingSignature(null); }}
+        >
+          <div className="modal-card" style={{ maxWidth: '680px', width: '94vw', maxHeight: '88vh', overflowY: 'auto', padding: '22px' }} role="dialog" aria-modal="true" aria-label="טופס חתום">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                📄 {viewingSignature.template?.title || viewingSignature.formName || 'טופס חתום'}
+              </h3>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button" className="btn btn-primary"
+                  style={{ fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                  onClick={() => window.open(`/forms/print/${viewingSignature.id}`, '_blank')}
+                >
+                  🖨️ הורדה כ-PDF / הדפסה
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setViewingSignature(null)}>סגור</button>
+              </div>
+            </div>
+
+            <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '12px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+              <span>👤 {viewingSignature.clientName || `${viewingSignature.client?.firstName || ''} ${viewingSignature.client?.lastName || ''}`}</span>
+              <span>✍️ נחתם: {viewingSignature.signedAt ? new Date(viewingSignature.signedAt).toLocaleString('he-IL') : '-'}</span>
+              {viewingSignature.therapistName && <span>🎓 מטפל/ת: {viewingSignature.therapistName}</span>}
+            </div>
+
+            <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '14px', fontSize: '0.92rem', lineHeight: 1.8, color: '#1e293b' }}>
+              {String(viewingSignature.template?.introText || '').trim() && (
+                <p style={{ whiteSpace: 'pre-wrap', margin: '0 0 12px' }}>{viewingSignature.template.introText}</p>
+              )}
+              {(viewingSignature.template?.sections || []).map((s: any, i: number) => (
+                <div key={i} style={{ marginBottom: '10px' }}>
+                  {s.heading && <div style={{ fontWeight: 800 }}>{i + 1}. {s.heading}</div>}
+                  {s.body && <p style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '0.88rem', color: '#334155' }}>{s.body}</p>}
+                </div>
+              ))}
+
+              {Object.keys(viewingSignature.answers || {}).length > 0 && (
+                <div style={{ margin: '12px 0', padding: '10px', background: '#f8fafc', borderRadius: '8px' }}>
+                  {Object.entries(viewingSignature.answers).map(([label, value]: any) => (
+                    <div key={label} style={{ display: 'flex', gap: '8px', fontSize: '0.85rem', marginBottom: '4px' }}>
+                      <span>{value === true ? '☑' : '☐'}</span>
+                      <span><strong>{label}</strong>{typeof value === 'string' && value ? `: ${value}` : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '14px', flexWrap: 'wrap', marginTop: '18px', borderTop: '1px solid #e2e8f0', paddingTop: '14px' }}>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>שם מלא (אימות):</div>
+                  <div style={{ fontWeight: 700, borderBottom: '1px solid #94a3b8', minWidth: '170px', paddingBottom: '2px' }}>
+                    {viewingSignature.signedName}
+                  </div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px' }}>חתימה דיגיטלית:</div>
+                  {viewingSignature.signatureData ? (
+                    <img
+                      src={viewingSignature.signatureData}
+                      alt="חתימה דיגיטלית"
+                      style={{ maxHeight: '110px', background: '#fafafa', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 10px', direction: 'ltr' }}
+                    />
+                  ) : (
+                    <span style={{ color: '#94a3b8', fontSize: '0.85rem' }}>לא נדרשה חתימה</span>
+                  )}
+                </div>
+              </div>
+
+              {String(viewingSignature.template?.footerText || '').trim() && (
+                <p style={{ whiteSpace: 'pre-wrap', marginTop: '12px', fontSize: '0.78rem', color: '#64748b' }}>
+                  {viewingSignature.template.footerText}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Custom UI Toast */}
       <Toast 

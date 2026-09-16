@@ -1,16 +1,17 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-  Users, 
-  Settings, 
-  ShieldCheck, 
-  HeartHandshake, 
-  LogOut, 
+import {
+  Users,
+  Settings,
+  ShieldCheck,
+  HeartHandshake,
+  LogOut,
   Sparkles,
   ArrowLeftRight,
   CalendarCheck,
   Library,
+  FileSignature,
   X
 } from 'lucide-react';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
@@ -84,6 +85,16 @@ export default function Sidebar({
           >
             <Library size={20} />
             <span>הספרייה הטיפולית</span>
+          </button>
+
+          <button
+            type="button"
+            className={`nav-item ${currentTab === 'forms' ? 'active' : ''}`}
+            onClick={() => handleNavClick('forms')}
+            aria-current={currentTab === 'forms' ? 'page' : undefined}
+          >
+            <FileSignature size={20} />
+            <span>טפסים דיגיטליים וחתימות</span>
           </button>
 
           <button 

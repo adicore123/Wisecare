@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import {
@@ -8,6 +9,10 @@ import {
   enrichItems,
   validateImageData
 } from '@/lib/contentHelpers';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 export async function GET(
   request: NextRequest,
@@ -73,8 +78,18 @@ export async function PUT(
 
     const updated = db.collection('contentItems').updateById(id, updateData);
     await db.flush();
+
+    try {
+      revalidatePath('/crm/[code]/content', 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
     const enriched = enrichItems([updated]);
-    return NextResponse.json(enriched[0]);
+    return NextResponse.json(enriched[0], {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בעדכון פריט תוכן';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -106,7 +121,16 @@ export async function DELETE(
 
     await db.flush();
 
-    return NextResponse.json({ success: true, message: 'הפריט נמחק מהספרייה והוסר מכל המטופלים' });
+    try {
+      revalidatePath('/crm/[code]/content', 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
+    return NextResponse.json({ success: true, message: 'הפריט נמחק מהספרייה והוסר מכל המטופלים' }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה במחיקת פריט תוכן';
     return NextResponse.json({ error: message }, { status: 500 });

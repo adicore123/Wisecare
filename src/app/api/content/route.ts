@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import {
@@ -8,6 +9,10 @@ import {
   validateImageData,
   enrichItems
 } from '@/lib/contentHelpers';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +31,13 @@ export async function GET(request: NextRequest) {
 
     const items = db.collection('contentItems').find({ therapistId });
     items.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return NextResponse.json(enrichItems(items));
+    return NextResponse.json(enrichItems(items), {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בטעינת ספריית התוכן';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -97,7 +108,18 @@ export async function POST(request: NextRequest) {
 
     await db.flush();
 
-    return NextResponse.json({ ...item, assignments: [] }, { status: 201 });
+    // Immediately purge Next.js route caches so returning to the page displays fresh data
+    try {
+      revalidatePath('/crm/[code]/content', 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
+    return NextResponse.json({ ...item, assignments: [] }, {
+      status: 201,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בשמירת תוכן';
     return NextResponse.json({ error: message }, { status: 500 });

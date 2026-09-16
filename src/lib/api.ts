@@ -116,6 +116,76 @@ export const api = {
     return res.json();
   },
 
+  // Digital forms & signatures
+  getFormTemplates: async () => {
+    const res = await fetch(`${API_BASE}/forms`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת הטפסים');
+    return res.json();
+  },
+
+  createFormTemplate: async (data) => {
+    const res = await fetch(`${API_BASE}/forms`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת הטופס');
+    }
+    return res.json();
+  },
+
+  updateFormTemplate: async (id, data) => {
+    const res = await fetch(`${API_BASE}/forms/${id}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון הטופס');
+    }
+    return res.json();
+  },
+
+  deleteFormTemplate: async (id) => {
+    const res = await fetch(`${API_BASE}/forms/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הטופס');
+    }
+    return res.json();
+  },
+
+  sendFormToClient: async (formId, clientId) => {
+    const res = await fetch(`${API_BASE}/forms/${formId}/send`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ clientId })
+    });
+    if (!res.ok && res.status !== 201) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחת הטופס');
+    }
+    return res.json();
+  },
+
+  getClientForms: async (clientId) => {
+    const res = await fetch(`${API_BASE}/clients/${clientId}/forms`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת טפסי הלקוח');
+    return res.json();
+  },
+
+  getFormSignature: async (signatureId) => {
+    const res = await fetch(`${API_BASE}/forms/signatures/${signatureId}`, { headers: authHeaders() });
+    if (!res.ok) throw new Error('שגיאה בטעינת הטופס החתום');
+    return res.json();
+  },
+
   getClient: async (id) => {
     const res = await fetch(`${API_BASE}/clients/${id}`, { headers: authHeaders() });
     if (!res.ok) throw new Error('שגיאה בטעינת פרטי לקוח');
@@ -197,7 +267,14 @@ export const api = {
   getContentItems: async (arg) => {
     const therapistId = typeof arg === 'string' ? arg : (arg?.therapistId || '');
     const query = new URLSearchParams(therapistId ? { therapistId } : {});
-    const res = await fetch(`${API_BASE}/content?${query.toString()}`, { headers: authHeaders() });
+    const res = await fetch(`${API_BASE}/content?${query.toString()}`, {
+      headers: {
+        ...authHeaders(),
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      cache: 'no-store'
+    });
     if (!res.ok) throw new Error('שגיאה בטעינת ספריית התוכן');
     return res.json();
   },
@@ -273,7 +350,13 @@ export const api = {
 
   // Client Portal (Patient)
   getPortalData: async (portalCode) => {
-    const res = await fetch(`${API_BASE}/portal/${portalCode}`);
+    const res = await fetch(`${API_BASE}/portal/${portalCode}`, {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      },
+      cache: 'no-store'
+    });
     if (!res.ok) {
       const err = await res.json();
       throw new Error(err.error || 'מרחב אישי לא נמצא');
@@ -714,6 +797,41 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה באיפוס הסיסמה');
+    }
+    return res.json();
+  },
+
+  // Portal Forms & Signatures
+  getPortalForms: async (portalCode: string) => {
+    const portalToken = typeof window !== 'undefined' ? localStorage.getItem('wisecare_portal_token') : null;
+    const headers: Record<string, string> = {};
+    if (portalToken) headers['Authorization'] = `Bearer ${portalToken}`;
+    const res = await fetch(`${API_BASE}/portal/${encodeURIComponent(portalCode)}/forms`, {
+      headers
+    });
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 404) return [];
+      throw new Error('שגיאה בטעינת טפסי המרחב');
+    }
+    return res.json();
+  },
+
+  submitPortalFormSignature: async (
+    portalCode: string,
+    assignmentId: string,
+    payload: { signatureData: string; signedName: string; answers?: Record<string, any> }
+  ) => {
+    const portalToken = typeof window !== 'undefined' ? localStorage.getItem('wisecare_portal_token') : null;
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (portalToken) headers['Authorization'] = `Bearer ${portalToken}`;
+    const res = await fetch(`${API_BASE}/portal/${encodeURIComponent(portalCode)}/forms/${encodeURIComponent(assignmentId)}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשמירת החתימה');
     }
     return res.json();
   }

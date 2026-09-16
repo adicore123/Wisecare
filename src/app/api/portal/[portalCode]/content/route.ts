@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 export async function POST(
   request: NextRequest,
@@ -50,6 +55,11 @@ export async function POST(
 
     await db.flush();
 
+    try {
+      revalidatePath(`/portal/${portalCode}`, 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
     return NextResponse.json({
       id: item.id,
       assignmentId: assignment.id,
@@ -61,7 +71,12 @@ export async function POST(
       category: item.category,
       sourceName: item.sourceName,
       assignedAt: assignment.createdAt
-    }, { status: 201 });
+    }, {
+      status: 201,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    });
   } catch (error: any) {
     console.error('[Portal Add Content Error]', error);
     return NextResponse.json({ error: 'שגיאה בהוספת תוכן למרחב האישי' }, { status: 500 });

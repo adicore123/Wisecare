@@ -240,6 +240,25 @@
       "archived": true,
       "deletedAt": "2026-09-16T13:50:41.684Z",
       "updatedAt": "2026-09-16T13:50:41.684Z"
+    },
+    {
+      "createdAt": "2026-09-16T13:56:40.240Z",
+      "email": "prod@test.local",
+      "firstName": "Prod",
+      "goal": "verify prod buttons",
+      "id": "id-1789567000240-83fee774",
+      "isSelfCare": true,
+      "lastName": "Check",
+      "password": "bf04d782d3c67457188a7313bd61fa1e:b39289050566105b418e363faabc3073035f026b76f23dc1952010fc35f7fcb6ea6eb0109be5d20f44e9bb60bfda2302daaa4d16bf8a9acabb455b03295abbfb",
+      "phone": "0512345670",
+      "portalCode": "prod-320785",
+      "source": "self_join",
+      "status": "active",
+      "therapistId": null,
+      "username": "zcode_prod_check",
+      "archived": true,
+      "deletedAt": "2026-09-16T13:59:01.586Z",
+      "updatedAt": "2026-09-16T13:59:01.586Z"
     }
   ],
   "tasks": [
@@ -864,6 +883,104 @@
       "title": "Test Article For Mobile Layout",
       "type": "article",
       "url": ""
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T15:28:27.984Z",
+      "customNote": "",
+      "description": "The narcissist is Betrayal BUT YOU ARE KARMA ‼️\n\n  #fyp #npd #npdawareness #npdsurvivor #narc #narcawareness #narcfree #narcissisticabuse #manipulation #narcissisticmother #narcabuse...",
+      "id": "id-1789572507984-39dc21b7",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/521412085_1071258641647217_4562875252901035856_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a27664&_nc_ohc=8jd_X50EQuUQ7kNvwE9Bnaj&_nc_oc=AdqY3xqNDwFg7qx7Wu0m1ID3rXdkEloijOlJoOyMpvyEwCE0Q1cxlsGSZNuxDCQexy8&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=8c-hylyvjj13TGpRkvk6pw&_nc_ss=7f180&oh=00_AQLRcxGtoUS0x4RpR4mIxJWnoCYU8-4-ZTBJwuS8I5KZaA&oe=6AB07C77",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "The narcissist is Betrayal BUT YOU ARE KARMA ‼️",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1c7iwNRQmY/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T15:29:30.909Z",
+      "customNote": "",
+      "description": "The narcissist is Betrayal BUT YOU ARE KARMA ‼️\n\n  #fyp #npd #npdawareness #npdsurvivor #narc #narcawareness #narcfree #narcissisticabuse #manipulation #narcissisticmother #narcabuse...",
+      "id": "id-1789572570909-e2662728",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/521412085_1071258641647217_4562875252901035856_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a27664&_nc_ohc=8jd_X50EQuUQ7kNvwE9Bnaj&_nc_oc=AdqY3xqNDwFg7qx7Wu0m1ID3rXdkEloijOlJoOyMpvyEwCE0Q1cxlsGSZNuxDCQexy8&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=ccG7fwyLRnbrQX7vX2jzfw&_nc_ss=7f180&oh=00_AQJQ3wEKEBGCS_I5EnWB3KWwHSybhf1uiRuueMnmL38KuA&oe=6AB07C77",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "The narcissist is Betrayal BUT YOU ARE KARMA ‼️",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1c7iwNRQmY/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T15:29:55.329Z",
+      "customNote": "",
+      "description": "they didn’t lose you suddenly they lost you slowly by ignoring you   \n     \n#explorepage #reels #life #jayjaydouglas #love #instagram #facebook #explore #viral",
+      "id": "id-1789572595330-4a21003b",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/617590925_1557837038803035_25968129362030970_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a27664&_nc_ohc=jCxTCN2IG6YQ7kNvwH55aU1&_nc_oc=AdoTKDUMy_diFRNU1opsaYPzRdMnCHpPDkhV89u_GGgp1S1KgM2GjNh0-cS7lZRwq8E&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=hJX5rkAanK9joZd_uMNl4g&_nc_ss=7f180&oh=00_AQLokkene5ReexB2RQDIwkWbqFUAAZjifUP7h6Yti2er-w&oe=6AB07C18",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "they didn’t lose you suddenly they lost you slowly by ignoring you ",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1J1mKL98xV/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T15:42:49.896Z",
+      "customNote": "",
+      "description": "Share this if you agree  #tired #friends #mentalhealth #fblifestyle #relationship",
+      "id": "id-1789573369896-840733e8",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/561630376_768713326037208_1421966515882836477_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=596eb7&_nc_ohc=GbKhmaQth70Q7kNvwEdKTFP&_nc_oc=AdpRUJz19ugS3cFGJR6Tih_kkfMVrlUgOaKdY7UfvLv22WGNYPF_v9CMDVfrl_PHWtk&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=57tJYe39Nj1x8kSOi6adhw&_nc_ss=7f180&oh=00_AQJ5d4_IIz3nCMT7C3xc0BwXRDWLGOApsmGd9uiMLl13Ow&oe=6AB070E2",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Share this if you agree  #tired #friends #mentalhealth #fblifestyle #relationship | Trent Shelton",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1DKSdAaBpT/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:21:58.779Z",
+      "customNote": "",
+      "description": "Hidden Motives on Reels",
+      "id": "id-1789590118779-e0cb6e3e",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/812875011_1873341884041199_4270622717677917109_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=a27664&_nc_ohc=TwoYzG2ytHIQ7kNvwHfXtj-&_nc_oc=AdqsCwJ7_oxeF0cTVAjTr_yz8R5-_PhE6Jm8D6g4-qN2P6MTkgaK0rjUvePtA0qQRqU&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=R46gcMAzRXmNgBJ1v2q_oA&_nc_ss=7f180&oh=00_AQLS-HADO2WrDozn4oUfxW5Ix6n1Kcd7GiCIqeEYHpiscQ&oe=6AB0E1CF",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Hidden Motives on Reels",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/183EY5viVN/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:22:39.066Z",
+      "customNote": "",
+      "description": "“Stop Trying To Save Them”❤️‍啕5️⃣#UncleCharlie #UC5 #Charlie \n\n#relationship #love #healing #education #marriage #couple #datingadvice #healingenergy #everyone  #chicago #goodmorning #viralpost2026...",
+      "id": "id-1789590159066-45f66613",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/761497158_915919027569245_3170862341994483260_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=a27664&_nc_ohc=4mrXBArtvEoQ7kNvwENmhF0&_nc_oc=Adq3Qo39a9aXoMKbD6iZeZagjXly2uKHOskYVDye6j2QYHU4a4d0GxqUbdavDGYI_cY&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=FPVQ0WgD9N3dpwKpdACPNA&_nc_ss=7f180&oh=00_AQJ52J_2E4s43D8Qnx8m_a01HSdvATTR6_CLWyIxG6w0fw&oe=6AB0D804",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "14K reactions · 630 comments | “Stop Trying To Save Them”❤️‍啕5️⃣#UncleCharlie #UC5 #Charlie",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1GbS5jnKVm/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:31:15.633Z",
+      "customNote": "",
+      "description": "The most dangerous anger comes from a good heart. #selfworth #relationshipadvice",
+      "id": "id-1789590675633-770ce771",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/770363028_1447392630553745_2871883239423520644_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a27664&_nc_ohc=WyjP-J5eZVEQ7kNvwEau2qm&_nc_oc=AdqqNgMJtRNI6nxIO00wNdKnqrzn8GDuPquUK8BumXd8Qka3lY8VQss5hBEPLe2uSXc&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=c7UgB6nakXpVcnMV2dYRng&_nc_ss=7f180&oh=00_AQLSiEGMjqbTRzRaLE_pS8zvy5h-PwcMjZN38GIzntlxrg&oe=6AB0EAEA",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "The most dangerous anger comes from a good heart. #selfworth #relationshipadvice | The Soft Reset",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DvApCtqRS/"
     }
   ],
   "contentAssignments": [
@@ -1139,6 +1256,41 @@
       "createdAt": "2026-09-16T13:28:37.422Z",
       "id": "id-1789565317422-9b93a7e8",
       "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789572507984-39dc21b7",
+      "createdAt": "2026-09-16T15:28:27.986Z",
+      "id": "id-1789572507986-cb7ed4cd",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789573369896-840733e8",
+      "createdAt": "2026-09-16T15:42:49.898Z",
+      "id": "id-1789573369898-26bd54c3",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789590118779-e0cb6e3e",
+      "createdAt": "2026-09-16T20:21:58.781Z",
+      "id": "id-1789590118781-74875fc3",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789590159066-45f66613",
+      "createdAt": "2026-09-16T20:22:39.068Z",
+      "id": "id-1789590159068-88c488ee",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789590675633-770ce771",
+      "createdAt": "2026-09-16T20:31:15.634Z",
+      "id": "id-1789590675634-9f3b1981",
+      "notificationStatus": "none"
     }
   ],
   "insights": [
@@ -1305,6 +1457,8 @@
       "typeName": "פגישה בקליניקה"
     }
   ],
+  "formTemplates": [],
+  "formSignatures": [],
   "settings": {
     "greenApiToken": "f64af6e10b874cc5b9844eb3c02c0bfe6af45468eee048eb8a",
     "greenApiInstanceId": "710722735138",
@@ -1712,28 +1866,70 @@
       "timestamp": "2026-09-16T13:47:23.216Z"
     },
     {
-      "id": "id-1789566641492-9de8c396",
-      "createdAt": "2026-09-16T13:50:41.493Z",
+      "action": "login_success",
       "actor": "adicore123",
       "actorRole": "superadmin",
-      "action": "login_success",
-      "targetId": "superadmin-1",
+      "createdAt": "2026-09-16T13:50:41.493Z",
+      "id": "id-1789566641492-9de8c396",
       "ip": "::1",
+      "targetId": "superadmin-1",
       "timestamp": "2026-09-16T13:50:41.492Z"
     },
     {
-      "id": "id-1789566641687-9c07ce88",
-      "createdAt": "2026-09-16T13:50:41.687Z",
+      "action": "archive_client",
       "actor": "adicore123",
       "actorRole": "superadmin",
-      "action": "archive_client",
-      "targetId": "id-1789566559376-38060344",
-      "targetType": "client",
+      "createdAt": "2026-09-16T13:50:41.687Z",
       "details": {
         "clientName": "Hydra Test",
         "phone": "0512345679"
       },
+      "id": "id-1789566641687-9c07ce88",
+      "targetId": "id-1789566559376-38060344",
+      "targetType": "client",
       "timestamp": "2026-09-16T13:50:41.687Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:59:01.380Z",
+      "id": "id-1789567141380-80ed2ec9",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:59:01.380Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:59:01.588Z",
+      "details": {
+        "clientName": "Prod Check",
+        "phone": "0512345670"
+      },
+      "id": "id-1789567141588-5babec48",
+      "targetId": "id-1789567000240-83fee774",
+      "targetType": "client",
+      "timestamp": "2026-09-16T13:59:01.588Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T16:46:45.620Z",
+      "id": "id-1789577205620-e398b6b0",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T16:46:45.620Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T18:33:25.547Z",
+      "id": "id-1789583605547-0ff8ea75",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T18:33:25.547Z"
     }
   ]
 }

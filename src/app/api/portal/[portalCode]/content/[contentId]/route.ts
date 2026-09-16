@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 export async function DELETE(
   request: NextRequest,
@@ -20,7 +25,16 @@ export async function DELETE(
 
     await db.flush();
 
-    return NextResponse.json({ success: true, message: 'התוכן הוסר מהמרחב האישי' });
+    try {
+      revalidatePath(`/portal/${portalCode}`, 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
+    return NextResponse.json({ success: true, message: 'התוכן הוסר מהמרחב האישי' }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
+    });
   } catch (error: any) {
     console.error('[Portal Delete Content Error]', error);
     return NextResponse.json({ error: 'שגיאה בהסרת תוכן מהמרחב' }, { status: 500 });
@@ -63,10 +77,19 @@ export async function PUT(
 
     await db.flush();
 
+    try {
+      revalidatePath(`/portal/${portalCode}`, 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
+
     return NextResponse.json({
       success: true,
       message: 'התוכן עודכן בהצלחה',
       item: updated
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate'
+      }
     });
   } catch (error: any) {
     console.error('[Portal Update Content Error]', error);

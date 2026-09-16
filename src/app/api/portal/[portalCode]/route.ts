@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+
 export async function getPortalPayload(portalCode: string) {
   await db.ensureLoaded();
   const clients = db.collection('clients');
@@ -102,7 +106,13 @@ export async function GET(
     if (!payload) {
       return NextResponse.json({ error: 'מרחב טיפולי זה לא נמצא או שהקישור שגוי' }, { status: 404 });
     }
-    return NextResponse.json(payload);
+    return NextResponse.json(payload, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      }
+    });
   } catch (error: any) {
     console.error('[Portal Get Error]', error);
     return NextResponse.json({ error: 'שגיאה בשליפת נתוני המרחב האישי' }, { status: 500 });

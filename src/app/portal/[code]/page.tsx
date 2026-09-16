@@ -2,6 +2,10 @@ import ClientPortalPage from '@/components/ClientPortalManager';
 import { getPortalPayload } from '@/app/api/portal/[portalCode]/route';
 import type { Metadata } from 'next';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+
 export const metadata: Metadata = {
   title: 'מרחב אישי ומאובטח | WiseCare',
   description: 'מרחב אישי ומאובטח למטופלים ומתרגלים - משימות, תכנים, יומן תובנות ותיאום פגישות',

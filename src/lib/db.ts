@@ -75,6 +75,8 @@ const defaultData = {
   contentAssignments: [],
   insights: [],
   appointments: [],
+  formTemplates: [],
+  formSignatures: [],
   settings: {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
@@ -84,7 +86,8 @@ const defaultData = {
     therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare',
     autoSendContentNotificationWhatsApp: true,
     articleNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿',
-    mediaNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨'
+    mediaNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨',
+    formInviteMessageTemplate: 'שלום {{firstName}} יקר/ה,\nלפני הפגישה הראשונה שלנו, נדרשת חתימתך על המסמך הבא:\n📄 *{{formName}}*\n\nהחתימה מתבצעת בקלות מהנייד, דרך המרחב האישי המאובטח שלך:\n{{portalUrl}}\n\nתודה וברכה,\n{{therapistName}}'
   }
 };
 
@@ -96,6 +99,8 @@ const ENTITY_COLLECTIONS = [
   'insights',
   'contentItems',
   'contentAssignments',
+  'formTemplates',
+  'formSignatures',
   'auditLogs'
 ];
 
@@ -128,20 +133,19 @@ export class Database {
   async ensureLoaded(forceSync = false): Promise<boolean> {
     const hasData = Boolean(this.data && (this.data.clients?.length || this.data.users?.length));
 
-    // Fast zero-latency path — only trusted AFTER a first successful sync in this
-    // instance's lifetime. Before that, serving memory means serving the stale
-    // deploy-time bundle while writes would silently miss MongoDB.
+    // Fast zero-latency path — trusted after initial sync
     if (!forceSync && hasData && this.hasSyncedOnce) {
       if (!this.isMongoConnected) {
         this.connect().catch(() => {});
-      } else if (Date.now() - this.lastSyncTime > 30000) {
-        this.syncWithMongo().catch(() => {});
+      } else if (Date.now() - this.lastSyncTime > 10000) {
+        // Await sync so subsequent reads don't see stale data if threshold passed
+        await this.syncWithMongo().catch(() => {});
       }
       return true;
     }
 
     const connected = await this.connect();
-    if (connected && (forceSync || Date.now() - this.lastSyncTime > 30000)) {
+    if (connected && (forceSync || Date.now() - this.lastSyncTime > 10000)) {
       await this.syncWithMongo();
     }
     return connected;
@@ -153,6 +157,7 @@ export class Database {
       this.pendingWrites = [];
       await Promise.allSettled(writes);
     }
+    this.lastSyncTime = Date.now();
   }
 
   markModified(name: string, id: string) {

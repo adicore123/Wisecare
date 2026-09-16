@@ -4946,3 +4946,35 @@ select option:checked {
   50% { width: 70%; }
   100% { transform: translateX(-100%); width: 30%; }
 }
+
+/* ==========================================================================
+   DIGITAL FORMS & SIGNATURES MODULE
+   ========================================================================== */
+
+@media print {
+  .no-print { display: none !important; }
+  .print-a4 {
+    width: auto !important;
+    min-height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
+  body { background: #fff !important; }
+}
+
+.signature-pad {
+  touch-action: none;
+  cursor: crosshair;
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  display: block;
+}
+
+.form-sign-card {
+  border-radius: 18px;
+  padding: 20px 18px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}

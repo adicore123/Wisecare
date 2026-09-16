@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   BookOpen,
   Check,
@@ -154,6 +155,7 @@ function getSharedDraft() {
 }
 
 export default function ContentLibraryPage({ currentTherapist: initialTherapist, clients: initialClients = [] }: any) {
+  const router = useRouter();
   const [currentTherapist, setCurrentTherapist] = useState<any>(initialTherapist);
   const [clients, setClients] = useState<any[]>(initialClients);
 
@@ -398,6 +400,7 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
       setItems(current => [item, ...current]);
       closeEditor();
       showToast('התוכן נשמר ונוסף ישירות לטבלה.');
+      try { router.refresh(); } catch {}
     } catch (error) {
       showToast(error.message, 'error');
     } finally {
@@ -482,6 +485,7 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
           setItems(current => current.filter(entry => entry.id !== item.id));
           setConfirmState(null);
           showToast('התוכן נמחק מהספרייה.');
+          try { router.refresh(); } catch {}
         } catch (error) {
           showToast(error.message, 'error');
         }

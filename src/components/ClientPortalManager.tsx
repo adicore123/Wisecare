@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
   HeartHandshake, 
   CheckCircle2, 
@@ -50,7 +51,8 @@ import {
   Delete,
   Edit,
   Edit3,
-  Copy
+  Copy,
+  FileSignature
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { api } from '@/lib/api';
@@ -58,6 +60,7 @@ import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
+import SignatureCanvas from './SignatureCanvas';
 import { applyTheme } from '@/lib/theme';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -124,7 +127,9 @@ const MOOD_OPTIONS = [
 ];
 
 export default function ClientPortalPage({ portalCode, initialPayload }: { portalCode?: string; initialPayload?: any }) {
+  const router = useRouter();
   const [featuredContentId, setFeaturedContentId] = useState('');
+  const [featuredFormId, setFeaturedFormId] = useState('');
   const [isSuperAdminImpersonating, setIsSuperAdminImpersonating] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
   const [contentSubTab, setContentSubTab] = useState<'all' | 'media' | 'posts' | 'articles'>('all');
@@ -137,6 +142,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       setIsSuperAdminImpersonating(portalQuery.get('superadmin') === '1');
       if (portalQuery.get('tab') === 'content') {
         setActiveTab('content');
+      }
+      const formParam = portalQuery.get('form');
+      if (formParam) {
+        setFeaturedFormId(formParam);
+      }
+      if (portalQuery.get('tab') === 'forms') {
+        setActiveTab('forms');
       }
       const rawSubtab = portalQuery.get('subtab');
       if (rawSubtab === 'articles' || rawSubtab === 'article') {
@@ -265,6 +277,16 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [pendingDeleteContentId, setPendingDeleteContentId] = useState(null);
 
   const [pendingDeleteAppointmentId, setPendingDeleteAppointmentId] = useState(null);
+
+  // Digital Forms & Signatures
+  const [portalForms, setPortalForms] = useState<any[]>([]);
+  const [loadingForms, setLoadingForms] = useState(false);
+  const [activeSigningForm, setActiveSigningForm] = useState<any | null>(null);
+  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [signedName, setSignedName] = useState('');
+  const [formAnswers, setFormAnswers] = useState<Record<string, any>>({});
+  const [submittingSignature, setSubmittingSignature] = useState(false);
+  const [signatureError, setSignatureError] = useState('');
 
   // Portal Authentication & Security Gate State
   const authSessionKey = `wisecare_portal_auth_${portalCode}`;
@@ -618,6 +640,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       });
       setReflectionTexts(prev => ({ ...initialReflections, ...prev }));
 
+      // Load digital forms if client is accompanied by a therapist
+      if (!portalRes?.portalInfo?.isSelfCare) {
+        api.getPortalForms(portalCode).then(forms => {
+          if (Array.isArray(forms)) setPortalForms(forms);
+        }).catch(() => {});
+      }
+
       // Cache locally for instant subsequent visits
       if (typeof window !== 'undefined') {
         try {
@@ -635,6 +664,99 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadPortalForms = useCallback(async () => {
+    if (!portalCode || data?.portalInfo?.isSelfCare) return;
+    try {
+      setLoadingForms(true);
+      const items = await api.getPortalForms(portalCode);
+      setPortalForms(Array.isArray(items) ? items : []);
+    } catch {
+      setPortalForms([]);
+    } finally {
+      setLoadingForms(false);
+    }
+  }, [portalCode, data?.portalInfo?.isSelfCare]);
+
+  useEffect(() => {
+    if (activeTab === 'forms') {
+      loadPortalForms();
+    }
+  }, [activeTab, loadPortalForms]);
+
+  // Handle deep-link to specific form
+  useEffect(() => {
+    if (!featuredFormId || !portalForms.length) return;
+    const target = portalForms.find((f: any) => f.id === featuredFormId);
+    if (target && target.status !== 'signed' && target.form) {
+      handleOpenSignModal(target);
+    }
+  }, [featuredFormId, portalForms]);
+
+  const handleOpenSignModal = (item: any) => {
+    setActiveSigningForm(item);
+    setSignatureData(null);
+    setSignedName(data?.portalInfo?.clientName || '');
+    const initial: Record<string, any> = {};
+    (item.form?.requiredFields || []).forEach((f: any) => {
+      initial[f.label] = f.type === 'checkbox' ? false : '';
+    });
+    setFormAnswers(initial);
+    setSignatureError('');
+  };
+
+  const handleSubmitSignature = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeSigningForm) return;
+    setSignatureError('');
+
+    const template = activeSigningForm.form;
+    if (!signedName.trim()) {
+      setSignatureError('נא להזין שם מלא לאימות החתימה');
+      return;
+    }
+
+    if (template?.requiresSignature !== false && !signatureData) {
+      setSignatureError('נדרשת חתימה בכתב יד — נא לחתום בתיבת החתימה');
+      return;
+    }
+
+    for (const field of (template?.requiredFields || [])) {
+      const val = formAnswers[field.label];
+      if (field.type === 'checkbox' && val !== true) {
+        setSignatureError(`נדרש לאשר: ${field.label}`);
+        return;
+      }
+      if (field.type !== 'checkbox' && !String(val || '').trim()) {
+        setSignatureError(`נא למלא: ${field.label}`);
+        return;
+      }
+    }
+
+    setSubmittingSignature(true);
+    try {
+      await api.submitPortalFormSignature(portalCode, activeSigningForm.id, {
+        signatureData: signatureData || '',
+        signedName: signedName.trim(),
+        answers: formAnswers
+      });
+
+      confetti({
+        particleCount: 80,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      showToast('הטופס נחתם ונשמר בהצלחה! המטפל/ת שלך קיבל/ה אותו. 🌿');
+      setPortalForms(prev => prev.map(f => f.id === activeSigningForm.id ? { ...f, status: 'signed', signedAt: new Date().toISOString(), signedByMe: true } : f));
+      setActiveSigningForm(null);
+      setFeaturedFormId('');
+    } catch (err: any) {
+      setSignatureError(err.message || 'שגיאה בשמירת החתימה');
+    } finally {
+      setSubmittingSignature(false);
     }
   };
 
@@ -902,6 +1024,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           } catch {}
         }
       }
+      try { router.refresh(); } catch {}
     } catch (err: any) {
       showToast(err.message || 'שגיאה בשמירת תוכן', 'error');
     } finally {
@@ -918,6 +1041,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         ...prev,
         content: (prev?.content || []).filter(c => c.id !== pendingDeleteContentId)
       }));
+      try { router.refresh(); } catch {}
     } catch (err) {
       showToast(err.message || 'שגיאה בהסרת תוכן', 'error');
     } finally {
@@ -1650,6 +1774,29 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <Wind size={19} />
             <span>הרפיה ונשימה מונחית</span>
           </button>
+
+          {!portalInfo.isSelfCare && (
+            <button 
+              className={`nav-item ${activeTab === 'forms' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveTab('forms');
+                setMobileMenuOpen(false);
+              }}
+              style={{ 
+                color: activeTab === 'forms' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+                background: activeTab === 'forms' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
+              }}
+              aria-current={activeTab === 'forms' ? 'page' : undefined}
+            >
+              <FileSignature size={19} />
+              <span>טפסים וחתימות</span>
+              {portalForms.filter((f: any) => f.status !== 'signed').length > 0 && (
+                <span className="nav-badge" style={{ background: '#ef4444', color: '#ffffff', fontWeight: 800 }}>
+                  {portalForms.filter((f: any) => f.status !== 'signed').length}
+                </span>
+              )}
+            </button>
+          )}
 
           {!portalInfo.isSelfCare && (
             <button 
@@ -3501,6 +3648,238 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             </div>
           )}
 
+          {/* ========================================================================= */}
+          {/* TAB: טפסים דיגיטליים וחתימות                                              */}
+          {/* ========================================================================= */}
+          {activeTab === 'forms' && !portalInfo.isSelfCare && (
+            <div>
+              <div className="page-header portal-content-header">
+                <div className="page-title-group">
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileSignature size={24} color="var(--primary, #0d9488)" />
+                    <span>טפסים וחתימות דיגיטליות</span>
+                    {portalForms.filter((f: any) => f.status !== 'signed').length > 0 && (
+                      <span style={{ fontSize: '0.8rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '2px 9px', borderRadius: '12px', fontWeight: 700 }}>
+                        {portalForms.filter((f: any) => f.status !== 'signed').length} ממתינים לחתימה
+                      </span>
+                    )}
+                  </h2>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '4px' }}>
+                    מסמכי הסכמה לטיפול, חוזים והצהרות בריאות לקראת הליווי עם {portalInfo.therapist?.name || 'המטפל/ת שלך'}. החתימה מתבצעת ישירות מהמסך.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={loadPortalForms}
+                  disabled={loadingForms}
+                  style={{ fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <RefreshCw size={14} className={loadingForms ? 'spin' : ''} />
+                  <span>רענן</span>
+                </button>
+              </div>
+
+              {loadingForms && portalForms.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>
+                  <Loader2 size={28} className="spin" style={{ margin: '0 auto 10px', color: '#0d9488' }} />
+                  <div>טוען טפסים...</div>
+                </div>
+              ) : portalForms.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '50px 24px',
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px dashed #cbd5e1',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+                }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📄</div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px' }}>
+                    אין טפסים הממתינים לחתימה
+                  </h3>
+                  <p style={{ fontSize: '0.88rem', color: '#64748b', maxWidth: '420px', margin: '0 auto' }}>
+                    כרגע אין מסמכים הדורשים את חתימתך. כאשר המטפל/ת ישלח/י טופס הסכמה או הצהרה חדשה — הוא יופיע כאן מיידית ותקבל/י על כך הודעה.
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  {/* Section 1: Pending forms awaiting signature */}
+                  {portalForms.filter((f: any) => f.status !== 'signed').length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#991b1b', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Clock size={18} />
+                        <span>טפסים הממתינים לחתימתך ({portalForms.filter((f: any) => f.status !== 'signed').length})</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+                        {portalForms.filter((f: any) => f.status !== 'signed').map((item: any) => {
+                          const t = item.form || {};
+                          const accent = t.accentColor || '#0d9488';
+                          return (
+                            <div
+                              key={item.id}
+                              style={{
+                                background: '#ffffff',
+                                borderRadius: '16px',
+                                border: `2px solid ${accent}40`,
+                                boxShadow: `0 4px 16px ${accent}12`,
+                                padding: '20px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'space-between',
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <div style={{ position: 'absolute', top: 0, right: 0, left: 0, height: '4px', background: accent }} />
+                              <div>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+                                  <span style={{
+                                    fontSize: '0.74rem',
+                                    fontWeight: 700,
+                                    padding: '3px 9px',
+                                    borderRadius: '12px',
+                                    background: '#fef3c7',
+                                    color: '#b45309',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px'
+                                  }}>
+                                    <Clock size={12} /> ממתין לחתימה
+                                  </span>
+                                  {item.sentAt && (
+                                    <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>
+                                      נשלח {new Date(item.sentAt).toLocaleDateString('he-IL')}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                                  {t.title || 'טופס לחתימה'}
+                                </h3>
+
+                                {t.introText && (
+                                  <p style={{
+                                    fontSize: '0.86rem',
+                                    color: '#475569',
+                                    lineHeight: 1.5,
+                                    margin: '0 0 14px',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden'
+                                  }}>
+                                    {t.introText}
+                                  </p>
+                                )}
+
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '0.78rem', color: '#64748b', marginBottom: '16px' }}>
+                                  <span>📑 {t.sections?.length || 0} סעיפים</span>
+                                  {t.requiredFields?.length > 0 && (
+                                    <span>✓ {t.requiredFields.length} שדות לאישור</span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                onClick={() => handleOpenSignModal(item)}
+                                style={{
+                                  width: '100%',
+                                  padding: '11px',
+                                  fontSize: '0.94rem',
+                                  fontWeight: 700,
+                                  borderRadius: '12px',
+                                  background: accent,
+                                  borderColor: accent,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '8px'
+                                }}
+                              >
+                                <span>עיין וחתום על המסמך ✍️</span>
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Section 2: Signed forms */}
+                  {portalForms.filter((f: any) => f.status === 'signed').length > 0 && (
+                    <div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#166534', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle2 size={18} />
+                        <span>טפסים שנחתמו בהצלחה ({portalForms.filter((f: any) => f.status === 'signed').length})</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '14px' }}>
+                        {portalForms.filter((f: any) => f.status === 'signed').map((item: any) => {
+                          const t = item.form || {};
+                          return (
+                            <div
+                              key={item.id}
+                              style={{
+                                background: '#ffffff',
+                                borderRadius: '14px',
+                                border: '1px solid #bbf7d0',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                                padding: '16px 18px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: '12px',
+                                flexWrap: 'wrap'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '12px',
+                                  background: '#dcfce7',
+                                  color: '#15803d',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  flexShrink: 0
+                                }}>
+                                  <CheckCircle2 size={22} />
+                                </div>
+                                <div>
+                                  <div style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
+                                    {t.title || 'טופס חתום'}
+                                  </div>
+                                  <div style={{ fontSize: '0.78rem', color: '#15803d', marginTop: '2px' }}>
+                                    ✓ נחתם בהצלחה {item.signedAt ? `ב-${new Date(item.signedAt).toLocaleDateString('he-IL')}` : ''}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <span style={{
+                                fontSize: '0.78rem',
+                                color: '#64748b',
+                                background: '#f8fafc',
+                                padding: '4px 10px',
+                                borderRadius: '8px',
+                                border: '1px solid #e2e8f0'
+                              }}>
+                                שמור בתיק הרפואי
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
         </main>
 
         {/* Portal Sanctuary Footer */}
@@ -4509,6 +4888,313 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 סגור קריאה
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL: מילוי וחתימה דיגיטלית על טופס                                      */}
+      {/* ========================================================================= */}
+      {activeSigningForm && (
+        <div
+          className="modal-overlay"
+          onClick={() => {
+            if (!submittingSignature) setActiveSigningForm(null);
+          }}
+          style={{ background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(6px)', zIndex: 1200 }}
+        >
+          <div
+            className="modal-card"
+            style={{
+              maxWidth: '680px',
+              width: '95vw',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: '20px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              overflow: 'hidden'
+            }}
+            onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={activeSigningForm.form?.title || 'חתימה על מסמך'}
+          >
+            {/* Modal Header */}
+            <div style={{
+              padding: '18px 22px',
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '12px',
+              background: `linear-gradient(135deg, ${activeSigningForm.form?.accentColor || '#0d9488'}12 0%, #ffffff 100%)`
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '10px',
+                  background: `${activeSigningForm.form?.accentColor || '#0d9488'}20`,
+                  color: activeSigningForm.form?.accentColor || '#0d9488',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <FileSignature size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                    {activeSigningForm.form?.title || 'חתימה על מסמך'}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                    בליווי {portalInfo.therapist?.name || 'המטפל/ת'} • {portalInfo.clinicName}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn-icon"
+                onClick={() => setActiveSigningForm(null)}
+                disabled={submittingSignature}
+                style={{ borderRadius: '50%', background: '#f1f5f9', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="סגור"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Document Body */}
+            <form onSubmit={handleSubmitSignature} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div style={{
+                padding: '22px 24px',
+                overflowY: 'auto',
+                flex: 1,
+                direction: 'rtl'
+              }}>
+                {/* Intro Text */}
+                {activeSigningForm.form?.introText && (
+                  <div style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    padding: '14px 16px',
+                    fontSize: '0.92rem',
+                    color: '#334155',
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-wrap',
+                    marginBottom: '20px'
+                  }}>
+                    {activeSigningForm.form.introText}
+                  </div>
+                )}
+
+                {/* Sections */}
+                {(activeSigningForm.form?.sections || []).length > 0 && (
+                  <div style={{ marginBottom: '22px' }}>
+                    {activeSigningForm.form.sections.map((s: any, idx: number) => (
+                      <div key={idx} style={{
+                        marginBottom: '14px',
+                        paddingBottom: '14px',
+                        borderBottom: idx < activeSigningForm.form.sections.length - 1 ? '1px dashed #e2e8f0' : 'none'
+                      }}>
+                        {s.heading && (
+                          <div style={{
+                            fontWeight: 800,
+                            fontSize: '0.96rem',
+                            color: activeSigningForm.form.accentColor || '#0f172a',
+                            marginBottom: '4px'
+                          }}>
+                            {idx + 1}. {s.heading}
+                          </div>
+                        )}
+                        {s.body && (
+                          <div style={{
+                            fontSize: '0.88rem',
+                            color: '#475569',
+                            lineHeight: 1.6,
+                            whiteSpace: 'pre-wrap'
+                          }}>
+                            {s.body}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Required Fields / Acknowledgments */}
+                {(activeSigningForm.form?.requiredFields || []).length > 0 && (
+                  <div style={{
+                    background: '#f0fdfa',
+                    border: '1px solid #ccfbf1',
+                    borderRadius: '14px',
+                    padding: '16px',
+                    marginBottom: '22px'
+                  }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f766e', marginBottom: '12px' }}>
+                      הצהרות ואישורים נדרשים (חובה לסמן/למלא):
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {activeSigningForm.form.requiredFields.map((f: any, idx: number) => (
+                        <div key={idx}>
+                          {f.type === 'checkbox' ? (
+                            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                              <input
+                                type="checkbox"
+                                checked={Boolean(formAnswers[f.label])}
+                                onChange={e => setFormAnswers(prev => ({ ...prev, [f.label]: e.target.checked }))}
+                                style={{
+                                  width: '18px',
+                                  height: '18px',
+                                  marginTop: '3px',
+                                  accentColor: activeSigningForm.form.accentColor || '#0d9488',
+                                  cursor: 'pointer'
+                                }}
+                              />
+                              <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a', lineHeight: 1.4 }}>
+                                {f.label} <span style={{ color: '#dc2626' }}>*</span>
+                              </span>
+                            </label>
+                          ) : (
+                            <div>
+                              <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 700, color: '#0f172a', marginBottom: '4px' }}>
+                                {f.label} <span style={{ color: '#dc2626' }}>*</span>
+                              </label>
+                              <input
+                                type={f.type === 'date' ? 'date' : 'text'}
+                                value={formAnswers[f.label] || ''}
+                                onChange={e => setFormAnswers(prev => ({ ...prev, [f.label]: e.target.value }))}
+                                className="form-control"
+                                style={{ width: '100%', padding: '9px 12px', borderRadius: '10px', fontSize: '0.88rem' }}
+                                required
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Verification Name */}
+                <div style={{ marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
+                    שם מלא לחתימה ואימות <span style={{ color: '#dc2626' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={signedName}
+                    onChange={e => setSignedName(e.target.value)}
+                    placeholder="הזן שם פרטי ומשפחה"
+                    className="form-control"
+                    style={{ width: '100%', padding: '11px 14px', borderRadius: '10px', fontSize: '0.94rem', fontWeight: 600 }}
+                    required
+                  />
+                  <span style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                    השם מופיע במסמך החתום לצד החתימה הדיגיטלית.
+                  </span>
+                </div>
+
+                {/* Hand-drawn Signature Canvas */}
+                {activeSigningForm.form?.requiresSignature !== false && (
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 800, color: '#0f172a', marginBottom: '6px' }}>
+                      חתימה ידנית על המסך <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <SignatureCanvas
+                      onSignatureChange={setSignatureData}
+                      accentColor={activeSigningForm.form?.accentColor || '#0d9488'}
+                      disabled={submittingSignature}
+                    />
+                  </div>
+                )}
+
+                {/* Footer Text */}
+                {activeSigningForm.form?.footerText && (
+                  <div style={{
+                    fontSize: '0.8rem',
+                    color: '#64748b',
+                    borderTop: '1px solid #f1f5f9',
+                    paddingTop: '10px',
+                    lineHeight: 1.5,
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {activeSigningForm.form.footerText}
+                  </div>
+                )}
+
+                {/* Error Banner */}
+                {signatureError && (
+                  <div style={{
+                    marginTop: '16px',
+                    padding: '11px 14px',
+                    background: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '12px',
+                    color: '#dc2626',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}>
+                    <AlertCircle size={16} />
+                    <span>{signatureError}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '14px 22px',
+                borderTop: '1px solid #e2e8f0',
+                background: '#f8fafc',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setActiveSigningForm(null)}
+                  disabled={submittingSignature}
+                  style={{ fontSize: '0.88rem' }}
+                >
+                  ביטול
+                </button>
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={submittingSignature}
+                  style={{
+                    fontSize: '0.94rem',
+                    fontWeight: 800,
+                    padding: '10px 22px',
+                    borderRadius: '10px',
+                    background: activeSigningForm.form?.accentColor || '#0d9488',
+                    borderColor: activeSigningForm.form?.accentColor || '#0d9488',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {submittingSignature ? (
+                    <>
+                      <Loader2 size={16} className="spin" />
+                      <span>שולח חתימה...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>אישור ושליחת החתימה למטפל/ת ✍️</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
