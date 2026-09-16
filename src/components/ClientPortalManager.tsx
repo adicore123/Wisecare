@@ -169,11 +169,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     return null;
   };
 
-  const initialCached = getCachedPayload();
-
-  const [data, setData] = useState<any>(() => initialPayload || initialCached || null);
-  const [insights, setInsights] = useState<any[]>(() => initialPayload?.insights || initialCached?.insights || []);
-  const [loading, setLoading] = useState(() => !initialPayload && !initialCached);
+  // The localStorage cache must never be read during render — the server cannot see it,
+  // so the first client paint would diverge from the SSR HTML (hydration mismatch).
+  // It is applied post-hydration inside the mount effect below.
+  const [data, setData] = useState<any>(initialPayload || null);
+  const [insights, setInsights] = useState<any[]>(initialPayload?.insights || []);
+  const [loading, setLoading] = useState(!initialPayload);
   const [error, setError] = useState('');
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   // activeTab is initialized and updated above via useEffect
@@ -224,7 +225,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [breathingCountdown, setBreathingCountdown] = useState(4);
 
   // Appointments state
-  const [portalAppointments, setPortalAppointments] = useState<any[]>(() => initialPayload?.appointments || initialCached?.appointments || []);
+  const [portalAppointments, setPortalAppointments] = useState<any[]>(initialPayload?.appointments || []);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({
     preferredDate: '',
@@ -267,14 +268,10 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
   // Portal Authentication & Security Gate State
   const authSessionKey = `wisecare_portal_auth_${portalCode}`;
-  const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`wisecare_portal_auth_${portalCode}`) === 'true';
-  });
-  const [isAuthChecked, setIsAuthChecked] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem(`wisecare_portal_auth_${portalCode}`) === 'true';
-  });
+  // Both start false so SSR HTML and the first client render match; the remembered
+  // localStorage session is applied post-hydration in the mount effect.
+  const [isPortalAuthenticated, setIsPortalAuthenticated] = useState(false);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
@@ -306,6 +303,14 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       const savedUser = localStorage.getItem(`wisecare_saved_user_${portalCode}`);
       if (savedUser) {
         setLoginUsername(savedUser);
+      }
+
+      // Restore the remembered session only after hydration so the first client
+      // render matches the server-rendered HTML (verify-auth re-validates below)
+      const rememberedSession = localStorage.getItem(`wisecare_portal_auth_${portalCode}`) === 'true';
+      if (rememberedSession) {
+        setIsPortalAuthenticated(true);
+        setIsAuthChecked(true);
       }
 
       // Check PIN configuration
@@ -535,8 +540,21 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   };
 
   useEffect(() => {
+    // Apply the local cache only after hydration so the first client paint matches
+    // the server-rendered HTML (the cache is invisible to SSR)
+    let hasSnapshot = Boolean(initialPayload);
+    if (!hasSnapshot) {
+      const cached = getCachedPayload();
+      if (cached) {
+        hasSnapshot = true;
+        setData(cached);
+        setInsights(cached.insights || []);
+        setPortalAppointments(cached.appointments || []);
+        setLoading(false);
+      }
+    }
     // If data is already available (from SSR initialPayload or local cache), refresh silently without blocking UI
-    loadPortalAll(Boolean(data));
+    loadPortalAll(hasSnapshot);
   }, [portalCode]);
 
   useEffect(() => {

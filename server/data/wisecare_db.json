@@ -202,6 +202,44 @@
       "archived": true,
       "deletedAt": "2026-09-16T12:52:04.930Z",
       "updatedAt": "2026-09-16T12:52:04.930Z"
+    },
+    {
+      "createdAt": "2026-09-16T13:28:29.441Z",
+      "email": "zcode@test.local",
+      "firstName": "Zcode",
+      "goal": "gui test",
+      "id": "id-1789565309441-b42daca9",
+      "isSelfCare": true,
+      "lastName": "UiTest",
+      "password": "4ff72cb0aa9e002bafdf09d5e8035f00:c4f3e697f5e3a77a92c8e877b1e794c778bd584b89a1d7ee7a0d49b90c009285a4b64f4b857b9eb6b328854c82db613a50e7fd1190be96b3e46aa8d211fa4452",
+      "phone": "0512345678",
+      "portalCode": "zcode-439222",
+      "source": "self_join",
+      "status": "active",
+      "therapistId": null,
+      "username": "zcode_ui_test",
+      "archived": true,
+      "deletedAt": "2026-09-16T13:32:02.896Z",
+      "updatedAt": "2026-09-16T13:32:02.896Z"
+    },
+    {
+      "createdAt": "2026-09-16T13:49:19.376Z",
+      "email": "hydr@test.local",
+      "firstName": "Hydra",
+      "goal": "hydration test",
+      "id": "id-1789566559376-38060344",
+      "isSelfCare": true,
+      "lastName": "Test",
+      "password": "5f256fb789e818e9eaaf2205f99b2bdc:b1e461e6f5218ec6c8b744d9cf286108c8a887ba5170677eef68af8b8198dd3eac35ae6ae7499bd688693ff66ad9d55f66ec1194f71b6b7113369d5d9a15bed3",
+      "phone": "0512345679",
+      "portalCode": "hydra-230195",
+      "source": "self_join",
+      "status": "active",
+      "therapistId": null,
+      "username": "zcode_hydr_test",
+      "archived": true,
+      "deletedAt": "2026-09-16T13:50:41.684Z",
+      "updatedAt": "2026-09-16T13:50:41.684Z"
     }
   ],
   "tasks": [
@@ -798,6 +836,34 @@
       "title": "You Had Your Chance — No Second Chances..",
       "type": "video",
       "url": "https://www.facebook.com/share/r/1DWWTsbSSH/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T13:28:37.082Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789565317082-369eaa66",
+      "imageData": "",
+      "sourceName": "YouTube",
+      "therapistId": null,
+      "title": "Test Video For Mobile Layout Check",
+      "type": "video",
+      "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T13:28:37.420Z",
+      "customNote": "",
+      "description": "Test article with a longer description used to trigger the read-more expand button in the mobile layout test. Several lines of text so the card shows the expand control and all action buttons together in a narrow viewport for overflow checking.",
+      "id": "id-1789565317420-22f9275a",
+      "imageData": "",
+      "sourceName": "",
+      "therapistId": null,
+      "title": "Test Article For Mobile Layout",
+      "type": "article",
+      "url": ""
     }
   ],
   "contentAssignments": [
@@ -1065,6 +1131,13 @@
       "contentId": "id-1789463028132-096ed5c5",
       "createdAt": "2026-09-15T09:03:48.133Z",
       "id": "id-1789463028133-5a8ae8a4",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789565309441-b42daca9",
+      "contentId": "id-1789565317420-22f9275a",
+      "createdAt": "2026-09-16T13:28:37.422Z",
+      "id": "id-1789565317422-9b93a7e8",
       "notificationStatus": "none"
     }
   ],
@@ -1594,6 +1667,73 @@
       "ip": "::1",
       "targetId": "superadmin-1",
       "timestamp": "2026-09-16T13:11:37.507Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:31:42.195Z",
+      "id": "id-1789565502194-5fc5400c",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:31:42.194Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:32:01.712Z",
+      "id": "id-1789565521711-98f42c81",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:32:01.711Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:32:02.932Z",
+      "details": {
+        "clientName": "Zcode UiTest",
+        "phone": "0512345678"
+      },
+      "id": "id-1789565522932-c169424b",
+      "targetId": "id-1789565309441-b42daca9",
+      "targetType": "client",
+      "timestamp": "2026-09-16T13:32:02.932Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:47:23.217Z",
+      "id": "id-1789566443216-0bdb747b",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:47:23.216Z"
+    },
+    {
+      "id": "id-1789566641492-9de8c396",
+      "createdAt": "2026-09-16T13:50:41.493Z",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "action": "login_success",
+      "targetId": "superadmin-1",
+      "ip": "::1",
+      "timestamp": "2026-09-16T13:50:41.492Z"
+    },
+    {
+      "id": "id-1789566641687-9c07ce88",
+      "createdAt": "2026-09-16T13:50:41.687Z",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "action": "archive_client",
+      "targetId": "id-1789566559376-38060344",
+      "targetType": "client",
+      "details": {
+        "clientName": "Hydra Test",
+        "phone": "0512345679"
+      },
+      "timestamp": "2026-09-16T13:50:41.687Z"
     }
   ]
 }

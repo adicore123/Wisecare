@@ -3332,12 +3332,13 @@ textarea.form-control {
     min-width: 0;
     grid-column: 2;
     flex-direction: row;
+    flex-wrap: wrap;
     justify-content: flex-start;
     padding: 0 12px 10px;
   }
 
   .portal-content-card .portal-content-card-actions .btn {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
   }
 }
 
