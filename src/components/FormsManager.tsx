@@ -3,11 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import {
   FileSignature, Plus, Pencil, Trash2, Copy, Eye, Send, CheckCircle2,
-  Clock, X, FileText, Loader2, Users, ShieldAlert, ChevronDown, ChevronUp, Printer
+  Clock, X, FileText, Loader2, Users, ShieldAlert, ChevronDown, ChevronUp, Printer,
+  Check, ExternalLink, Search, MessageCircle
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
+import WhatsAppIcon from './WhatsAppIcon';
+
 
 type Section = { heading: string; body: string };
 type RequiredField = { label: string; type: 'checkbox' | 'text' | 'date' };
@@ -154,9 +157,103 @@ export default function FormsManager() {
   const [clinicName, setClinicName] = useState('WiseCare');
   const [presetsOpen, setPresetsOpen] = useState(false);
 
+  // Client Assignment & WhatsApp Automation State
+  const [clients, setClients] = useState<any[]>([]);
+  const [sendModal, setSendModal] = useState<Template | null>(null);
+  const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [sendWhatsApp, setSendWhatsApp] = useState(true);
+  const [customMessage, setCustomMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const [sendResult, setSendResult] = useState<{ portalUrl: string; notificationStatus: string; clientName: string } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4500);
+  };
+
+  const getDefaultMessage = (client: any, template: Template) => {
+    return `שלום ${client?.firstName || ''} יקר/ה,
+
+לפני הפגישה הראשונה שלנו, נדרשת חתימתך על המסמך הבא:
+📄 *${template.title || template.name}*
+
+החתימה מתבצעת בקלות מהנייד, דרך המרחב האישי המאובטח שלך:
+{{portalUrl}}
+
+תודה וברכה,
+${clinicName}`;
+  };
+
+  const openSendModal = (t: Template) => {
+    setSendModal(t);
+    setSendResult(null);
+    setCopiedLink(false);
+    setSendWhatsApp(true);
+    setClientSearch('');
+    const initialClient = clients[0] || null;
+    setSelectedClientId(initialClient ? initialClient.id : '');
+    if (initialClient) {
+      setCustomMessage(getDefaultMessage(initialClient, t));
+    } else {
+      setCustomMessage('');
+    }
+  };
+
+  const handleCopyLink = (url: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        setCopiedLink(true);
+        setTimeout(() => setCopiedLink(false), 3000);
+      });
+    }
+  };
+
+  const handleSendToClient = async () => {
+    if (!sendModal || !selectedClientId) {
+      showToast('נא לבחור לקוח לשיוך הטופס', 'error');
+      return;
+    }
+    const client = clients.find(c => c.id === selectedClientId);
+    if (!client) {
+      showToast('הלקוח שנבחר לא נמצא', 'error');
+      return;
+    }
+    if (sendWhatsApp && !client.phone) {
+      showToast('ללקוח הנבחר אין מספר טלפון להודעת וואטסאפ', 'error');
+      return;
+    }
+
+    setIsSending(true);
+    try {
+      const res = await api.sendFormToClient(
+        sendModal.id,
+        selectedClientId,
+        customMessage.trim() || undefined,
+        sendWhatsApp
+      );
+
+      setSendResult({
+        portalUrl: res.portalUrl,
+        notificationStatus: res.notificationStatus,
+        clientName: `${client.firstName} ${client.lastName}`.trim()
+      });
+
+      if (res.notificationStatus === 'sent') {
+        showToast(`הטופס נשלח בהצלחה בוואטסאפ ל-${client.firstName}! 📱`, 'success');
+      } else if (res.notificationStatus === 'failed') {
+        showToast('הטופס שויך ללקוח, אך שליחת הוואטסאפ נכשלה — ניתן להעתיק את הקישור ידנית', 'error');
+      } else {
+        showToast(`הטופס שויך בהצלחה למרחב של ${client.firstName}!`, 'success');
+      }
+
+      await loadTemplates();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשליחת הטופס', 'error');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   useEffect(() => {
@@ -181,6 +278,9 @@ export default function FormsManager() {
       if (s?.clinicName) setClinicName(s.clinicName);
     }).catch(() => {});
     loadTemplates();
+    api.getClients().then((cls: any) => {
+      if (Array.isArray(cls)) setClients(cls.filter((c: any) => !c.archived));
+    }).catch(() => {});
   }, []);
 
   const loadTemplates = async () => {
@@ -287,6 +387,16 @@ export default function FormsManager() {
       return { ...prev, requiredFields };
     });
   };
+
+  const filteredClients = clients.filter((c: any) => {
+    if (!clientSearch.trim()) return true;
+    const q = clientSearch.trim().toLowerCase();
+    const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+    const phone = (c.phone || '').replace(/\D/g, '');
+    return fullName.includes(q) || phone.includes(q);
+  });
+
+  const selectedClient = clients.find((c: any) => c.id === selectedClientId);
 
   const renderFormDocument = (t: Partial<Template>, forPrint = false) => (
     <div style={{
@@ -660,7 +770,23 @@ export default function FormsManager() {
                         {t.title} · {(t.sections || []).length} סעיפים · נשלח {t.sentCount || 0} פעמים · חתום {t.signedCount || 0}
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{
+                          padding: '6px 14px',
+                          gap: '6px',
+                          background: '#16a34a',
+                          borderColor: '#16a34a',
+                          fontSize: '0.85rem'
+                        }}
+                        title="שייך ללקוח ושלח לחתימה בוואטסאפ"
+                        onClick={() => openSendModal(t)}
+                      >
+                        <WhatsAppIcon size={16} />
+                        <span>שייך ללקוח בוואטסאפ</span>
+                      </button>
                       <button type="button" className="btn btn-secondary" style={{ padding: '6px 10px' }} title="תצוגה מקדימה" onClick={() => setExpandedId(isExpanded ? null : t.id)}>
                         <Eye size={15} />
                       </button>
@@ -678,6 +804,26 @@ export default function FormsManager() {
 
                   {isExpanded && (
                     <div style={{ padding: '0 16px 16px' }}>
+                      <div style={{
+                        marginBottom: '14px', padding: '12px 16px', background: '#f0fdf4',
+                        border: '1px solid #bbf7d0', borderRadius: '12px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        flexWrap: 'wrap', gap: '10px'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.88rem', color: '#166534' }}>
+                          <WhatsAppIcon size={20} />
+                          <span>טופס זה פעיל ומוכן לשליחה מהירה לכל לקוח במערכת דרך חיבור הוואטסאפ של המערכת.</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          style={{ background: '#16a34a', borderColor: '#16a34a', padding: '6px 14px', gap: '6px', fontSize: '0.85rem' }}
+                          onClick={() => openSendModal(t)}
+                        >
+                          <WhatsAppIcon size={16} />
+                          <span>שייך ללקוח עכשיו</span>
+                        </button>
+                      </div>
                       {renderFormDocument(t)}
                     </div>
                   )}
@@ -698,6 +844,281 @@ export default function FormsManager() {
           הלקוח יקבל וואטסאפ עם קישור לחתימה מהנייד, והטופס החתום יופיע אצלך בכרטיס עם אפשרות הורדה כ-PDF.
         </div>
       </div>
+
+      {sendModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+        }}>
+          <div style={{
+            background: '#ffffff', borderRadius: '18px', width: '100%', maxWidth: '620px',
+            maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #e2e8f0',
+            textAlign: 'right'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '18px 22px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc',
+              borderTopLeftRadius: '18px', borderTopRightRadius: '18px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px', height: '42px', borderRadius: '12px',
+                  background: '#dcfce7', color: '#16a34a',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <WhatsAppIcon size={24} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
+                    שיוך טופס ושליחה בוואטסאפ
+                  </h3>
+                  <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
+                    טופס: <strong style={{ color: sendModal.accentColor || '#0d9488' }}>{sendModal.title || sendModal.name}</strong>
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setSendModal(null); setSendResult(null); }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+                aria-label="סגור חלון"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {sendResult ? (
+                /* Success state */
+                <div style={{
+                  background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px',
+                  padding: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: '12px'
+                }}>
+                  <div style={{
+                    width: '56px', height: '56px', borderRadius: '50%', background: '#22c55e',
+                    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }}>
+                    <CheckCircle2 size={32} />
+                  </div>
+                  <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#15803d' }}>
+                    הטופס שויך בהצלחה!
+                  </h4>
+                  <p style={{ margin: 0, color: '#166534', fontSize: '0.92rem', lineHeight: '1.6' }}>
+                    {sendResult.notificationStatus === 'sent'
+                      ? `הודעת WhatsApp עם קישור ישיר לחתימה נשלחה כעת ל-${sendResult.clientName} דרך חשבון הוואטסאפ של המערכת.`
+                      : `הטופס שויך למרחב האישי של ${sendResult.clientName}. ניתן גם להעתיק את הקישור הישיר:`}
+                  </p>
+
+                  <div style={{
+                    width: '100%', background: '#fff', border: '1px solid #bbf7d0', borderRadius: '10px',
+                    padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px'
+                  }}>
+                    <input
+                      type="text"
+                      readOnly
+                      value={sendResult.portalUrl}
+                      style={{
+                        flex: 1, border: 'none', background: 'transparent', fontSize: '0.85rem',
+                        color: '#334155', direction: 'ltr', outline: 'none'
+                      }}
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '0.82rem', flexShrink: 0 }}
+                      onClick={() => handleCopyLink(sendResult.portalUrl)}
+                    >
+                      {copiedLink ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
+                      <span>{copiedLink ? 'הועתק!' : 'העתק קישור'}</span>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ marginTop: '10px', width: '100%', justifyContent: 'center' }}
+                    onClick={() => { setSendModal(null); setSendResult(null); }}
+                  >
+                    סגור חלון
+                  </button>
+                </div>
+              ) : (
+                /* Form selection & send state */
+                <>
+                  {/* System WhatsApp status indicator */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', gap: '10px',
+                    background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px',
+                    padding: '10px 14px', fontSize: '0.84rem', color: '#15803d'
+                  }}>
+                    <WhatsAppIcon size={18} />
+                    <span>
+                      <strong>אוטומציית WhatsApp פעילה:</strong> ההודעה נשלחת ישירות מחשבון הוואטסאפ של המערכת (Green API המוגדר בסופר-אדמין).
+                    </span>
+                  </div>
+
+                  {/* Client selection */}
+                  <div>
+                    <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', marginBottom: '6px', color: '#0f172a' }}>
+                      בחר/י לקוח לשיוך הטופס *
+                    </label>
+
+                    {clients.length > 5 && (
+                      <div style={{ position: 'relative', marginBottom: '8px' }}>
+                        <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                        <input
+                          type="text"
+                          className="form-control"
+                          style={{ paddingRight: '36px', fontSize: '0.88rem' }}
+                          placeholder="חיפוש לקוח לפי שם או טלפון..."
+                          value={clientSearch}
+                          onChange={e => setClientSearch(e.target.value)}
+                        />
+                      </div>
+                    )}
+
+                    {clients.length === 0 ? (
+                      <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
+                        לא נמצאו לקוחות במערכת. יש להוסיף לקוח בכרטיס הלקוחות תחילה.
+                      </div>
+                    ) : (
+                      <select
+                        className="form-control"
+                        style={{ fontSize: '0.92rem', padding: '10px 12px' }}
+                        value={selectedClientId}
+                        onChange={e => {
+                          setSelectedClientId(e.target.value);
+                          const selected = clients.find(c => c.id === e.target.value);
+                          if (selected && sendModal) {
+                            setCustomMessage(getDefaultMessage(selected, sendModal));
+                          }
+                        }}
+                      >
+                        <option value="">-- בחר/י לקוח מתוך הרשימה --</option>
+                        {filteredClients.map((c: any) => (
+                          <option key={c.id} value={c.id}>
+                            {c.firstName} {c.lastName} {c.phone ? `(${c.phone})` : '(ללא טלפון)'}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {/* Selected client card preview */}
+                  {selectedClient && (
+                    <div style={{
+                      background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px',
+                      padding: '12px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      flexWrap: 'wrap', gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '38px', height: '38px', borderRadius: '50%', background: '#e2e8f0',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontWeight: 700, fontSize: '0.9rem', color: '#334155'
+                        }}>
+                          {(selectedClient.firstName?.[0] || 'ל')}
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.92rem', color: '#0f172a' }}>
+                            {selectedClient.firstName} {selectedClient.lastName}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                            נייד: {selectedClient.phone || 'חסר מספר טלפון'} · פורטל: {selectedClient.portalCode}
+                          </div>
+                        </div>
+                      </div>
+
+                      {!selectedClient.phone && (
+                        <span style={{ color: '#b91c1c', fontSize: '0.78rem', background: '#fef2f2', padding: '3px 8px', borderRadius: '6px', border: '1px solid #fecaca' }}>
+                          חסר טלפון לשליחת וואטסאפ
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Send WhatsApp checkbox */}
+                  <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '0.9rem' }}>
+                      <input
+                        type="checkbox"
+                        checked={sendWhatsApp}
+                        onChange={e => setSendWhatsApp(e.target.checked)}
+                      />
+                      <span>שלח הודעת WhatsApp אוטומטית ללקוח עם הקישור לחתימה</span>
+                    </label>
+                  </div>
+
+                  {/* WhatsApp Message Preview */}
+                  {sendWhatsApp && (
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <label style={{ fontWeight: 700, fontSize: '0.85rem', color: '#334155' }}>
+                          תוכן ההודעה שתישלח בוואטסאפ:
+                        </label>
+                        <button
+                          type="button"
+                          style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.78rem', cursor: 'pointer', textDecoration: 'underline' }}
+                          onClick={() => {
+                            if (selectedClient && sendModal) {
+                              setCustomMessage(getDefaultMessage(selectedClient, sendModal));
+                            }
+                          }}
+                        >
+                          איפוס לנוסח ברירת המחדל
+                        </button>
+                      </div>
+                      <textarea
+                        className="form-control"
+                        rows={6}
+                        style={{ fontSize: '0.86rem', lineHeight: '1.5', fontFamily: 'inherit' }}
+                        value={customMessage}
+                        onChange={e => setCustomMessage(e.target.value)}
+                        placeholder="הזן נוסח הודעה אישי..."
+                      />
+                      <div style={{ fontSize: '0.76rem', color: '#64748b', marginTop: '4px' }}>
+                        המשתנה {'{{portalUrl}}'} יוחלף אוטומטית בקישור החתימה המאובטח הישיר של הלקוח.
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      onClick={() => setSendModal(null)}
+                      disabled={isSending}
+                    >
+                      ביטול
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{
+                        background: '#16a34a',
+                        borderColor: '#16a34a',
+                        padding: '9px 20px',
+                        gap: '8px'
+                      }}
+                      disabled={isSending || !selectedClientId || (sendWhatsApp && selectedClient && !selectedClient.phone)}
+                      onClick={handleSendToClient}
+                    >
+                      {isSending ? <Loader2 size={16} className="animate-spin" /> : <WhatsAppIcon size={18} />}
+                      <span>{isSending ? 'שולח ומשייך...' : 'שלח בוואטסאפ ושייך ללקוח'}</span>
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {deleteModal && (
         <ConfirmModal

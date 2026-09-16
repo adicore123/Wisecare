@@ -981,6 +981,62 @@
       "title": "The most dangerous anger comes from a good heart. #selfworth #relationshipadvice | The Soft Reset",
       "type": "video",
       "url": "https://www.facebook.com/share/r/1DvApCtqRS/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:45:34.779Z",
+      "customNote": "",
+      "description": "You think that didn’t break me? #telvie #pov #povacting",
+      "id": "id-1789591534779-781fc048",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/765073352_1373942777666096_9055167311955146633_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=a27664&_nc_ohc=Xejcp_EkaSwQ7kNvwFZH9q1&_nc_oc=Adqsxu3a-aFMR_Dj9PZS5UzyDoQ06VjSP8Aetf_yHsayZh7Ur8dc8aq9l4HE1n8oiQk&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=nrJMuMnIIgCL_332F52cgg&_nc_ss=7f180&oh=00_AQJv5VXcKwGmKSpaARuOexJVbYJdwSFMLoWl8xAQ47Ufcw&oe=6AB0CC0F",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "You think that didn’t break me? #telvie #pov #povacting | Afolayan Adebayor",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DmfcBjAQ7/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:47:05.366Z",
+      "customNote": "",
+      "description": "",
+      "id": "id-1789591625366-43bab724",
+      "imageData": "",
+      "sourceName": "",
+      "therapistId": null,
+      "title": "סרטון (מהרשת)",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1C6MqWt3pc/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:47:38.693Z",
+      "customNote": "",
+      "description": "part 1",
+      "id": "id-1789591658693-ace528ec",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/802857526_1816872932691965_196388083968624417_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=a27664&_nc_ohc=GJGryAOriY0Q7kNvwFJxVcq&_nc_oc=AdrMR0TZWRgXfp9z1mFbWegvGRoa9cFqIBhgX9GYkUWHDNjk7ELJjtRGSISY8YXdKWQ&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=SLBbTMan3QOgkx9Wu2BMMA&_nc_ss=7f180&oh=00_AQIIvDZLTAD2IzORQyK32X_zCTeE1Gqaft4GCDY6UmPy4w&oe=6AB0EBC3",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "part 1 | What.shemeans",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1BaBKE17Bk/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-16T20:47:57.040Z",
+      "customNote": "",
+      "description": "Signs a narcissist is secretly ashamed of how they treated you #relationship #narcissist",
+      "id": "id-1789591677040-4ee65dd4",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/806082759_1378153294482822_2446271200180285702_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a27664&_nc_ohc=hp8q_lliglUQ7kNvwGdd27L&_nc_oc=AdpzO_S_ZxqGftV6545lzl3vzLpd1IVAREmT5vqMO46Y4-5MsEqAWnVmfC9YQmRAZUc&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=MW8RNW3Ebmkm3C-nfjj3WQ&_nc_ss=7f180&oh=00_AQJJ3z8XpK-61485ZEsKNnNlV0LzTOR9hThRdIU0S-DhBQ&oe=6AB0B7C8",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Signs a narcissist is secretly ashamed of how they treated you #relationship #narcissist | Emotional Dynamic",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1J6C83CU66/"
     }
   ],
   "contentAssignments": [
@@ -1291,6 +1347,20 @@
       "createdAt": "2026-09-16T20:31:15.634Z",
       "id": "id-1789590675634-9f3b1981",
       "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789591534779-781fc048",
+      "createdAt": "2026-09-16T20:45:34.781Z",
+      "id": "id-1789591534781-c74cafe7",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789591677040-4ee65dd4",
+      "createdAt": "2026-09-16T20:47:57.041Z",
+      "id": "id-1789591677041-8fba1077",
+      "notificationStatus": "none"
     }
   ],
   "insights": [
@@ -1457,7 +1527,49 @@
       "typeName": "פגישה בקליניקה"
     }
   ],
-  "formTemplates": [],
+  "formTemplates": [
+    {
+      "id": "id-1789593944896-37392191",
+      "createdAt": "2026-09-16T21:25:44.899Z",
+      "therapistId": "therapist-1",
+      "name": "הסכמה מדעת לטיפול",
+      "title": "טופס הסכמה מדעת לטיפול רגשי",
+      "introText": "ברוכ/ה הבא/ה לתהליך הטיפולי במרחב טיפולי WiseCare.\n\nלפני תחילת הליווי הטיפולי, חשוב לנו שתכיר/י את מסגרת הטיפול, זכויותייך וגבולות הסודיות. נא לקרוא בעיון, לאשר את הסעיפים ולחתום בתיבת החתימה בתחתית המסמך.",
+      "sections": [
+        {
+          "heading": "מהות הטיפול",
+          "body": "הטיפול הרגשי כולל מפגשים סדירים בהם נעבוד יחד על רווחתך הנפשית, ויסות רגשי, התמודדות עם משברים ופיתוח כלים אישיים. הטיפול אינו מהווה תחליף לייעוץ רפואי או פסיכיאטרי, ובמידת הצורך יופנה/י להתייעצות נוספת."
+        },
+        {
+          "heading": "סודיות ופרטיות",
+          "body": "כל תוכן המפגשים חסוי ושמור, ואינו מועבר לגורם כלשהו ללא הסכמתך המפורשת בכתב. יוצאות מן הכלל: חובה חוקית המוטלת על המטפל/ת על-פי דין, חשש לפגיעה עצמית או באחר, וכן פיקוח מקצועי אנונימי במסגרת הדרכה קלינית."
+        },
+        {
+          "heading": "ביטול ודחיית מפגשים",
+          "body": "ביטול מפגש מתאפשר עד 24 שעות לפני מועדו ללא חיוב. ביטול בתוך 24 השעות או היעדרות שלא במועד יחויבו בתשלום מלא עבור המפגש."
+        },
+        {
+          "heading": "סיום הטיפול",
+          "body": "הטיפול הינו התהליך התנדבותי וניתן להפסיקו בכל עת. מומלץ לקיים מפגש סיכום לסגירת התהליך באופן מסודר ובריא."
+        }
+      ],
+      "requiredFields": [
+        {
+          "label": "קראתי והבנתי את תנאי הטיפול ואת גבולות הסודיות",
+          "type": "checkbox"
+        },
+        {
+          "label": "אני מסכים/ה לקבל טיפול רגשי ומאשר/ת את תנאי הביטול",
+          "type": "checkbox"
+        }
+      ],
+      "footerText": "החתימה בעיגול בתיבה למטה מהווה אישור מחייב של הטופס.",
+      "requiresSignature": true,
+      "accentColor": "#0d9488",
+      "active": true,
+      "archived": false
+    }
+  ],
   "formSignatures": [],
   "settings": {
     "greenApiToken": "f64af6e10b874cc5b9844eb3c02c0bfe6af45468eee048eb8a",

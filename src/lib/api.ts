@@ -161,11 +161,11 @@ export const api = {
     return res.json();
   },
 
-  sendFormToClient: async (formId, clientId) => {
+  sendFormToClient: async (formId: string, clientId: string, customMessage?: string, sendWhatsApp = true) => {
     const res = await fetch(`${API_BASE}/forms/${formId}/send`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ clientId })
+      body: JSON.stringify({ clientId, customMessage, sendWhatsApp })
     });
     if (!res.ok && res.status !== 201) {
       const err = await res.json().catch(() => ({}));

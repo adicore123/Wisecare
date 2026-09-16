@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 
 export async function POST(
   request: NextRequest,
@@ -17,7 +22,7 @@ export async function POST(
 
     const { id } = await props.params;
     const template = db.collection('formTemplates').findById(id);
-    if (!template || template.therapistId !== auth.userId) {
+    if (!template || (template.therapistId !== auth.userId && auth.role !== 'superadmin')) {
       return NextResponse.json({ error: 'הטופס לא נמצא או שאין הרשאה' }, { status: 404 });
     }
     if (!template.active) {
@@ -26,6 +31,9 @@ export async function POST(
 
     const body = await request.json().catch(() => ({}));
     const clientId = String(body.clientId || '').trim();
+    const shouldSendWhatsApp = body.sendWhatsApp !== false;
+    const customMessage = body.customMessage && String(body.customMessage).trim();
+
     if (!clientId) {
       return NextResponse.json({ error: 'חסר מזהה לקוח' }, { status: 400 });
     }
@@ -34,15 +42,17 @@ export async function POST(
     if (!client || client.archived) {
       return NextResponse.json({ error: 'הלקוח לא נמצא' }, { status: 404 });
     }
-    if (client.therapistId !== auth.userId) {
+    if (client.therapistId !== auth.userId && auth.role !== 'superadmin') {
       return NextResponse.json({ error: 'הלקוח אינו משויך אליך' }, { status: 403 });
     }
-    if (!client.phone) {
+    if (shouldSendWhatsApp && !client.phone) {
       return NextResponse.json({ error: 'ללקוח אין מספר טלפון לשליחת וואטסאפ' }, { status: 400 });
     }
 
+    const effectiveTherapistId = template.therapistId || client.therapistId || auth.userId;
+
     const signature = db.collection('formSignatures').insertOne({
-      therapistId: auth.userId,
+      therapistId: effectiveTherapistId,
       formTemplateId: id,
       clientId: client.id,
       status: 'sent',
@@ -63,9 +73,14 @@ export async function POST(
       portalUrl: portalUrl.toString()
     });
 
+    // Update sentCount on template
+    db.collection('formTemplates').updateById(template.id, {
+      sentCount: (template.sentCount || 0) + 1
+    });
+
     const settings = db.getSettings();
-    const therapistUser = db.collection('users').findById(auth.userId);
-    const templateMsg = settings.formInviteMessageTemplate || `שלום {{firstName}} יקר/ה,
+    const therapistUser = db.collection('users').findById(effectiveTherapistId);
+    const templateMsg = customMessage || settings.formInviteMessageTemplate || `שלום {{firstName}} יקר/ה,
 
 לפני הפגישה הראשונה שלנו, נדרשת חתימתך על המסמך הבא:
 📄 *{{formName}}*
@@ -86,21 +101,31 @@ export async function POST(
       .replace(/\{\{therapistName\}\}/g, therapistUser?.name || 'המטפל/ת')
       .replace(/\{\{clinicName\}\}/g, settings.clinicName || 'WiseCare');
 
-    let notificationStatus = 'failed';
+    let notificationStatus = shouldSendWhatsApp ? 'failed' : 'skipped';
     let notificationError: string | null = null;
-    try {
-      await sendWhatsAppMessage({ phone: client.phone, message });
-      notificationStatus = 'sent';
-    } catch (waErr: any) {
-      notificationError = waErr?.message || 'שגיאת וואטסאפ';
+
+    if (shouldSendWhatsApp && client.phone) {
+      try {
+        await sendWhatsAppMessage({ phone: client.phone, message });
+        notificationStatus = 'sent';
+      } catch (waErr: any) {
+        notificationError = waErr?.message || 'שגיאת וואטסאפ';
+      }
     }
 
     db.collection('formSignatures').updateById(signature.id, {
       notificationStatus,
-      notifiedAt: new Date().toISOString(),
+      notifiedAt: shouldSendWhatsApp ? new Date().toISOString() : null,
       notificationError
     });
     await db.flush();
+
+    try {
+      revalidatePath('/crm/[code]/forms', 'page');
+      revalidatePath('/crm/[code]/clients', 'page');
+      revalidatePath(`/portal/${encodeURIComponent(client.portalCode)}`, 'page');
+      revalidatePath('/portal/[code]', 'page');
+    } catch {}
 
     return NextResponse.json({
       success: true,
@@ -109,8 +134,10 @@ export async function POST(
       notificationStatus,
       notificationError,
       message: notificationStatus === 'sent'
-        ? `הטופס "${template.title || template.name}" נשלח בוואטסאפ ל${client.firstName}`
-        : 'הטופס נוסף ללקוח, אך שליחת הוואטסאפ נכשלה — ניתן להעתיק את הקישור ידנית'
+        ? `הטופס "${template.title || template.name}" נשלח בהצלחה בוואטסאפ ל${client.firstName}!`
+        : (shouldSendWhatsApp
+            ? 'הטופס שויך ללקוח, אך שליחת הוואטסאפ נכשלה — ניתן להעתיק את הקישור ידנית'
+            : `הטופס שויך בהצלחה למרחב של ${client.firstName}`)
     }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בשליחת הטופס';
