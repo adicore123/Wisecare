@@ -198,7 +198,10 @@
       "source": "self_join",
       "status": "active",
       "therapistId": null,
-      "username": "elior"
+      "username": "elior",
+      "archived": true,
+      "deletedAt": "2026-09-16T12:52:04.930Z",
+      "updatedAt": "2026-09-16T12:52:04.930Z"
     }
   ],
   "tasks": [
@@ -755,31 +758,46 @@
       "url": "https://www.facebook.com/share/r/1JZ1aM4Qbh/"
     },
     {
+      "archived": false,
       "category": "אישי",
-      "createdAt": "2026-09-15T05:44:53.925Z",
+      "createdAt": "2026-09-15T06:46:43.223Z",
       "customNote": "",
-      "description": "",
-      "id": "id-1789451093925-6d14a171",
-      "imageData": "",
-      "sourceName": "",
+      "description": "יש לכם לידים —\nאבל אתם באמת יודעים מי מהם שווה את הזמן שלכם?\n\nתדמיינו את המצב הבא:\n\nנכנס ליד חדש לעסק.\nבמקום לרדוף אחריו, לחזור אליו, לבזבז זמן על שיחות סרק —\nהמערכת כבר דיברה איתו.\n\nלפני שהליד בכלל...",
+      "id": "id-1789454803223-9cc9c2e0",
+      "imageData": "https://scontent-iad3-2.xx.fbcdn.net/v/t15.5256-10/678753085_26277239511968491_7622524429931078350_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=a27664&_nc_ohc=JJIXzImV0CEQ7kNvwETC6Df&_nc_oc=AdpOHOTira8gMcSZOZiGq5F6LTYBA7gQpwmTIqF8EspyOLEsYK93j9hVo53sGxMi9Kk&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=aIwccsyfD95y-h1GkBlfKg&_nc_ss=7f180&oh=00_AQKyle2ovWudO-3dSqS1bK0rAC7U6YbcrMPZeriMNSW81g&oe=6AAEA1B4",
+      "sourceName": "Facebook Reel",
       "therapistId": null,
-      "title": "פוסט בדיקה",
-      "type": "post",
-      "url": "https://www.facebook.com/share/p/1EwJtRAh2Q/"
+      "title": "יש לכם לידים —",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1FT4XRVRdK/"
     },
     {
       "archived": false,
       "category": "אישי",
-      "createdAt": "2026-09-15T06:08:46.133Z",
+      "createdAt": "2026-09-15T08:58:14.848Z",
       "customNote": "",
-      "description": "",
-      "id": "id-1789452526133-456a9323",
-      "imageData": "",
-      "sourceName": "Facebook Post",
+      "description": "Character attacks and discrediting often get louder when the facts are harder to argue with and accountability starts getting too close.\n\nA healthy relationship doesn’t require destroying somebody’s...",
+      "id": "id-1789462694848-9cb9effa",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/777799679_1074093888420033_461248981630499643_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=a27664&_nc_ohc=rNLpIgRcRBAQ7kNvwHguAnM&_nc_oc=AdogEz6mz21HAAKQQ9oH0TAYQl_TQzJ1WqplZXVBlWSxZ_WBSbfvAeO43sVV7HiFiMA&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=WNnVtrQ_slvb7ku0szYbqg&_nc_ss=7f180&oh=00_AQJCncBNualC-rYl8d0iBKj14dRoeh-wWB9lXMJXrdl67A&oe=6AAEDDD3",
+      "sourceName": "Facebook Reel",
       "therapistId": null,
-      "title": "בדיקת פוסט פייסבוק חי",
-      "type": "post",
-      "url": "https://www.facebook.com/share/p/1EwJtRAh2Q/"
+      "title": "Character attacks and discrediting often get louder when the facts are harder to argue with and accountability starts...",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1CDEysiCFU/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-15T09:03:48.132Z",
+      "customNote": "",
+      "description": "You Had Your Chance — No Second Chances..\n#NoSecondChances #KnowYourWorth #ToxicPeople #SelfRespect",
+      "id": "id-1789463028132-096ed5c5",
+      "imageData": "https://scontent-iad3-1.xx.fbcdn.net/v/t15.5256-10/793594997_1081915367893910_2803705652375491399_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=a27664&_nc_ohc=Y9-9BoIQ_7gQ7kNvwEDNqkF&_nc_oc=Adqfb0BLnmRbkakKUMGBjyqAqXPaMBeflS4dnXo9hOO8xhBGot5iMK4bk1p7Pnb5KNI&_nc_zt=23&_nc_ht=scontent-iad3-1.xx&_nc_gid=j088CisJGGb03eydUSjTHw&_nc_ss=7f180&oh=00_AQLepJ9j4GkycdU17yXRfFH2gyO2PIpYmjFnVDW4BspZqA&oe=6AAEDA1A",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "You Had Your Chance — No Second Chances..",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1DWWTsbSSH/"
     }
   ],
   "contentAssignments": [
@@ -1030,23 +1048,23 @@
     },
     {
       "clientId": "id-1789391820252-e1468943",
-      "contentId": "id-1789450613148-fbcf80ce",
-      "createdAt": "2026-09-15T05:36:53.149Z",
-      "id": "id-1789450613149-3c63108c",
+      "contentId": "id-1789454803223-9cc9c2e0",
+      "createdAt": "2026-09-15T06:46:43.224Z",
+      "id": "id-1789454803224-2884a11b",
       "notificationStatus": "none"
     },
     {
       "clientId": "id-1789391820252-e1468943",
-      "contentId": "id-1789451093925-6d14a171",
-      "createdAt": "2026-09-15T05:44:53.927Z",
-      "id": "id-1789451093927-999a489e",
+      "contentId": "id-1789462694848-9cb9effa",
+      "createdAt": "2026-09-15T08:58:14.850Z",
+      "id": "id-1789462694850-9726d688",
       "notificationStatus": "none"
     },
     {
       "clientId": "id-1789391820252-e1468943",
-      "contentId": "id-1789452526133-456a9323",
-      "createdAt": "2026-09-15T06:08:46.137Z",
-      "id": "id-1789452526137-1999af55",
+      "contentId": "id-1789463028132-096ed5c5",
+      "createdAt": "2026-09-15T09:03:48.133Z",
+      "id": "id-1789463028133-5a8ae8a4",
       "notificationStatus": "none"
     }
   ],
@@ -1494,6 +1512,88 @@
       "id": "id-1789393911704-8f957389",
       "targetId": "therapist-1",
       "timestamp": "2026-09-14T13:51:51.704Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-15T07:26:03.379Z",
+      "id": "id-1789457163379-1f6e0f23",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-15T07:26:03.379Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T12:45:28.737Z",
+      "id": "id-1789562728737-ebc18c8d",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T12:45:28.737Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T12:45:46.896Z",
+      "id": "id-1789562746895-fb6e2e59",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T12:45:46.895Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T12:52:04.934Z",
+      "details": {
+        "clientName": "אלי טריק",
+        "phone": "0504312884"
+      },
+      "id": "id-1789563124934-ea3153ca",
+      "targetId": "id-1789408554517-7994f960",
+      "targetType": "client",
+      "timestamp": "2026-09-16T12:52:04.934Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T12:52:50.567Z",
+      "id": "id-1789563170565-d71f4279",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T12:52:50.565Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:11:10.325Z",
+      "id": "id-1789564270325-246038dd",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:11:10.325Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:11:21.631Z",
+      "id": "id-1789564281631-a6142a57",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:11:21.630Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T13:11:37.507Z",
+      "id": "id-1789564297507-f8d8b28d",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T13:11:37.507Z"
     }
   ]
 }

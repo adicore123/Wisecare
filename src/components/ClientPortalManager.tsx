@@ -127,7 +127,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [featuredContentId, setFeaturedContentId] = useState('');
   const [isSuperAdminImpersonating, setIsSuperAdminImpersonating] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
-  const [contentSubTab, setContentSubTab] = useState<'all' | 'media' | 'articles'>('all');
+  const [contentSubTab, setContentSubTab] = useState<'all' | 'media' | 'posts' | 'articles'>('all');
   const [readingArticle, setReadingArticle] = useState<any | null>(null);
 
   useEffect(() => {
@@ -141,7 +141,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       const rawSubtab = portalQuery.get('subtab');
       if (rawSubtab === 'articles' || rawSubtab === 'article') {
         setContentSubTab('articles');
-      } else if (rawSubtab === 'media' || rawSubtab === 'video' || rawSubtab === 'post') {
+      } else if (rawSubtab === 'posts' || rawSubtab === 'post') {
+        setContentSubTab('posts');
+      } else if (rawSubtab === 'media' || rawSubtab === 'video') {
         setContentSubTab('media');
       }
     }
@@ -246,6 +248,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState(null);
 
   const [isSelfContentModalOpen, setIsSelfContentModalOpen] = useState(false);
+  const [contentModalMode, setContentModalMode] = useState<'media' | 'article'>('media');
   const [editingContentId, setEditingContentId] = useState<string | null>(null);
   const [selfContentForm, setSelfContentForm] = useState({
     url: '',
@@ -748,30 +751,81 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     }
   }, [portalCode]);
 
+  const handleOpenAddMedia = () => {
+    setContentModalMode('media');
+    setEditingContentId(null);
+    setSelfContentForm({
+      url: '',
+      title: '',
+      description: '',
+      type: 'video',
+      imageData: '',
+      sourceName: '',
+      category: 'אישי'
+    });
+    setIsSelfContentModalOpen(true);
+  };
+
+  const handleOpenAddArticle = () => {
+    setContentModalMode('article');
+    setEditingContentId(null);
+    setSelfContentForm({
+      url: '',
+      title: '',
+      description: '',
+      type: 'article',
+      imageData: '',
+      sourceName: '',
+      category: 'מאמרים'
+    });
+    setIsSelfContentModalOpen(true);
+  };
+
   const handleOpenEditSelfContent = (item: any) => {
     setEditingContentId(item.id);
+    const isArt = item.type === 'article';
+    setContentModalMode(isArt ? 'article' : 'media');
     setSelfContentForm({
       url: item.url || '',
       title: item.title || '',
       description: item.description || '',
-      type: item.type || 'video',
+      type: item.type || (isArt ? 'article' : 'video'),
       imageData: item.imageData || '',
       sourceName: item.sourceName || '',
-      category: item.category || 'אישי'
+      category: item.category || (isArt ? 'מאמרים' : 'אישי')
     });
     setIsSelfContentModalOpen(true);
   };
 
   const handleCreateSelfContent = async (e) => {
     e.preventDefault();
-    if (!selfContentForm.url.trim() && !selfContentForm.description.trim()) {
-      showToast('נא להזין קישור או תוכן', 'error');
-      return;
+    const isArt = contentModalMode === 'article';
+    
+    if (isArt) {
+      if (!selfContentForm.title.trim() && !selfContentForm.description.trim()) {
+        showToast('נא להזין כותרת או את תוכן המאמר', 'error');
+        return;
+      }
+    } else {
+      if (!selfContentForm.url.trim() && !selfContentForm.description.trim()) {
+        showToast('נא להזין קישור או תוכן לפוסט/סרטון', 'error');
+        return;
+      }
     }
+
+    const finalType = isArt
+      ? 'article'
+      : (selfContentForm.type === 'article' ? 'video' : (selfContentForm.type || 'video'));
+
+    const payload = {
+      ...selfContentForm,
+      type: finalType
+    };
+
     setIsSubmittingSelfContent(true);
     try {
       if (editingContentId) {
-        const res = await api.updatePortalSelfContent(portalCode, editingContentId, selfContentForm);
+        const res = await api.updatePortalSelfContent(portalCode, editingContentId, payload);
         showToast('התוכן עודכן בהצלחה! ✨');
         if (res?.item) {
           setData(prev => ({
@@ -780,8 +834,14 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           }));
         }
       } else {
-        const newItem = await api.addPortalSelfContent(portalCode, selfContentForm);
-        showToast('התוכן נוסף לספרייה האישית שלך בהצלחה! 🎬');
+        const newItem = await api.addPortalSelfContent(portalCode, payload);
+        showToast(
+          finalType === 'article'
+            ? 'המאמר נוסף למרחב האישי שלך בהצלחה! 📖'
+            : finalType === 'post'
+              ? 'הפוסט נוסף למרחב האישי שלך בהצלחה! 📝'
+              : 'הסרטון נוסף לספרייה האישית שלך בהצלחה! 🎬'
+        );
         confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
         if (newItem && newItem.id) {
           setData(prev => ({
@@ -801,11 +861,28 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         sourceName: '',
         category: 'אישי'
       });
-      // Switch to content tab so the user sees the saved post/video immediately
+      // Switch to matching subtab so user immediately sees their added content
       setActiveTab('content');
+      if (finalType === 'article') {
+        setContentSubTab('articles');
+      } else if (finalType === 'post') {
+        setContentSubTab('posts');
+      } else {
+        setContentSubTab('media');
+      }
       const updated = await api.getPortalData(portalCode);
       if (updated) {
         setData(updated);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem(`wisecare_portal_cache_${portalCode}`, JSON.stringify({
+              data: updated,
+              insights: updated.insights || [],
+              appointments: updated.appointments || [],
+              savedAt: Date.now()
+            }));
+          } catch {}
+        }
       }
     } catch (err: any) {
       showToast(err.message || 'שגיאה בשמירת תוכן', 'error');
@@ -1381,13 +1458,16 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
   const { portalInfo, tasks, content = [] } = data;
   const articleItems = content.filter((item: any) => item.type === 'article');
+  const postItems = content.filter((item: any) => item.type === 'post');
   const mediaItems = content.filter((item: any) => item.type !== 'article');
 
   const contentToDisplay = contentSubTab === 'articles'
     ? articleItems
-    : contentSubTab === 'media'
-      ? mediaItems
-      : content;
+    : contentSubTab === 'posts'
+      ? postItems
+      : contentSubTab === 'media'
+        ? mediaItems
+        : content;
 
   const isDirectContentView = activeTab === 'content' && Boolean(featuredContentId);
   const displayedContent = isDirectContentView
@@ -2137,17 +2217,43 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   </p>
                 </div>
 
-                {portalInfo.isSelfCare && <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                   <button
                     type="button"
-                    onClick={() => setIsSelfContentModalOpen(true)}
+                    onClick={handleOpenAddMedia}
                     className="btn btn-primary"
-                    style={{ fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{
+                      fontSize: '0.86rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)',
+                      borderColor: '#6366f1',
+                      boxShadow: '0 2px 8px rgba(99, 102, 241, 0.25)'
+                    }}
                   >
-                    <Plus size={16} />
-                    <span>הוסף סרטון, פוסט או מאמר</span>
+                    <Video size={16} />
+                    <span>הוסף סרטון או פוסט 🎬</span>
                   </button>
-                </div>}
+
+                  <button
+                    type="button"
+                    onClick={handleOpenAddArticle}
+                    className="btn btn-primary"
+                    style={{
+                      fontSize: '0.86rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                      borderColor: '#0d9488',
+                      boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+                    }}
+                  >
+                    <BookOpen size={16} />
+                    <span>הוסף מאמר אישי 📖</span>
+                  </button>
+                </div>
               </div>
 
               {content.length > 0 && (
@@ -2231,6 +2337,39 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
                   <button
                     type="button"
+                    onClick={() => setContentSubTab('posts')}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.88rem',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      transition: 'all 0.2s ease',
+                      background: contentSubTab === 'posts' ? '#ffffff' : 'transparent',
+                      color: contentSubTab === 'posts' ? '#0f172a' : '#64748b',
+                      boxShadow: contentSubTab === 'posts' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
+                    }}
+                  >
+                    <MessageCircle size={16} color={contentSubTab === 'posts' ? '#2563eb' : '#94a3b8'} />
+                    <span>פוסטים</span>
+                    <span style={{
+                      background: contentSubTab === 'posts' ? '#dbeafe' : '#e2e8f0',
+                      color: contentSubTab === 'posts' ? '#1d4ed8' : '#475569',
+                      fontSize: '0.74rem',
+                      padding: '2px 7px',
+                      borderRadius: '20px',
+                      fontWeight: 700
+                    }}>
+                      {postItems.length}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setContentSubTab('articles')}
                     style={{
                       padding: '8px 16px',
@@ -2273,39 +2412,73 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       ? 'תוכל/י להדביק קישורים מיוטיוב, פייסבוק רילס ופוסטים, טיקטוק או מאמרים שעושים לך טוב!' 
                       : 'כאשר המטפל/ת ישתפו איתך תוכן מתאים, הוא יופיע כאן באופן מסודר.'}
                   </p>
-                  {portalInfo.isSelfCare && (
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '16px' }}>
                     <button
                       type="button"
-                      onClick={() => setIsSelfContentModalOpen(true)}
+                      onClick={handleOpenAddMedia}
                       className="btn btn-primary"
-                      style={{ marginTop: '14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #7c3aed 0%, #6366f1 100%)', borderColor: '#6366f1' }}
                     >
-                      <Plus size={16} />
-                      <span>הוסף פריט תוכן ראשון</span>
+                      <Video size={16} />
+                      <span>הוסף סרטון או פוסט 🎬</span>
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={handleOpenAddArticle}
+                      className="btn btn-primary"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)', borderColor: '#0d9488' }}
+                    >
+                      <BookOpen size={16} />
+                      <span>הוסף מאמר אישי 📖</span>
+                    </button>
+                  </div>
                 </div>
               ) : displayedContent.length === 0 ? (
                 <div className="content-empty" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '36px 20px', borderRadius: '16px', textAlign: 'center' }}>
                   <div style={{ color: '#0d9488', marginBottom: '12px' }}>
-                    {contentSubTab === 'articles' ? <FileText size={36} /> : <Video size={36} />}
+                    {contentSubTab === 'articles' ? <FileText size={36} /> : contentSubTab === 'posts' ? <MessageCircle size={36} /> : <Video size={36} />}
                   </div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
-                    {contentSubTab === 'articles' ? 'לא נמצאו מאמרים כרגע' : 'לא נמצאו פריטי מדיה כרגע'}
+                    {contentSubTab === 'articles' ? 'לא נמצאו מאמרים כרגע' : contentSubTab === 'posts' ? 'לא נמצאו פוסטים כרגע' : 'לא נמצאו פריטי מדיה כרגע'}
                   </h3>
                   <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 auto 16px', maxWidth: '420px', lineHeight: 1.5 }}>
                     {contentSubTab === 'articles' 
-                      ? 'חומרי קריאה ומאמרים שהמטפל/ת שלך ישתפו יופיעו כאן באופן מסודר לקריאה בנחת.' 
-                      : 'סרטונים, פוסטים ותכני מדיה שהמטפל/ת ישתפו יופיעו כאן.'}
+                      ? 'חומרי קריאה ומאמרים שהמטפל/ת שלך ישתפו או שתוסיף/י בעצמך יופיעו כאן באופן מסודר לקריאה בנחת.' 
+                      : contentSubTab === 'posts'
+                        ? 'פוסטים מפייסבוק, אינסטגרם ורשתות חברתיות ששמרת יופיעו כאן.'
+                        : 'סרטונים, פוסטים ותכני מדיה שהמטפל/ת ישתפו או שהוספת יופיעו כאן.'}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => setContentSubTab('all')}
-                    className="btn btn-secondary"
-                    style={{ fontSize: '0.85rem' }}
-                  >
-                    חזור לכל התכנים ({content.length})
-                  </button>
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    {contentSubTab === 'articles' ? (
+                      <button
+                        type="button"
+                        onClick={handleOpenAddArticle}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.85rem', background: '#0d9488', borderColor: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <BookOpen size={15} />
+                        <span>כתוב מאמר אישי 📖</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleOpenAddMedia}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.85rem', background: '#7c3aed', borderColor: '#7c3aed', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        <Video size={15} />
+                        <span>הוסף סרטון או פוסט 🎬</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setContentSubTab('all')}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.85rem' }}
+                    >
+                      חזור לכל התכנים ({content.length})
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="portal-content-grid">
@@ -3601,9 +3774,28 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       {/* ========================================================================= */}
       {isSelfContentModalOpen && (
         <div className="modal-overlay" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
-          <div className="modal-card" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+          <div className="modal-card" style={{ maxWidth: '560px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{editingContentId ? 'עריכת פריט תוכן במרחב שלי' : 'הוספת סרטון, פוסט או מאמר למרחב שלי'}</h2>
+              <div>
+                <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {contentModalMode === 'article' ? (
+                    <>
+                      <BookOpen size={20} color="#0d9488" />
+                      <span>{editingContentId ? 'עריכת מאמר אישי 📖' : 'הוספת מאמר או מדריך אישי 📖'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Video size={20} color="#7c3aed" />
+                      <span>{editingContentId ? 'עריכת סרטון או פוסט 🎬' : 'הוספת סרטון או פוסט למרחב האישי 🎬'}</span>
+                    </>
+                  )}
+                </h2>
+                <p style={{ margin: '4px 0 0', fontSize: '0.84rem', color: '#64748b' }}>
+                  {contentModalMode === 'article'
+                    ? 'כתיבת מאמר, מדריך, תובנה או סיכום לשמירה וקריאה במרחב האישי שלך.'
+                    : 'שמירת סרטון מ-YouTube, Facebook, TikTok, Instagram או פוסט מרשת חברתית.'}
+                </p>
+              </div>
               <button type="button" className="close-btn" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
                 <X size={20} />
               </button>
@@ -3611,101 +3803,154 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
             <form onSubmit={handleCreateSelfContent}>
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
-                  הדבק/י קישור מ-<strong>YouTube, Facebook (סרטונים ופוסטים), TikTok, Instagram</strong> או מאמר אינטרנטי. המערכת תזהה את הפרטים באופן אוטומטי.
-                </p>
-
-                <div className="form-group">
-                  <label>כתובת קישור (URL) *</label>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <input
-                      type="url"
-                      className="form-control"
-                      placeholder="https://... קישור ליוטיוב, פייסבוק (פוסט/סרטון), טיקטוק או אינסטגרם"
-                      value={selfContentForm.url}
-                      onChange={e => {
-                        const val = e.target.value;
-                        setSelfContentForm(prev => ({ ...prev, url: val }));
-                        if (val && val.startsWith('http') && val.length > 15) {
-                          handlePreviewSelfContentUrl(val);
-                        }
-                      }}
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handlePreviewSelfContentUrl()}
-                      disabled={isUrlPreviewLoading || !selfContentForm.url}
-                      className="btn btn-secondary"
-                      style={{ padding: '8px 14px', whiteSpace: 'nowrap', fontSize: '0.84rem' }}
-                    >
-                      {isUrlPreviewLoading ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
-                      <span>{isUrlPreviewLoading ? 'מזהה...' : 'זהה קישור'}</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>כותרת הפריט (אופציונלי - מתמלא אוטומטית)</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="כותרת הסרטון או המאמר..."
-                    value={selfContentForm.title}
-                    onChange={e => setSelfContentForm({ ...selfContentForm, title: e.target.value })}
-                  />
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                  <div className="form-group">
-                    <label>סוג תוכן</label>
-                    <select
-                      className="form-control"
-                      value={selfContentForm.type}
-                      onChange={e => setSelfContentForm({ ...selfContentForm, type: e.target.value })}
-                    >
-                      <option value="video">סרטון</option>
-                      <option value="article">מאמר</option>
-                      <option value="post">פוסט מרשת חברתית</option>
-                      <option value="link">קישור כללי</option>
-                    </select>
-                  </div>
-
-                  <div className="form-group">
-                    <label>קטגוריה</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      placeholder="למשל: נשימות, השראה"
-                      value={selfContentForm.category}
-                      onChange={e => setSelfContentForm({ ...selfContentForm, category: e.target.value })}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label>הערה אישית או תיאור (מדוע זה עוזר לי?)</label>
-                  <textarea
-                    className="form-control"
-                    rows={2}
-                    placeholder="לדוגמה: לראות כשיש מתח בערב, נותן השראה..."
-                    value={selfContentForm.description}
-                    onChange={e => setSelfContentForm({ ...selfContentForm, description: e.target.value })}
-                  />
-                </div>
-
-                {selfContentForm.imageData && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <img 
-                      src={selfContentForm.imageData} 
-                      alt="" 
-                      style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} 
-                    />
-                    <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-                      <strong>תצוגה מקדימה זוהתה בהצלחה!</strong>
-                      <div style={{ color: '#64748b' }}>{selfContentForm.sourceName || 'סרטון'}</div>
+                {contentModalMode === 'article' ? (
+                  <>
+                    <div className="form-group">
+                      <label>כותרת המאמר *</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="למשל: תרגילי נשימה מקרקעים, 5 כלים לוויסות, סיכום שיעור..."
+                        value={selfContentForm.title}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, title: e.target.value })}
+                        required
+                        autoFocus
+                      />
                     </div>
-                  </div>
+
+                    <div className="form-group">
+                      <label>קטגוריית המאמר</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="למשל: ויסות רגשי, השראה, מיינדפולנס, אישי"
+                        value={selfContentForm.category}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, category: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>תוכן וגוף המאמר המלא *</label>
+                      <textarea
+                        className="form-control"
+                        rows={7}
+                        placeholder="כתוב/י כאן את תוכן המאמר, הכלים, התובנות או ההנחיות..."
+                        value={selfContentForm.description}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, description: e.target.value })}
+                        required
+                        style={{ lineHeight: 1.6 }}
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Link2 size={15} />
+                        <span>קישור מקור למאמר באינטרנט (אופציונלי)</span>
+                      </label>
+                      <input
+                        type="url"
+                        className="form-control"
+                        placeholder="https://... אם המאמר נלקח מאתר אינטרנט חיצוני"
+                        value={selfContentForm.url}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, url: e.target.value })}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="form-group">
+                      <label>כתובת קישור (URL) לסרטון או לפוסט *</label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="url"
+                          className="form-control"
+                          placeholder="https://... קישור מיוטיוב, פייסבוק, טיקטוק או אינסטגרם"
+                          value={selfContentForm.url}
+                          onChange={e => {
+                            const val = e.target.value;
+                            setSelfContentForm(prev => ({ ...prev, url: val }));
+                            if (val && val.startsWith('http') && val.length > 15) {
+                              handlePreviewSelfContentUrl(val);
+                            }
+                          }}
+                          required
+                          autoFocus
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handlePreviewSelfContentUrl()}
+                          disabled={isUrlPreviewLoading || !selfContentForm.url}
+                          className="btn btn-secondary"
+                          style={{ padding: '8px 14px', whiteSpace: 'nowrap', fontSize: '0.84rem' }}
+                        >
+                          {isUrlPreviewLoading ? <Loader2 size={16} className="spin" /> : <Sparkles size={16} />}
+                          <span>{isUrlPreviewLoading ? 'מזהה...' : 'זהה קישור'}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>כותרת הפריט (אופציונלי - מתמלא אוטומטית מהקישור)</label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="כותרת הסרטון או הפוסט..."
+                        value={selfContentForm.title}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, title: e.target.value })}
+                      />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <div className="form-group">
+                        <label>סוג מדיה</label>
+                        <select
+                          className="form-control"
+                          value={selfContentForm.type}
+                          onChange={e => setSelfContentForm({ ...selfContentForm, type: e.target.value })}
+                        >
+                          <option value="video">סרטון 🎬</option>
+                          <option value="post">פוסט מרשת חברתית 📝</option>
+                          <option value="link">קישור כללי 🔗</option>
+                        </select>
+                      </div>
+
+                      <div className="form-group">
+                        <label>קטגוריה</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="למשל: נשימות, השראה"
+                          value={selfContentForm.category}
+                          onChange={e => setSelfContentForm({ ...selfContentForm, category: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="form-group">
+                      <label>הערה אישית או תיאור (מדוע זה עוזר לי?)</label>
+                      <textarea
+                        className="form-control"
+                        rows={2}
+                        placeholder="לדוגמה: לראות כשיש עומס בערב, נותן שלווה וכוח..."
+                        value={selfContentForm.description}
+                        onChange={e => setSelfContentForm({ ...selfContentForm, description: e.target.value })}
+                      />
+                    </div>
+
+                    {selfContentForm.imageData && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                        <img 
+                          src={selfContentForm.imageData} 
+                          alt="" 
+                          style={{ width: '60px', height: '40px', objectFit: 'cover', borderRadius: '6px' }} 
+                        />
+                        <div style={{ fontSize: '0.82rem', color: '#334155' }}>
+                          <strong>תצוגה מקדימה זוהתה בהצלחה!</strong>
+                          <div style={{ color: '#64748b' }}>{selfContentForm.sourceName || 'סרטון'}</div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
 
@@ -3713,8 +3958,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 <button type="button" className="btn btn-secondary" onClick={() => { setIsSelfContentModalOpen(false); setEditingContentId(null); }}>
                   ביטול
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={isSubmittingSelfContent}>
-                  {isSubmittingSelfContent ? 'שומר תוכן...' : editingContentId ? 'שמור שינויים בתוכן 🎬' : 'שמור בספרייה שלי 🎬'}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isSubmittingSelfContent}
+                  style={contentModalMode === 'article' ? { background: '#0d9488', borderColor: '#0d9488' } : { background: '#7c3aed', borderColor: '#7c3aed' }}
+                >
+                  {isSubmittingSelfContent 
+                    ? 'שומר תוכן...' 
+                    : contentModalMode === 'article'
+                      ? (editingContentId ? 'שמור שינויים במאמר 📖' : 'שמור מאמר בספרייה שלי 📖')
+                      : (editingContentId ? 'שמור שינויים במדיה 🎬' : 'שמור סרטון/פוסט בספרייה שלי 🎬')}
                 </button>
               </div>
             </form>

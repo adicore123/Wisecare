@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { Download, X, Share, PlusSquare, Smartphone, Check } from 'lucide-react';
 
 export default function PWAInstallBanner() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -13,6 +15,7 @@ export default function PWAInstallBanner() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    if (pathname?.includes('superadmin')) return;
 
     // 1. Check if already installed & running in standalone mode
     const checkStandalone = 

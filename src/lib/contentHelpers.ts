@@ -121,14 +121,23 @@ export function detectTypeAndSource(urlStr: string): { type: string; sourceName:
 
 export function validateImageData(value: unknown): string | null {
   if (!value) return '';
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed) return '';
+
+  // Remote image URL (from OpenGraph / social preview)
+  if (/^https?:\/\/.+/i.test(trimmed)) {
+    return trimmed.length <= 2048 ? trimmed : null;
+  }
+
+  // Base64 data URL
   if (
-    typeof value !== 'string' ||
-    !/^data:image\/(png|jpe?g|webp);base64,/i.test(value) ||
-    value.length > MAX_IMAGE_DATA_LENGTH
+    !/^data:image\/(png|jpe?g|webp|gif|svg\+xml);base64,/i.test(trimmed) ||
+    trimmed.length > MAX_IMAGE_DATA_LENGTH
   ) {
     return null;
   }
-  return value;
+  return trimmed;
 }
 
 export function enrichItems(items: any[]) {

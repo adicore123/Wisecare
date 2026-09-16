@@ -23,7 +23,8 @@ export async function POST(
     const finalTitle = (title && String(title).trim()) ? String(title).trim() : (
       type === 'video' ? `סרטון (${sourceName || 'מהרשת'})` :
         type === 'post' ? `פוסט (${sourceName || 'מרשת חברתית'})` :
-          'פריט תוכן'
+          type === 'article' ? 'מאמר אישי' :
+            'פריט תוכן'
     );
 
     const item = db.collection('contentItems').insertOne({

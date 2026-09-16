@@ -108,6 +108,14 @@ export class Database {
   syncingPromise: Promise<void> | null = null;
   pendingWrites: Promise<any>[] = [];
   lastSyncTime = 0;
+  // True once this instance completed at least one successful sync (or runs without Mongo).
+  // The zero-latency read path is only allowed after it, so cold starts never serve the
+  // stale deploy-time JSON bundle while MongoDB holds newer data.
+  hasSyncedOnce = false;
+  // ids written by THIS instance and not yet confirmed in MongoDB (per collection).
+  locallyModifiedIds: Map<string, Set<string>> = new Map();
+  // ids deleted locally while MongoDB was unreachable (per collection); replayed on next sync.
+  pendingRemoteDeletes: Map<string, Set<string>> = new Map();
 
   constructor() {
     this.data = this.loadLocal();
@@ -119,9 +127,11 @@ export class Database {
 
   async ensureLoaded(forceSync = false): Promise<boolean> {
     const hasData = Boolean(this.data && (this.data.clients?.length || this.data.users?.length));
-    
-    // If in-memory data is already available, serve immediately (0ms) and trigger background connect/sync
-    if (!forceSync && hasData) {
+
+    // Fast zero-latency path — only trusted AFTER a first successful sync in this
+    // instance's lifetime. Before that, serving memory means serving the stale
+    // deploy-time bundle while writes would silently miss MongoDB.
+    if (!forceSync && hasData && this.hasSyncedOnce) {
       if (!this.isMongoConnected) {
         this.connect().catch(() => {});
       } else if (Date.now() - this.lastSyncTime > 30000) {
@@ -143,6 +153,37 @@ export class Database {
       this.pendingWrites = [];
       await Promise.allSettled(writes);
     }
+  }
+
+  markModified(name: string, id: string) {
+    if (!id) return;
+    let set = this.locallyModifiedIds.get(name);
+    if (!set) {
+      set = new Set();
+      this.locallyModifiedIds.set(name, set);
+    }
+    set.add(id);
+  }
+
+  markDeleted(name: string, id: string) {
+    let modified = this.locallyModifiedIds.get(name);
+    if (modified) modified.delete(id);
+    let deletes = this.pendingRemoteDeletes.get(name);
+    if (!deletes) {
+      deletes = new Set();
+      this.pendingRemoteDeletes.set(name, deletes);
+    }
+    deletes.add(id);
+  }
+
+  // Writes are pushed to MongoDB only when already connected; otherwise delivery is
+  // deferred to the next sync via locallyModifiedIds. Never waits on connect() from
+  // here — that would deadlock against syncWithMongo's initial flush().
+  queueRemoteWrite(name: string, label: string, op: (col: any) => Promise<any>) {
+    if (!this.isMongoConnected || !this.mongoDb) return;
+    const p = op(this.mongoDb.collection(name))
+      .catch((err: any) => console.error(`[MongoDB ${label} Error on ${name}]:`, err.message));
+    this.pendingWrites.push(p);
   }
 
   initLoginCodes() {
@@ -204,7 +245,11 @@ export class Database {
 
     this.connectingPromise = (async () => {
       const uri = getMongoUri();
-      if (!uri) return false;
+      if (!uri) {
+        // Local-only mode — nothing to sync against, memory is the source of truth.
+        this.hasSyncedOnce = true;
+        return false;
+      }
 
       const dbName = process.env.MONGODB_DB_NAME || 'wisecare';
       try {
@@ -238,6 +283,7 @@ export class Database {
 
     this.syncingPromise = (async () => {
       try {
+        await this.flush();
         this.lastSyncTime = Date.now();
         const dbInstance = this.mongoDb;
         if (!dbInstance) return;
@@ -247,15 +293,68 @@ export class Database {
           ...ENTITY_COLLECTIONS.map(async (name) => {
             try {
               const col = dbInstance.collection(name);
+
+              // Replay deletions that were made while MongoDB was unreachable
+              const pendingDeletes = this.pendingRemoteDeletes.get(name);
+              if (pendingDeletes && pendingDeletes.size > 0) {
+                const ids = [...pendingDeletes];
+                await Promise.allSettled(ids.map(id => col.deleteOne({ _id: id as any })));
+                ids.forEach(id => pendingDeletes.delete(id));
+              }
+
               const remoteDocs = await col.find({}).toArray();
 
               if (remoteDocs && remoteDocs.length > 0) {
-                this.data[name] = remoteDocs.map(doc => {
+                const remoteList = remoteDocs.map(doc => {
                   const item: any = { ...doc };
                   item.id = item.id || item._id?.toString();
                   delete item._id;
                   return item;
                 });
+
+                // Push ONLY items this instance actually wrote (inserts/updates made
+                // while disconnected). Everything else that exists locally but not
+                // remotely is stale bundle data whose absence from MongoDB usually
+                // means it was deleted elsewhere — pushing it back would resurrect
+                // deleted content.
+                const modified = this.locallyModifiedIds.get(name);
+                if (modified && modified.size > 0) {
+                  const localDocs = this.data[name] || [];
+                  const pushResults = await Promise.allSettled(
+                    localDocs
+                      .filter((item: any) => item?.id && modified.has(item.id))
+                      .map((item: any) =>
+                        col.updateOne(
+                          { _id: item.id as any },
+                          { $set: { ...item, _id: item.id } },
+                          { upsert: true }
+                        )
+                      )
+                  );
+
+                  let pushedIndex = 0;
+                  const localModifiedDocs = localDocs.filter(
+                    (item: any) => item?.id && modified.has(item.id)
+                  );
+                  for (const item of localModifiedDocs) {
+                    const result = pushResults[pushedIndex];
+                    pushedIndex += 1;
+                    if (result.status === 'fulfilled') {
+                      modified.delete(item.id);
+                      // Keep our latest local version over the (possibly older) remote snapshot
+                      const idx = remoteList.findIndex(r => r.id === item.id);
+                      if (idx >= 0) remoteList[idx] = item;
+                      else remoteList.push(item);
+                    } else {
+                      console.warn(
+                        `[MongoDB modified item push error on ${name}]:`,
+                        (result.reason as any)?.message
+                      );
+                    }
+                  }
+                }
+
+                this.data[name] = remoteList;
               } else {
                 const localDocs = this.data[name] || [];
                 if (localDocs.length > 0) {
@@ -284,6 +383,7 @@ export class Database {
         ]);
 
         this.saveLocal();
+        this.hasSyncedOnce = true;
       } finally {
         this.syncingPromise = null;
       }
@@ -327,14 +427,12 @@ export class Database {
         };
         list.push(newItem);
         this.saveLocal();
+        this.markModified(name, newItem.id);
 
-        if (this.isMongoConnected && this.mongoDb) {
-          const doc = { ...newItem, _id: newItem.id };
-          const p = this.mongoDb.collection(name)
-            .updateOne({ _id: newItem.id as any }, { $set: doc }, { upsert: true })
-            .catch(err => console.error(`[MongoDB insertOne Error on ${name}]:`, err.message));
-          this.pendingWrites.push(p);
-        }
+        const doc = { ...newItem, _id: newItem.id };
+        this.queueRemoteWrite(name, 'insertOne',
+          col => col.updateOne({ _id: newItem.id as any }, { $set: doc }, { upsert: true })
+        );
 
         return newItem;
       },
@@ -346,15 +444,13 @@ export class Database {
         if (index === -1) return null;
         list[index] = { ...list[index], ...update, updatedAt: new Date().toISOString() };
         this.saveLocal();
+        this.markModified(name, list[index].id);
 
-        if (this.isMongoConnected && this.mongoDb) {
-          const target = list[index];
-          const doc = { ...target, _id: target.id };
-          const p = this.mongoDb.collection(name)
-            .updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
-            .catch(err => console.error(`[MongoDB updateOne Error on ${name}]:`, err.message));
-          this.pendingWrites.push(p);
-        }
+        const target = list[index];
+        const doc = { ...target, _id: target.id };
+        this.queueRemoteWrite(name, 'updateOne',
+          col => col.updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
+        );
 
         return list[index];
       },
@@ -363,15 +459,13 @@ export class Database {
         if (index === -1) return null;
         list[index] = { ...list[index], ...update, updatedAt: new Date().toISOString() };
         this.saveLocal();
+        this.markModified(name, list[index].id);
 
-        if (this.isMongoConnected && this.mongoDb) {
-          const target = list[index];
-          const doc = { ...target, _id: target.id };
-          const p = this.mongoDb.collection(name)
-            .updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
-            .catch(err => console.error(`[MongoDB updateById Error on ${name}]:`, err.message));
-          this.pendingWrites.push(p);
-        }
+        const target = list[index];
+        const doc = { ...target, _id: target.id };
+        this.queueRemoteWrite(name, 'updateById',
+          col => col.updateOne({ _id: target.id as any }, { $set: doc }, { upsert: true })
+        );
 
         return list[index];
       },
@@ -380,13 +474,9 @@ export class Database {
         if (index === -1) return false;
         list.splice(index, 1);
         this.saveLocal();
+        this.markDeleted(name, id);
 
-        if (this.isMongoConnected && this.mongoDb) {
-          const p = this.mongoDb.collection(name)
-            .deleteOne({ _id: id as any })
-            .catch(err => console.error(`[MongoDB deleteById Error on ${name}]:`, err.message));
-          this.pendingWrites.push(p);
-        }
+        this.queueRemoteWrite(name, 'deleteById', col => col.deleteOne({ _id: id as any }));
 
         return true;
       },
@@ -400,17 +490,15 @@ export class Database {
           updatedAt: new Date().toISOString()
         };
         this.saveLocal();
+        this.markModified(name, list[index].id);
 
-        if (this.isMongoConnected && this.mongoDb) {
-          const target = list[index];
-          const p = this.mongoDb.collection(name)
-            .updateOne(
-              { _id: (target.id || id) as any },
-              { $set: { archived: true, deletedAt: list[index].deletedAt, updatedAt: list[index].updatedAt } }
-            )
-            .catch(err => console.error(`[MongoDB softDelete Error on ${name}]:`, err.message));
-          this.pendingWrites.push(p);
-        }
+        const target = list[index];
+        this.queueRemoteWrite(name, 'softDelete',
+          col => col.updateOne(
+            { _id: (target.id || id) as any },
+            { $set: { archived: true, deletedAt: list[index].deletedAt, updatedAt: list[index].updatedAt } }
+          )
+        );
 
         return list[index];
       },
@@ -548,12 +636,11 @@ export class Database {
   }
 }
 
-// Global singleton for Next.js Fast Refresh
+// Global singleton — cached on globalThis in ALL environments so every route module
+// inside the same runtime shares one in-memory store (and one sync cycle).
 declare global {
   var __wisecare_db: Database | undefined;
 }
 
 export const db = globalThis.__wisecare_db ?? new Database();
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.__wisecare_db = db;
-}
+globalThis.__wisecare_db = db;
