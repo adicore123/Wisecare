@@ -834,5 +834,36 @@ export const api = {
       throw new Error(err.error || 'שגיאה בשמירת החתימה');
     }
     return res.json();
+  },
+
+  setPortalCredentials: async (portalCode: string, payload: { username: string; password: string }) => {
+    const res = await fetch(`${API_BASE}/portal/${encodeURIComponent(portalCode)}/set-credentials`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהגדרת פרטי ההתחברות');
+    }
+    return res.json();
+  },
+
+  resetClientPasswordWhatsApp: async (clientId: string, payload?: { newPassword?: string }) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('wisecare_token') : null;
+    const res = await fetch(`${API_BASE}/clients/${encodeURIComponent(clientId)}/reset-password-whatsapp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      body: JSON.stringify(payload || {})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה באיפוס ושליחת הסיסמה בוואטסאפ');
+    }
+    return res.json();
   }
 };
+

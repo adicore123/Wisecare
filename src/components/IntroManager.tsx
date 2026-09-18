@@ -333,15 +333,15 @@ export default function IntroManager() {
           </div>
 
           {/* Returning User Access - Clean and subtle below cards */}
+          {/* Returning User Access - Direct to unified /login */}
           <div className="entry-home-footer">
             <span>כבר רשום/ה במערכת?</span>
-            <button
-              type="button"
+            <Link
+              href="/login"
               className="entry-home-footer-btn"
-              onClick={() => setIsLoginModalOpen(true)}
             >
-              התחברות למשתמש קיים ←
-            </button>
+              התחברות למערכת ←
+            </Link>
           </div>
         </section>
       </main>
@@ -663,116 +663,6 @@ export default function IntroManager() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      )}
-
-      {/* 4. RETURNING USER LOGIN SELECTOR MODAL */}
-      {isLoginModalOpen && (
-        <div
-          className="entry-login-modal-backdrop"
-          onClick={() => setIsLoginModalOpen(false)}
-        >
-          <div
-            className="entry-login-modal-card"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              className="entry-login-modal-close"
-              onClick={() => setIsLoginModalOpen(false)}
-              aria-label="סגור חלון התחברות"
-            >
-              <X size={18} />
-            </button>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '12px',
-                background: '#e0f2fe',
-                color: '#0284c7',
-                display: 'grid',
-                placeItems: 'center'
-              }}>
-                <UserCheck size={22} />
-              </div>
-              <div>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>
-                  התחברות למערכת Wisecare
-                </h3>
-                <p style={{ margin: '2px 0 0', fontSize: '0.86rem', color: '#64748b' }}>
-                  בחר/י את המרחב הרצוי לכניסה:
-                </p>
-              </div>
-            </div>
-
-            <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Option 1: Therapist Login */}
-              <Link
-                href="/login"
-                className="entry-login-option-card"
-                onClick={() => setIsLoginModalOpen(false)}
-              >
-                <div
-                  className="entry-login-option-icon"
-                  style={{ background: '#e8f8fa', color: '#078d9a' }}
-                >
-                  <Stethoscope size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#081c30' }}>
-                    כניסה למרחב המטפלים (קליניקה)
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                    התחברות באמצעות שם משתמש וסיסמה או קוד מרחב ייחודי
-                  </div>
-                </div>
-                <ArrowLeft size={16} color="#078d9a" />
-              </Link>
-
-              {/* Option 2: Patient Portal Login */}
-              <Link
-                href="/join?view=login"
-                className="entry-login-option-card"
-                onClick={() => setIsLoginModalOpen(false)}
-              >
-                <div
-                  className="entry-login-option-icon"
-                  style={{ background: '#e9f8f1', color: '#07895d' }}
-                >
-                  <Heart size={24} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#081c30' }}>
-                    כניסה למרחב אישי (מטופלים)
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                    כניסה למשתמש אישי קיים לצפייה במשימות, תוכן ותובנות
-                  </div>
-                </div>
-                <ArrowLeft size={16} color="#07895d" />
-              </Link>
-            </div>
-
-            <div style={{
-              marginTop: '22px',
-              paddingTop: '16px',
-              borderTop: '1px solid #f1f5f9',
-              textAlign: 'center',
-              fontSize: '0.84rem',
-              color: '#64748b'
-            }}>
-              <span>משתמש חדש? </span>
-              <Link
-                href="/join?view=register"
-                style={{ color: '#078d9a', fontWeight: 600, textDecoration: 'none' }}
-                onClick={() => setIsLoginModalOpen(false)}
-              >
-                פתח/י מרחב אישי עכשיו
-              </Link>
-            </div>
           </div>
         </div>
       )}

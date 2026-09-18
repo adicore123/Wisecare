@@ -12,6 +12,7 @@ import {
   CalendarCheck,
   Library,
   FileSignature,
+  Video,
   X
 } from 'lucide-react';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
@@ -95,6 +96,16 @@ export default function Sidebar({
           >
             <FileSignature size={20} />
             <span>טפסים דיגיטליים וחתימות</span>
+          </button>
+
+          <button
+            type="button"
+            className={`nav-item ${currentTab === 'zoom' ? 'active' : ''}`}
+            onClick={() => handleNavClick('zoom')}
+            aria-current={currentTab === 'zoom' ? 'page' : undefined}
+          >
+            <Video size={20} />
+            <span>פגישות זום</span>
           </button>
 
           <button 

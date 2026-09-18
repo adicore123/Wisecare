@@ -125,7 +125,7 @@ export async function POST(
       revalidatePath('/crm/[code]/clients', 'page');
       revalidatePath(`/portal/${encodeURIComponent(client.portalCode)}`, 'page');
       revalidatePath('/portal/[code]', 'page');
-    } catch {}
+    } catch { }
 
     return NextResponse.json({
       success: true,
@@ -136,8 +136,8 @@ export async function POST(
       message: notificationStatus === 'sent'
         ? `הטופס "${template.title || template.name}" נשלח בהצלחה בוואטסאפ ל${client.firstName}!`
         : (shouldSendWhatsApp
-            ? 'הטופס שויך ללקוח, אך שליחת הוואטסאפ נכשלה — ניתן להעתיק את הקישור ידנית'
-            : `הטופס שויך בהצלחה למרחב של ${client.firstName}`)
+          ? 'הטופס שויך ללקוח, אך שליחת הוואטסאפ נכשלה — ניתן להעתיק את הקישור ידנית'
+          : `הטופס שויך בהצלחה למרחב של ${client.firstName}`)
     }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בשליחת הטופס';

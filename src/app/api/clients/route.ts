@@ -124,12 +124,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Determine Password
+    // Determine Password & Auth Mode
+    const clientSetsCredentials = body.clientSetsCredentials === true;
     let rawPassword = inputPassword ? String(inputPassword).trim() : '';
-    if (!rawPassword) {
+    let hasPassword = !clientSetsCredentials && Boolean(rawPassword);
+
+    if (!rawPassword && !clientSetsCredentials) {
       rawPassword = generateSecurePassword(8);
+      hasPassword = true;
     }
-    const hashedPassword = hashPassword(rawPassword);
+    const hashedPassword = rawPassword ? hashPassword(rawPassword) : '';
 
     const portalCode = generatePortalCode(firstName);
     const pin = generatePin();
@@ -141,11 +145,13 @@ export async function POST(request: NextRequest) {
       phone: phone.trim(),
       username: chosenUsername,
       password: hashedPassword,
-      initialPassword: rawPassword,
-      hasPassword: true,
+      initialPassword: rawPassword || '',
+      hasPassword,
+      clientSetsCredentials,
       age: Number(age) || null,
       gender: gender || 'זכר',
       notes: notes ? notes.trim() : '',
+      portalEnabled: body.portalEnabled !== false,
       portalCode,
       pin,
       whatsappStatus: 'not_sent',
@@ -154,14 +160,19 @@ export async function POST(request: NextRequest) {
 
     let whatsappResult: any = null;
 
-    if (sendWhatsAppNow) {
+    if (sendWhatsAppNow && body.portalEnabled !== false) {
       try {
         const settings = db.getSettings();
         const clientAppUrl = getBaseUrl(request);
         const portalUrl = `${clientAppUrl}/portal/${portalCode}`;
 
-        let message = settings.defaultMessageTemplate ||
-          'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨';
+        let message = '';
+        if (clientSetsCredentials) {
+          message = `שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב הטיפולי האישי המאובטח להמשך תרגול, משימות ותוכן עם {{therapistName}} ✨\n\n🔗 לכניסה ראשונה והגדרת שם משתמש וסיסמה אישית:\n{{portalUrl}}\n\nלאחר הגדרת הפרטים תוכל/י להתחבר תמיד גם דרך:\n${clientAppUrl}/login\n\nמאחלים לך מסע טיפולי פורה ומעצים! 🌿`;
+        } else {
+          message = settings.defaultMessageTemplate ||
+            'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨';
+        }
 
         message = message
           .replace(/{{firstName}}/g, newClient.firstName)

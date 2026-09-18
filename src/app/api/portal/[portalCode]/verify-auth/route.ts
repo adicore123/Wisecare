@@ -16,7 +16,7 @@ export async function GET(
 
   await db.ensureLoaded();
   const client = db.collection('clients').findById(auth.clientId);
-  if (!client || client.portalCode !== portalCode || client.status === 'inactive') {
+  if (!client || client.portalCode !== portalCode || client.status === 'inactive' || client.portalEnabled === false) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
 

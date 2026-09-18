@@ -136,10 +136,10 @@ export class Database {
     // Fast zero-latency path — trusted after initial sync
     if (!forceSync && hasData && this.hasSyncedOnce) {
       if (!this.isMongoConnected) {
-        this.connect().catch(() => {});
+        this.connect().catch(() => { });
       } else if (Date.now() - this.lastSyncTime > 10000) {
         // Await sync so subsequent reads don't see stale data if threshold passed
-        await this.syncWithMongo().catch(() => {});
+        await this.syncWithMongo().catch(() => { });
       }
       return true;
     }

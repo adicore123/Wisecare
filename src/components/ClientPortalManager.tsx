@@ -315,6 +315,14 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [pinFormConfirm, setPinFormConfirm] = useState('');
   const [settingsMsg, setSettingsMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Initial Onboarding Credentials Setup State (when client chooses username & password)
+  const [setupUsername, setSetupUsername] = useState('');
+  const [setupPassword, setSetupPassword] = useState('');
+  const [setupPasswordConfirm, setSetupPasswordConfirm] = useState('');
+  const [showSetupPassword, setShowSetupPassword] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [isSubmittingSetup, setIsSubmittingSetup] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -479,6 +487,59 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       setLoginError(err.message || 'שגיאה בהתחברות');
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const handleSetupCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSetupError('');
+
+    if (!setupUsername.trim()) {
+      setSetupError('נא לבחור שם משתמש');
+      return;
+    }
+
+    if (!setupPassword || setupPassword.length < 4) {
+      setSetupError('הסיסמה חייבת להכיל לפחות 4 תווים');
+      return;
+    }
+
+    if (setupPassword !== setupPasswordConfirm) {
+      setSetupError('אימות הסיסמה אינו תואם לסיסמה שהזנת');
+      return;
+    }
+
+    setIsSubmittingSetup(true);
+    try {
+      const res = await api.setPortalCredentials(portalCode, {
+        username: setupUsername.trim(),
+        password: setupPassword.trim()
+      });
+
+      if (res?.token) {
+        localStorage.setItem('wisecare_portal_token', res.token);
+      }
+      localStorage.setItem(authSessionKey, 'true');
+      localStorage.setItem(`wisecare_saved_user_${portalCode}`, setupUsername.trim());
+      localStorage.setItem('wisecare_last_portal', portalCode);
+
+      setIsPortalAuthenticated(true);
+      setData(prev => ({
+        ...prev,
+        portalInfo: {
+          ...prev?.portalInfo,
+          hasPassword: true,
+          needsCredentialsSetup: false,
+          username: setupUsername.trim()
+        }
+      }));
+
+      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
+      showToast('פרטי הכניסה נקבעו בהצלחה! ברוך/ה הבא/ה למרחב שלך ✨');
+    } catch (err: any) {
+      setSetupError(err.message || 'שגיאה בשמירת פרטי הכניסה');
+    } finally {
+      setIsSubmittingSetup(false);
     }
   };
 
@@ -1309,6 +1370,161 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     return (
       <div className="portal-layout" style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }} role="status">
         <Loader2 className="animate-spin" size={30} />
+      </div>
+    );
+  }
+
+  // Security Gate 0: Initial Account Activation / Credentials Setup (when client sets password themselves)
+  if (data?.portalInfo?.needsCredentialsSetup) {
+    return (
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)' }}>
+        <div className="modal-card" style={{ maxWidth: '460px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid #99f6e4' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px',
+              boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)'
+            }}>
+              <Sparkles size={32} />
+            </div>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: '0 0 6px 0' }}>
+              שלום {data.portalInfo.firstName || data.portalInfo.clientName} 🌿
+            </h2>
+            <p style={{ fontSize: '0.92rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
+              ברוך/ה הבא/ה למרחב הטיפולי האישי שלך ב-{data.portalInfo.clinicName || 'WiseCare'}.
+            </p>
+            <div style={{
+              marginTop: '12px',
+              padding: '10px 14px',
+              background: '#ecfdf5',
+              borderRadius: '12px',
+              border: '1px solid #a7f3d0',
+              fontSize: '0.84rem',
+              color: '#065f46',
+              lineHeight: 1.45
+            }}>
+              לשמירה על פרטיותך ואבטחת המידע הרפואי, אנא בחר/י לעצמך שם משתמש וסיסמה אישית לכניסה למערכת.
+            </div>
+          </div>
+
+          <form onSubmit={handleSetupCredentials}>
+            {setupError && (
+              <div style={{
+                background: '#fef2f2',
+                color: '#dc2626',
+                border: '1px solid #fecaca',
+                padding: '10px 14px',
+                borderRadius: '10px',
+                fontSize: '0.88rem',
+                marginBottom: '16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}>
+                <AlertCircle size={16} />
+                <span>{setupError}</span>
+              </div>
+            )}
+
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                שם משתמש אישי
+              </label>
+              <input 
+                type="text"
+                className="form-control"
+                placeholder="למשל: ronit_cohen"
+                dir="ltr"
+                style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', borderRadius: '12px' }}
+                required
+                value={setupUsername}
+                onChange={e => setSetupUsername(e.target.value)}
+              />
+              <span style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                באמצעות שם משתמש זה תוכל/י להתחבר למרחב גם מדף הכניסה הראשי (/login).
+              </span>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                סיסמה אישית
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input 
+                  type={showSetupPassword ? 'text' : 'password'}
+                  className="form-control"
+                  placeholder="לפחות 4 תווים"
+                  dir="ltr"
+                  style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', paddingLeft: '40px', borderRadius: '12px' }}
+                  required
+                  value={setupPassword}
+                  onChange={e => setSetupPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSetupPassword(!showSetupPassword)}
+                  style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: '#94a3b8',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
+                  {showSetupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '22px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                אימות סיסמה
+              </label>
+              <input 
+                type={showSetupPassword ? 'text' : 'password'}
+                className="form-control"
+                placeholder="הקלד/י את הסיסמה שנית"
+                dir="ltr"
+                style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', borderRadius: '12px' }}
+                required
+                value={setupPasswordConfirm}
+                onChange={e => setSetupPasswordConfirm(e.target.value)}
+              />
+            </div>
+
+            <button 
+              type="submit"
+              className="btn btn-primary"
+              disabled={isSubmittingSetup}
+              style={{
+                width: '100%',
+                padding: '14px',
+                fontSize: '1rem',
+                fontWeight: 700,
+                borderRadius: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
+              }}
+            >
+              {isSubmittingSetup ? <Loader2 size={18} className="spin" /> : <CheckCircle2 size={18} />}
+              <span>{isSubmittingSetup ? 'שומר פרטים ונכנס למרחב...' : 'שמור פרטים והיכנס למרחב האישי ✨'}</span>
+            </button>
+          </form>
+        </div>
       </div>
     );
   }
@@ -3496,23 +3712,35 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       gap: '14px',
                       flexWrap: 'wrap'
                     }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1f2937' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1f2937', flexWrap: 'wrap' }}>
                         <MapPin size={16} color="#16a34a" />
-                        <span><strong>מיקום / פרטים:</strong> {nextApt.location || portalInfo.clinicAddress || 'קליניקה'}</span>
+                        <span><strong>מיקום / פרטים:</strong> {nextApt.type === 'zoom' ? (nextApt.joinUrl ? 'פגישת וידאו (Zoom)' : 'קישור זום יישלח סמוך למועד') : (nextApt.location || portalInfo.clinicAddress || 'קליניקה')}</span>
                       </div>
 
-                      {aptWaUrl && (
-                        <a
-                          href={aptWaUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="btn btn-secondary"
-                          style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
-                        >
-                          <WhatsAppIcon size={14} />
-                          <span>צ'אט בנוגע למועד זה</span>
-                        </a>
-                      )}
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                        {nextApt.type === 'zoom' && nextApt.joinUrl && (
+                          <a
+                            href={`/join-meeting/${nextApt.id}`}
+                            className="btn btn-primary"
+                            style={{ fontSize: '0.85rem', padding: '7px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4f46e5', borderColor: '#4f46e5' }}
+                          >
+                            <Video size={15} />
+                            <span>הצטרף לפגישת זום</span>
+                          </a>
+                        )}
+                        {aptWaUrl && (
+                          <a
+                            href={aptWaUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="btn btn-secondary"
+                            style={{ fontSize: '0.82rem', padding: '6px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none' }}
+                          >
+                            <WhatsAppIcon size={14} />
+                            <span>צ'אט בנוגע למועד זה</span>
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -3608,7 +3836,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                             </div>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            {apt.type === 'zoom' && apt.joinUrl && apt.status === 'confirmed' && (
+                              <a
+                                href={`/join-meeting/${apt.id}`}
+                                className="btn btn-primary"
+                                style={{ fontSize: '0.78rem', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#4f46e5', borderColor: '#4f46e5' }}
+                              >
+                                <Video size={13} />
+                                <span>הצטרף</span>
+                              </a>
+                            )}
                             {apt.status === 'confirmed' ? (
                               <span className="badge badge-success" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                 <CheckCircle2 size={13} /> מאושר

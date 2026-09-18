@@ -1,20 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-  X, 
-  ExternalLink, 
-  Copy, 
-  Check, 
-  MessageSquare, 
-  Plus, 
-  Calendar, 
-  CheckCircle2, 
-  Clock, 
-  Trash2, 
-  Send, 
-  User, 
-  FileText, 
+import {
+  X,
+  ExternalLink,
+  Copy,
+  Check,
+  MessageSquare,
+  Plus,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  Trash2,
+  Send,
+  User,
+  FileText,
   KeyRound,
   Sparkles,
   CalendarCheck,
@@ -26,24 +26,32 @@ import {
   BookOpen,
   Library,
   Share2,
-  RefreshCw
+  RefreshCw,
+  Loader2,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
 
-export default function ClientDetailsModal({ 
-  isOpen, 
-  onClose, 
-  client, 
-  tasks = [], 
+export default function ClientDetailsModal({
+  isOpen,
+  onClose,
+  client,
+  tasks = [],
   insights = [],
-  onAddTask, 
-  onDeleteTask, 
-  onSendWhatsApp, 
-  onOpenPortal 
+  onAddTask,
+  onDeleteTask,
+  onSendWhatsApp,
+  onOpenPortal
 }) {
+  const [currentClient, setCurrentClient] = useState(client);
+  useEffect(() => {
+    setCurrentClient(client);
+  }, [client]);
+
   const [modalTab, setModalTab] = useState('tasks'); // 'tasks' | 'insights' | 'appointments'
   const [copied, setCopied] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
@@ -58,6 +66,15 @@ export default function ClientDetailsModal({
   const [waNotice, setWaNotice] = useState('');
   const [pendingDeleteTaskId, setPendingDeleteTaskId] = useState(null);
   const [modalToast, setModalToast] = useState(null);
+
+  // Password & Credentials Management State
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [showManualEditModal, setShowManualEditModal] = useState(false);
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [showEditPassword, setShowEditPassword] = useState(false);
+  const [sendWaOnSave, setSendWaOnSave] = useState(true);
+  const [isSavingManualCredentials, setIsSavingManualCredentials] = useState(false);
 
   // Appointments state
   const [clientAppointments, setClientAppointments] = useState([]);
@@ -108,6 +125,10 @@ export default function ClientDetailsModal({
   const [isLoadingSignature, setIsLoadingSignature] = useState(false);
   const [formTemplates, setFormTemplates] = useState<any[]>([]);
 
+  // Portal on/off per client (a client can be a regular client without a personal portal)
+  const [portalOn, setPortalOn] = useState(client?.portalEnabled !== false);
+  const [isTogglingPortal, setIsTogglingPortal] = useState(false);
+
   const showToast = (message, type = 'success') => {
     setModalToast({ message, type });
     setTimeout(() => setModalToast(null), 3500);
@@ -143,14 +164,80 @@ export default function ClientDetailsModal({
     setIsSendingWa(true);
     setWaNotice('');
     try {
-      await onSendWhatsApp(client.id);
+      await onSendWhatsApp(currentClient.id);
       showToast('הודעת וואטסאפ עם קישור וקוד גישה נשלחה בהצלחה! 📲');
       setWaNotice('הודעת וואטסאפ נשלחה בהצלחה למכשיר המטופל!');
       setTimeout(() => setWaNotice(''), 4000);
-    } catch (err) {
+    } catch (err: any) {
       showToast('שגיאה בשליחת וואטסאפ: ' + err.message, 'error');
     } finally {
       setIsSendingWa(false);
+    }
+  };
+
+  const handleResetPasswordWhatsApp = async () => {
+    setIsResettingPassword(true);
+    try {
+      const res = await api.resetClientPasswordWhatsApp(currentClient.id);
+      setCurrentClient(prev => ({
+        ...prev,
+        username: res.username || prev.username,
+        initialPassword: res.newPassword,
+        hasPassword: true
+      }));
+      showToast(res.message || 'סיסמה חדשה הוגדרה ונשלחה בוואטסאפ ללקוח! 📲');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה באיפוס הסיסמה', 'error');
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    setEditUsername(currentClient.username || currentClient.phone || '');
+    setEditPassword(currentClient.initialPassword || '');
+    setShowManualEditModal(true);
+  };
+
+  const handleSaveManualCredentials = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editUsername.trim()) {
+      showToast('נא להזין שם משתמש', 'error');
+      return;
+    }
+    if (!editPassword.trim() || editPassword.trim().length < 4) {
+      showToast('סיסמה חייבת להכיל לפחות 4 תווים', 'error');
+      return;
+    }
+
+    setIsSavingManualCredentials(true);
+    try {
+      await api.updateClient(currentClient.id, {
+        username: editUsername.trim(),
+        password: editPassword.trim()
+      });
+
+      setCurrentClient(prev => ({
+        ...prev,
+        username: editUsername.trim(),
+        initialPassword: editPassword.trim(),
+        hasPassword: true
+      }));
+
+      if (sendWaOnSave) {
+        await api.resetClientPasswordWhatsApp(currentClient.id, {
+          newPassword: editPassword.trim()
+        });
+        showToast('פרטי הגישה עודכנו ונשלחו בהצלחה ללקוח ב-WhatsApp! 📲');
+      } else {
+        showToast('פרטי הגישה עודכנו בהצלחה במערכת ✨');
+      }
+
+      setShowManualEditModal(false);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בעדכון פרטי הגישה', 'error');
+    } finally {
+      setIsSavingManualCredentials(false);
     }
   };
 
@@ -331,8 +418,25 @@ export default function ClientDetailsModal({
     }
   };
 
+  const handleTogglePortal = async () => {
+    const next = !portalOn;
+    setIsTogglingPortal(true);
+    try {
+      await api.updateClient(client.id, { portalEnabled: next });
+      setPortalOn(next);
+      showToast(next
+        ? 'המרחב האישי (פורטל) הופעל עבור הלקוח'
+        : 'המרחב האישי כובה — הלקוח כעת לקוח רגיל ללא פורטל');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בעדכון הפורטל', 'error');
+    } finally {
+      setIsTogglingPortal(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen && client?.id) {
+      setPortalOn(client.portalEnabled !== false);
       loadClientAppointments();
       loadClientContent();
       loadClientForms();
@@ -390,8 +494,8 @@ export default function ClientDetailsModal({
   };
 
   return (
-    <div 
-      className="modal-overlay" 
+    <div
+      className="modal-overlay"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
           onClose();
@@ -429,7 +533,29 @@ export default function ClientDetailsModal({
         </div>
 
         <div className="modal-body">
+          {/* Portal on/off toggle — the therapist decides who gets a personal portal */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
+            background: portalOn ? '#f0fdfa' : '#f8fafc',
+            border: portalOn ? '1px solid #99f6e4' : '1px solid #e2e8f0',
+            borderRadius: '14px', padding: '12px 16px', marginBottom: '16px'
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', color: portalOn ? '#0f766e' : '#64748b' }}>
+              <input
+                type="checkbox"
+                checked={portalOn}
+                onChange={handleTogglePortal}
+                disabled={isTogglingPortal}
+              />
+              {portalOn
+                ? 'ללקוח זה יש מרחב אישי (פורטל) פעיל'
+                : 'לקוח רגיל — ללא מרחב אישי (הפורטל כבוי)'}
+            </label>
+            {isTogglingPortal && <Loader2 size={16} className="animate-spin" color="#0d9488" />}
+          </div>
+
           {/* Client Personal Portal Banner */}
+          {portalOn && (
           <div style={{
             background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)',
             border: '1px solid #99f6e4',
@@ -448,8 +574,8 @@ export default function ClientDetailsModal({
               </div>
 
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={handleSendWa}
                   disabled={isSendingWa}
                   className="btn btn-whatsapp"
@@ -459,8 +585,8 @@ export default function ClientDetailsModal({
                   {isSendingWa ? 'שולח...' : 'שלח קישור ב-WhatsApp'}
                 </button>
 
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => onOpenPortal(client.portalCode)}
                   className="btn btn-primary"
                   style={{ fontSize: '0.85rem', padding: '8px 14px' }}
@@ -503,18 +629,18 @@ export default function ClientDetailsModal({
                   </code>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <button 
-                    onClick={handleCopyLink} 
+                  <button
+                    onClick={handleCopyLink}
                     className="btn btn-secondary"
                     style={{ padding: '4px 10px', fontSize: '0.8rem' }}
                   >
                     {copied ? <Check size={14} color="#059669" /> : <Copy size={14} />}
                     {copied ? 'הועתק!' : 'העתק קישור'}
                   </button>
-                  <a 
-                    href={portalUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    href={portalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="btn btn-primary"
                     style={{ padding: '4px 12px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
@@ -523,22 +649,66 @@ export default function ClientDetailsModal({
                 </div>
               </div>
 
-              {/* Credentials Badges */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', paddingTop: '8px', borderTop: '1px solid #edf2f7' }}>
-                <span style={{ fontSize: '0.84rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <User size={13} color="var(--primary, #0d9488)" /> <strong>שם משתמש:</strong> <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 6px', background: '#e2e8f0', borderRadius: '6px' }}>{client.username || client.phone}</code>
-                </span>
-                <span style={{ fontSize: '0.84rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Lock size={13} color="var(--primary, #0d9488)" /> <strong>סיסמה אישית:</strong> <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 6px', background: '#e2e8f0', borderRadius: '6px' }}>{client.initialPassword || client.pin || 'מוגדרת'}</code>
-                </span>
-                {client.pin && (
-                  <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <KeyRound size={12} /> PIN גיבוי: {client.pin}
+              {/* Credentials Management & WhatsApp Action Panel */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '12px',
+                paddingTop: '12px',
+                borderTop: '1px solid #edf2f7'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.86rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <User size={14} color="var(--primary, #0d9488)" /> <strong>שם משתמש:</strong>
+                    <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 8px', background: '#e2e8f0', borderRadius: '6px' }}>
+                      {currentClient.username || currentClient.phone}
+                    </code>
                   </span>
-                )}
+
+                  <span style={{ fontSize: '0.86rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Lock size={14} color="var(--primary, #0d9488)" /> <strong>סיסמה:</strong>
+                    {currentClient.hasPassword === false ? (
+                      <span style={{ color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700 }}>
+                        ממתין להגדרה ע״י הלקוח ⏳
+                      </span>
+                    ) : (
+                      <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 8px', background: '#e2e8f0', borderRadius: '6px' }}>
+                        {currentClient.initialPassword || 'מוגדרת ומאובטחת'}
+                      </code>
+                    )}
+                  </span>
+                </div>
+
+                {/* Management Action Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleResetPasswordWhatsApp}
+                    disabled={isResettingPassword}
+                    className="btn btn-whatsapp"
+                    style={{ padding: '6px 12px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                    title="חולל סיסמה חדשה ושלח אותה מיד ללקוח ב-WhatsApp"
+                  >
+                    <WhatsAppIcon size={14} color="#ffffff" />
+                    <span>{isResettingPassword ? 'מאפס ושולח...' : 'אפס ושלח סיסמה ב-WhatsApp 📲'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleOpenEditModal}
+                    className="btn btn-secondary"
+                    style={{ padding: '6px 12px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                  >
+                    <KeyRound size={14} />
+                    <span>ניהול סיסמה ידנית</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+          )}
 
           {/* Clinical Notes */}
           {client.notes && (
@@ -663,7 +833,7 @@ export default function ClientDetailsModal({
                     משימות אלו מופיעות במרחב הלקוח. המטופל יכול לסמן ביצוע ולכתוב רפלקציה, אך אין לו הרשאה למחוק או לשנות משימות.
                   </p>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowAddTask(!showAddTask)}
                   className="btn btn-primary"
                   style={{ fontSize: '0.85rem', padding: '7px 14px' }}
@@ -672,162 +842,162 @@ export default function ClientDetailsModal({
                 </button>
               </div>
 
-          {/* Add Task Sub-form */}
-          {showAddTask && (
-            <form onSubmit={handleCreateTask} style={{
-              background: '#f8fafc',
-              border: '1px solid #cbd5e1',
-              borderRadius: '12px',
-              padding: '18px',
-              marginBottom: '20px'
-            }}>
-              <h5 style={{ fontWeight: 700, marginBottom: '12px', color: '#0f172a' }}>הוספת משימה ללקוח</h5>
-              <div className="form-group">
-                <label>כותרת המשימה / התרגיל *</label>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="למשל: תרגול נשימות 4-7-8 פעמיים ביום"
-                  required
-                  value={taskForm.title}
-                  onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>הנחיות והסבר מפורט למטופל</label>
-                <textarea 
-                  className="form-control"
-                  placeholder="רשום כאן את הדגשים לתרגול, כיצד לבצע, ועל מה לשים לב..."
-                  value={taskForm.description}
-                  onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
-                />
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>קטגוריה</label>
-                  <select 
-                    className="form-control"
-                    value={taskForm.category}
-                    onChange={e => setTaskForm({ ...taskForm, category: e.target.value })}
-                  >
-                    <option value="ויסות רגשי">ויסות רגשי</option>
-                    <option value="יומן רגשות ומחשבות">יומן רגשות ומחשבות</option>
-                    <option value="תרגול מיינדפולנס">תרגול מיינדפולנס</option>
-                    <option value="חשיפה מבוקרת (CBT)">חשיפה מבוקרת (CBT)</option>
-                    <option value="חיזוק דימוי עצמי">חיזוק דימוי עצמי</option>
-                    <option value="פעילות גופנית ואיזון">פעילות גופנית ואיזון</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>תאריך יעד לביצוע</label>
-                  <input 
-                    type="date" 
-                    className="form-control"
-                    value={taskForm.dueDate}
-                    onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAddTask(false)}>
-                  ביטול
-                </button>
-                <button type="submit" className="btn btn-primary" disabled={isSubmittingTask}>
-                  {isSubmittingTask ? 'שומר...' : 'שמור והעבר לפורטל הלקוח'}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* Tasks List */}
-          {tasks.length === 0 ? (
-            <div style={{
-              textAlign: 'center',
-              padding: '36px 20px',
-              background: '#f8fafc',
-              borderRadius: '12px',
-              border: '1px dashed #cbd5e1'
-            }}>
-              <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
-                עדיין לא הוקצו משימות ללקוח זה. לחץ על "הקצה משימה חדשה" כדי לשלוח תרגול למרחב האישי שלו.
-              </p>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {tasks.map(task => (
-                <div key={task.id} style={{
-                  background: task.completed ? '#f0fdf4' : 'white',
-                  border: `1px solid ${task.completed ? '#bbf7d0' : '#e2e8f0'}`,
+              {/* Add Task Sub-form */}
+              {showAddTask && (
+                <form onSubmit={handleCreateTask} style={{
+                  background: '#f8fafc',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '12px',
-                  padding: '16px 20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  gap: '12px'
+                  padding: '18px',
+                  marginBottom: '20px'
                 }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span className={`badge ${task.completed ? 'badge-success' : 'badge-warning'}`}>
-                        {task.completed ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                        {task.completed ? 'הושלם ע"י הלקוח' : 'ממתין לביצוע'}
-                      </span>
-                      <span className="badge badge-neutral">{task.category}</span>
-                      {task.dueDate && (
-                        <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Calendar size={12} /> יעד: {task.dueDate}
-                        </span>
-                      )}
-                    </div>
-
-                    <h5 style={{
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      color: '#0f172a',
-                      textDecoration: task.completed ? 'line-through' : 'none'
-                    }}>
-                      {task.title}
-                    </h5>
-
-                    {task.description && (
-                      <p style={{ fontSize: '0.88rem', color: '#475569', marginTop: '6px', lineHeight: 1.5 }}>
-                        {task.description}
-                      </p>
-                    )}
-
-                    {/* Patient reflection sent from home */}
-                    {task.clientNotes && (
-                      <div style={{
-                        marginTop: '10px',
-                        background: 'rgba(255, 255, 255, 0.8)',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '8px',
-                        padding: '8px 12px',
-                        fontSize: '0.84rem'
-                      }}>
-                        <strong style={{ color: '#0f766e' }}>משוב מהמטופל מהבית: </strong>
-                        <span>"{task.clientNotes}"</span>
-                      </div>
-                    )}
+                  <h5 style={{ fontWeight: 700, marginBottom: '12px', color: '#0f172a' }}>הוספת משימה ללקוח</h5>
+                  <div className="form-group">
+                    <label>כותרת המשימה / התרגיל *</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="למשל: תרגול נשימות 4-7-8 פעמיים ביום"
+                      required
+                      value={taskForm.title}
+                      onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                    />
                   </div>
 
-                  <button 
-                    onClick={() => setPendingDeleteTaskId(task.id)}
-                    className="btn-icon" 
-                    title="מחק משימה"
-                    style={{ color: '#ef4444' }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="form-group">
+                    <label>הנחיות והסבר מפורט למטופל</label>
+                    <textarea
+                      className="form-control"
+                      placeholder="רשום כאן את הדגשים לתרגול, כיצד לבצע, ועל מה לשים לב..."
+                      value={taskForm.description}
+                      onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>קטגוריה</label>
+                      <select
+                        className="form-control"
+                        value={taskForm.category}
+                        onChange={e => setTaskForm({ ...taskForm, category: e.target.value })}
+                      >
+                        <option value="ויסות רגשי">ויסות רגשי</option>
+                        <option value="יומן רגשות ומחשבות">יומן רגשות ומחשבות</option>
+                        <option value="תרגול מיינדפולנס">תרגול מיינדפולנס</option>
+                        <option value="חשיפה מבוקרת (CBT)">חשיפה מבוקרת (CBT)</option>
+                        <option value="חיזוק דימוי עצמי">חיזוק דימוי עצמי</option>
+                        <option value="פעילות גופנית ואיזון">פעילות גופנית ואיזון</option>
+                      </select>
+                    </div>
+
+                    <div className="form-group">
+                      <label>תאריך יעד לביצוע</label>
+                      <input
+                        type="date"
+                        className="form-control"
+                        value={taskForm.dueDate}
+                        onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setShowAddTask(false)}>
+                      ביטול
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={isSubmittingTask}>
+                      {isSubmittingTask ? 'שומר...' : 'שמור והעבר לפורטל הלקוח'}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Tasks List */}
+              {tasks.length === 0 ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '36px 20px',
+                  background: '#f8fafc',
+                  borderRadius: '12px',
+                  border: '1px dashed #cbd5e1'
+                }}>
+                  <p style={{ color: '#64748b', fontSize: '0.95rem' }}>
+                    עדיין לא הוקצו משימות ללקוח זה. לחץ על "הקצה משימה חדשה" כדי לשלוח תרגול למרחב האישי שלו.
+                  </p>
                 </div>
-              ))}
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {tasks.map(task => (
+                    <div key={task.id} style={{
+                      background: task.completed ? '#f0fdf4' : 'white',
+                      border: `1px solid ${task.completed ? '#bbf7d0' : '#e2e8f0'}`,
+                      borderRadius: '12px',
+                      padding: '16px 20px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      gap: '12px'
+                    }}>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                          <span className={`badge ${task.completed ? 'badge-success' : 'badge-warning'}`}>
+                            {task.completed ? <CheckCircle2 size={12} /> : <Clock size={12} />}
+                            {task.completed ? 'הושלם ע"י הלקוח' : 'ממתין לביצוע'}
+                          </span>
+                          <span className="badge badge-neutral">{task.category}</span>
+                          {task.dueDate && (
+                            <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                              <Calendar size={12} /> יעד: {task.dueDate}
+                            </span>
+                          )}
+                        </div>
+
+                        <h5 style={{
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          color: '#0f172a',
+                          textDecoration: task.completed ? 'line-through' : 'none'
+                        }}>
+                          {task.title}
+                        </h5>
+
+                        {task.description && (
+                          <p style={{ fontSize: '0.88rem', color: '#475569', marginTop: '6px', lineHeight: 1.5 }}>
+                            {task.description}
+                          </p>
+                        )}
+
+                        {/* Patient reflection sent from home */}
+                        {task.clientNotes && (
+                          <div style={{
+                            marginTop: '10px',
+                            background: 'rgba(255, 255, 255, 0.8)',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '8px',
+                            padding: '8px 12px',
+                            fontSize: '0.84rem'
+                          }}>
+                            <strong style={{ color: '#0f766e' }}>משוב מהמטופל מהבית: </strong>
+                            <span>"{task.clientNotes}"</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => setPendingDeleteTaskId(task.id)}
+                        className="btn-icon"
+                        title="מחק משימה"
+                        style={{ color: '#ef4444' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
           {/* TAB 2: Client Insights View for Therapist */}
           {modalTab === 'insights' && (
@@ -930,7 +1100,7 @@ export default function ClientDetailsModal({
 
               {/* Quick Add Appointment Form */}
               {showAddAppointment && (
-                <form 
+                <form
                   onSubmit={handleCreateAppointmentSubmit}
                   style={{
                     background: '#f8fafc',
@@ -1032,8 +1202,8 @@ export default function ClientDetailsModal({
                       onChange={e => setAppointmentForm({ ...appointmentForm, sendWhatsApp: e.target.checked })}
                       style={{ width: '16px', height: '16px', cursor: 'pointer' }}
                     />
-                    <label 
-                      htmlFor="modalSendWaCheck" 
+                    <label
+                      htmlFor="modalSendWaCheck"
                       style={{ margin: 0, cursor: 'pointer', fontSize: '0.84rem', fontWeight: 600, color: '#14532d', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                       <WhatsAppIcon size={14} />
@@ -1068,7 +1238,7 @@ export default function ClientDetailsModal({
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {clientAppointments.map(apt => (
-                    <div 
+                    <div
                       key={apt.id}
                       style={{
                         background: '#ffffff',
@@ -1130,10 +1300,10 @@ export default function ClientDetailsModal({
           {modalTab === 'content' && (() => {
             const assignedArticles = clientContent.filter(item => item.type === 'article');
             const assignedMedia = clientContent.filter(item => item.type !== 'article');
-            const filteredContent = contentSubFilter === 'articles' 
-              ? assignedArticles 
-              : contentSubFilter === 'media' 
-                ? assignedMedia 
+            const filteredContent = contentSubFilter === 'articles'
+              ? assignedArticles
+              : contentSubFilter === 'media'
+                ? assignedMedia
                 : clientContent;
 
             const unassignedItems = allTherapistContent.filter(
@@ -1491,8 +1661,8 @@ export default function ClientDetailsModal({
                     <Library size={32} style={{ margin: '0 auto 10px', color: '#94a3b8' }} />
                     <h5 style={{ margin: '0 0 6px 0', fontSize: '1rem', color: '#1e293b', fontWeight: 700 }}>
                       {contentSubFilter === 'articles' ? 'לא שויכו מאמרים למטופל זה' :
-                       contentSubFilter === 'media' ? 'לא שויכו סרטונים או פוסטים למטופל זה' :
-                       'טרם שויכו מאמרים או תוכן למטופל זה'}
+                        contentSubFilter === 'media' ? 'לא שויכו סרטונים או פוסטים למטופל זה' :
+                          'טרם שויכו מאמרים או תוכן למטופל זה'}
                     </h5>
                     <p style={{ margin: 0, fontSize: '0.85rem' }}>
                       באפשרותך לבחור פריט מהספרייה או ליצור מאמר חדש שיגיע ישירות למרחב של {client.firstName}.
@@ -1779,7 +1949,7 @@ export default function ClientDetailsModal({
       </div>
 
       {/* Confirm Task Deletion Modal */}
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={Boolean(pendingDeleteTaskId)}
         onClose={() => setPendingDeleteTaskId(null)}
         onConfirm={() => {
@@ -1876,11 +2046,112 @@ export default function ClientDetailsModal({
         </div>
       )}
 
+      {/* Manual Edit Credentials Modal */}
+      {showManualEditModal && (
+        <div className="modal-overlay" style={{ zIndex: 1100 }} onClick={() => setShowManualEditModal(false)}>
+          <div className="modal-card" style={{ maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <KeyRound size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem' }}>ניהול פרטי גישה למרחב</h3>
+                  <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: '#64748b' }}>
+                    {currentClient.firstName} {currentClient.lastName}
+                  </p>
+                </div>
+              </div>
+              <button className="btn-icon" type="button" onClick={() => setShowManualEditModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveManualCredentials}>
+              <div className="modal-body" style={{ padding: '20px' }}>
+                <div className="form-group" style={{ marginBottom: '14px' }}>
+                  <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                    שם משתמש
+                  </label>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    required
+                    className="form-control"
+                    placeholder="שם משתמש"
+                    style={{ textAlign: 'right' }}
+                    value={editUsername}
+                    onChange={e => setEditUsername(e.target.value)}
+                  />
+                </div>
+
+                <div className="form-group" style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#334155' }}>סיסמה חדשה</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+                        let pass = '';
+                        for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+                        setEditPassword(pass);
+                      }}
+                      style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                    >
+                      <Sparkles size={12} /> חולל סיסמה 🎲
+                    </button>
+                  </div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type={showEditPassword ? 'text' : 'password'}
+                      dir="ltr"
+                      required
+                      className="form-control"
+                      placeholder="הזן סיסמה חדשה (לפחות 4 תווים)"
+                      style={{ textAlign: 'right', paddingLeft: '40px' }}
+                      value={editPassword}
+                      onChange={e => setEditPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowEditPassword(!showEditPassword)}
+                      style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                    >
+                      {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 12px', borderRadius: '10px' }}>
+                  <input
+                    type="checkbox"
+                    checked={sendWaOnSave}
+                    onChange={e => setSendWaOnSave(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: '#16a34a', cursor: 'pointer' }}
+                  />
+                  <WhatsAppIcon size={16} color="#16a34a" />
+                  <span>שלח מיד את הסיסמה והפרטים ב-WhatsApp ללקוח 📲</span>
+                </label>
+              </div>
+
+              <div className="modal-footer" style={{ padding: '12px 20px' }}>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowManualEditModal(false)} disabled={isSavingManualCredentials}>
+                  ביטול
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={isSavingManualCredentials}>
+                  {isSavingManualCredentials ? 'שומר ומעדכן...' : 'שמור ועדכן פרטי גישה ✨'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Custom UI Toast */}
-      <Toast 
-        message={modalToast?.message} 
-        type={modalToast?.type} 
-        onClose={() => setModalToast(null)} 
+      <Toast
+        message={modalToast?.message}
+        type={modalToast?.type}
+        onClose={() => setModalToast(null)}
       />
     </div>
   );

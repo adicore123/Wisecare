@@ -21,6 +21,11 @@ export async function getPortalPayload(portalCode: string) {
     return null;
   }
 
+  // Portal disabled by the therapist — the personal space is unavailable
+  if (client.portalEnabled === false) {
+    return null;
+  }
+
   const therapist = client.therapistId ? users.findById(client.therapistId) : null;
   const clientTasks = tasks.find({ clientId: client.id });
   const clientContent = contentAssignments
@@ -75,7 +80,8 @@ export async function getPortalPayload(portalCode: string) {
         specialty: therapist.specialty
       } : null,
       isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
-      hasPassword: Boolean(client.password || client.initialPassword),
+      hasPassword: Boolean(client.hasPassword !== false && (client.password || client.initialPassword)),
+      needsCredentialsSetup: Boolean(client.hasPassword === false || (client.clientSetsCredentials && !client.credentialsSetAt)),
       username: client.username || ''
     },
     tasks: clientTasks.map((t: any) => ({
@@ -104,6 +110,11 @@ export async function GET(
     const { portalCode } = await props.params;
     const payload = await getPortalPayload(portalCode);
     if (!payload) {
+      // Distinguish a disabled portal from a wrong link
+      const client = db.collection('clients').findOne({ portalCode });
+      if (client && client.portalEnabled === false) {
+        return NextResponse.json({ error: 'המרחב האישי אינו פעיל כרגע. יש לפנות למטפל/ת שלך.' }, { status: 403 });
+      }
       return NextResponse.json({ error: 'מרחב טיפולי זה לא נמצא או שהקישור שגוי' }, { status: 404 });
     }
     return NextResponse.json(payload, {

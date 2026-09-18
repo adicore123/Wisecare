@@ -27,6 +27,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'פרטי ההתחברות שגויים. לא נמצא משתמש תואם.' }, { status: 401 });
     }
 
+    if (client.portalEnabled === false) {
+      return NextResponse.json({ error: 'המרחב האישי אינו פעיל עבור חשבון זה. יש לפנות למטפל/ת.' }, { status: 403 });
+    }
+
     if (!client.password || !verifyPassword(password, client.password)) {
       return NextResponse.json({ error: 'שם משתמש או סיסמה שגויים.' }, { status: 401 });
     }

@@ -276,11 +276,11 @@ ${clinicName}`;
 
     fetch('/api/settings').then(r => r.json()).then((s: any) => {
       if (s?.clinicName) setClinicName(s.clinicName);
-    }).catch(() => {});
+    }).catch(() => { });
     loadTemplates();
     api.getClients().then((cls: any) => {
       if (Array.isArray(cls)) setClients(cls.filter((c: any) => !c.archived));
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const loadTemplates = async () => {

@@ -37,6 +37,34 @@
       "loginCode": "yaronlev-6567",
       "role": "therapist",
       "active": true
+    },
+    {
+      "active": true,
+      "createdAt": "2026-09-16T22:32:14.999Z",
+      "email": "adi050levy@gmail.com",
+      "id": "id-1789597934999-c44752d1",
+      "loginCode": "adi12-150624",
+      "name": "עדי",
+      "password": "9ec09d3e8cf39aa22c030b9ce3cdcf52:a74f8d833e9715e6447b4794ccd28aec9633f84c0c08c959e990a246dce9b68392f880f29e693fbc102186f397da4a8152e19754eacc4c48f220226dafdd132d",
+      "phone": "0509611808",
+      "role": "therapist",
+      "specialty": "טיפול רגשי ממוקד",
+      "title": "מטפל/ת רגשי/ת",
+      "username": "adi12"
+    },
+    {
+      "active": true,
+      "createdAt": "2026-09-18T04:49:22.499Z",
+      "email": "",
+      "id": "id-1789706962499-b9a9271e",
+      "loginCode": "adicore77-746988",
+      "name": "אדילוי",
+      "password": "b603716a95ed931d291879df2e7a2f62:55a9a985438c5ce20d6963d5a7afc627f5e0b78de338bf01c556dac036006c8faf9ed0cc7de1fe13d60cbc026d2388d4c2a4a67d21068229d43aeacf1c8c0605",
+      "phone": "0509611808",
+      "role": "therapist",
+      "specialty": "Hh",
+      "title": "מטפל/ת מוסמך/ת",
+      "username": "adicore77"
     }
   ],
   "clients": [
@@ -58,9 +86,14 @@
         "code": "912440",
         "expiresAt": "2026-09-13T13:11:42.783Z"
       },
-      "updatedAt": "2026-09-14T13:44:33.477Z",
+      "updatedAt": "2026-09-18T05:42:59.133Z",
       "archived": true,
-      "deletedAt": "2026-09-14T13:44:33.477Z"
+      "deletedAt": "2026-09-14T13:44:33.477Z",
+      "credentialsSetAt": "2026-09-18T05:42:59.133Z",
+      "hasPassword": true,
+      "initialPassword": "password1234",
+      "password": "ab92327f038495a7b1e6abf41b8be8b0:f59b6bf15bc846c0522e56a635afb59b75edc9eea0ee702a6adeaadf51f3f4645ae0a5468dc335fc9bb7de74be70cd771d37e711e4c9fab4b33b4871fb54fee2",
+      "username": "testuser_client"
     },
     {
       "id": "id-1789301264455-fqqzix",
@@ -182,7 +215,12 @@
       "portalCode": "client-180327",
       "therapistId": "id-1789280216249-ghmjw2",
       "whatsappStatus": "sent",
-      "updatedAt": "2026-09-14T13:46:10.246Z"
+      "updatedAt": "2026-09-18T05:45:19.351Z",
+      "credentialsSetAt": "2026-09-18T05:45:19.351Z",
+      "hasPassword": true,
+      "initialPassword": "mySecurePassword123",
+      "password": "4230ea839e0e85ddc8e0b7daa91c0efa:63bfca673dbce19ab683dfdb133bcf933b7819c7fb879fc26340b109ad92a0c3410c19d7f11c28c8e0de96bf378236f8efcc203e38a560bbe98beced73af77ca",
+      "username": "naor_bz"
     },
     {
       "createdAt": "2026-09-14T17:55:54.517Z",
@@ -259,6 +297,49 @@
       "archived": true,
       "deletedAt": "2026-09-16T13:59:01.586Z",
       "updatedAt": "2026-09-16T13:59:01.586Z"
+    },
+    {
+      "age": 37,
+      "createdAt": "2026-09-16T21:26:36.976Z",
+      "firstName": "עדי",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789593996975-a3066c21",
+      "initialPassword": "c38410a3",
+      "lastName": "לוי",
+      "lastSentAt": "2026-09-16T21:27:08.334Z",
+      "notes": "",
+      "password": "21beb0b52442256b130704264274dfd7:4b2173e6aebbe29db9551747a3d994562be5dd985a3acd57b0486f301b597f2f71f1b687384af3fe2b7dd0b31614ac5d4f15a2801bc4c539eb6a9f62fec30e4b",
+      "phone": "0509611808",
+      "pin": "8417",
+      "portalCode": "client-260305",
+      "therapistId": "therapist-1",
+      "username": "adi",
+      "whatsappStatus": "sent",
+      "updatedAt": "2026-09-16T21:27:08.334Z"
+    },
+    {
+      "age": null,
+      "createdAt": "2026-09-16T23:22:42.380Z",
+      "firstName": "���",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789600962379-9d057b8e",
+      "initialPassword": "Q@$4Q3$o",
+      "lastName": "�����",
+      "lastSentAt": null,
+      "notes": "���� ���� ��� �����",
+      "password": "77f103d7585efcc0c306f4c0a871c325:3a4b410909f99967efbd0b368eeec53fddd78fc3ce8896b35071601ad8f7c2ae4ff9787cf40d8323208e84c60bfb1223fd6232b7fca2e5c65690397f879b2eb1",
+      "phone": "0511111122",
+      "pin": "4201",
+      "portalCode": "client-461545",
+      "portalEnabled": true,
+      "therapistId": "therapist-1",
+      "username": "client1374",
+      "whatsappStatus": "not_sent",
+      "updatedAt": "2026-09-16T23:23:59.296Z",
+      "archived": true,
+      "deletedAt": "2026-09-16T23:23:59.296Z"
     }
   ],
   "tasks": [
@@ -1037,6 +1118,34 @@
       "title": "Signs a narcissist is secretly ashamed of how they treated you #relationship #narcissist | Emotional Dynamic",
       "type": "video",
       "url": "https://www.facebook.com/share/v/1J6C83CU66/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-17T07:16:58.166Z",
+      "customNote": "",
+      "description": "Everybody talks about narcissists controlling the narrative.\n\nNobody talks about what happens when that control starts slipping.\n\nThe moment you stop defending yourself against every accusation…\nThe...",
+      "id": "id-1789629418166-184d7915",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t51.71878-15/723961761_1713041929849619_4161962162487880089_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a27664&_nc_ohc=cQPbqoSoSDQQ7kNvwE8yz4N&_nc_oc=AdpIxp1-4CsAR9LxaIKuViEZ8QdAof3nQQirgCNfvDECZFXwSro7sy1QgAHM5rOyiY4&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=pV7-xhI10cLWze7xm6AYHg&_nc_ss=7f180&oh=00_AQJOfvRWxE0JcyX24tnbS51ILY1mcJ68m4EuyppO1vR9NQ&oe=6AB168CB",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "Everybody talks about narcissists controlling the narrative.",
+      "type": "video",
+      "url": "https://www.facebook.com/share/v/1Dg5XREP1o/"
+    },
+    {
+      "archived": false,
+      "category": "אישי",
+      "createdAt": "2026-09-17T13:07:22.240Z",
+      "customNote": "",
+      "description": "A female narcissist 勞……",
+      "id": "id-1789650442240-3e6dcf77",
+      "imageData": "https://scontent-iad6-1.xx.fbcdn.net/v/t15.5256-10/741523561_2455078638322520_2137775704484429899_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=a27664&_nc_ohc=O4_iWAlvUfIQ7kNvwF7j2q6&_nc_oc=AdqY0hZV2cJ5RZic7KgIVve67hSPlZlgdDTyORNzto0DTPefimCFpyENSEkymh2MRjE&_nc_zt=23&_nc_ht=scontent-iad6-1.xx&_nc_gid=HXHLfNf1181syIXIsgPkMQ&_nc_ss=7f180&oh=00_AQL2JwmIy76R36WOJKzs9-2ZKcK1c9FYfFF94AKl0ODmDQ&oe=6AB1AA43",
+      "sourceName": "Facebook Reel",
+      "therapistId": null,
+      "title": "A female narcissist 勞…… | Mark Lee Jr",
+      "type": "video",
+      "url": "https://www.facebook.com/share/r/1CEFnhRUtG/"
     }
   ],
   "contentAssignments": [
@@ -1361,6 +1470,20 @@
       "createdAt": "2026-09-16T20:47:57.041Z",
       "id": "id-1789591677041-8fba1077",
       "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789629418166-184d7915",
+      "createdAt": "2026-09-17T07:16:58.168Z",
+      "id": "id-1789629418168-a656841f",
+      "notificationStatus": "none"
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "contentId": "id-1789650442240-3e6dcf77",
+      "createdAt": "2026-09-17T13:07:22.250Z",
+      "id": "id-1789650442250-5a6cafdf",
+      "notificationStatus": "none"
     }
   ],
   "insights": [
@@ -1452,6 +1575,19 @@
       "recordedTime": "13:38",
       "therapistId": null,
       "title": "."
+    },
+    {
+      "clientId": "id-1789391820252-e1468943",
+      "content": "ידעת איזה מחיר אשלם על זה, ובכל זאת בחרת לעשות את זה. זה היה הדבר שהיה לי הכי קשה לעכל, כי באמת חשבתי שתהיי האחרונה שתפגע בי. סמכתי עלייך וחשפתי בפנייך חלקים בעצמי שפחדתי להראות לאף אחד אחר. הכרת את העבר שלי ואת הפחדים הכי גדולים שלי. היו דברים שסיפרתי לך מתוך אמונה שברגע שתביני מאיפה הכאב שלי מגיע, תהיי הרבה יותר עדינה איתי. במקום זה, הייתי צריך להשלים עם העובדה שההיכרות העמוקה שלך איתי לא מנעה ממך לעשות משהו שידעת מראש שיפרק אותי מבפנים.\nוזה שינה את כל מה שחשבתי עלייך. לפני כן, האמנתי שזה שאת מבינה אותי אומר שאני הכי בטוח איתך. חשבתי שהכנות שלי תשמור עליי. באותן שיחות שבהן שיתפתי אותך במה שעברתי, הרגשתי כאילו אני נותן לך מפה ללב שלי, כדי שתדעי באילו מקומות צריך לגעת הכי בעדינות. בחיים לא תיארתי לעצמי שתהפכי לעוד סיבה שבגללה אני צריך להגן על המקומות האלה כל כך חזק.\nזה כאב שלא הצלחתי להסביר במשך הרבה זמן. זה לא רק מה שעשית, אלא האבל על מי שחשבתי שאת – מישהי שהיה לי מספיק אמון בה כדי לשתף אותה במה שעלול להרוס אותי. הייתה לי בראש תמונה שלך, מישהי שתקשיב לכאב שלי ותגיד לעצמה: \"אני בחיים לא אהיה עוד בן אדם שגורם לו לסחוב את זה\". לאבד את התמונה הזו שלך, כאב כמעט כמו הפגיעה עצמה.\nבחיים לא ציפיתי שהאהבה תהפוך אותך למושלמת. אבל כן ציפיתי שהכאב שלי יגע בך. האמנתי שאם משהו שעשית פגע בי, העובדה שאת יודעת את זה תשנה את היחס שלך אליי. על טעויות אפשר לסלוח, והתנצלות יכולה להיות פתח לתיקון. אפשר לבנות אמון מחדש דרך כנות, לקיחת אחריות והתנהגות שמוכיחה שלמדת את הלקח. מה ששבר אותי היה להבין שהיה לך את כל המידע – ובכל זאת בחרת לעשות את זה.\nזה לא שלא הבנת. לא הסתרתי ממך שום פחד שלי. הסברתי לך הכל, ועדיין מצאתי את עצמי חווה שוב את אותו כאב שהייתי בטוח שהאמון בך יגן עליי מפניו. שבר כזה גורם לך להטיל ספק בזכרונות שפעם הרגישו בטוחים. רגעים שחשבתי שקירבו בינינו פתאום הרגישו כבדים. מילים שפעם שמרתי קרוב ללב נשמעו פתאום אחרת כשהרצתי אותן שוב ושוב בראש. אפילו ה\"אני מבינה\" שלך הפך למשהו שקשה לי לשמוע, כי בסוף נאלצתי להשלים עם זה שהבנה – מעולם לא הייתה הבעיה.\nאת הבנת הכל. וזה מה שהפך את כל הסיפור לכל כך קשה לעיכול. אני מסוגל לסלוח לך בלי להעמיד פנים שזה לא שינה אותי. עדיין אפשר לקחת אחריות, לתקן ולעשות שינוי אמיתי. אבל מה שאני בחיים לא אוכל לקבל בחזרה, זו את התמימות שהייתה לי כשהאמנתי שאם את מכירה את הלב שלי כל כך טוב, לעולם לא תהפכי ביודעין לאדם שגורם לו לכאוב ככה.",
+      "createdAt": "2026-09-17T08:56:40.751Z",
+      "id": "id-1789635400780-74a642aa",
+      "intensity": 7,
+      "mood": "הצלחה וסיפוק",
+      "portalCode": "my-230961",
+      "recordedDate": "17.09.2026",
+      "recordedTime": "08:56",
+      "therapistId": null,
+      "title": "קרע אמון"
     }
   ],
   "appointments": [
@@ -1529,12 +1665,25 @@
   ],
   "formTemplates": [
     {
-      "id": "id-1789593944896-37392191",
+      "accentColor": "#0d9488",
+      "active": true,
+      "archived": false,
       "createdAt": "2026-09-16T21:25:44.899Z",
-      "therapistId": "therapist-1",
-      "name": "הסכמה מדעת לטיפול",
-      "title": "טופס הסכמה מדעת לטיפול רגשי",
+      "footerText": "החתימה בעיגול בתיבה למטה מהווה אישור מחייב של הטופס.",
+      "id": "id-1789593944896-37392191",
       "introText": "ברוכ/ה הבא/ה לתהליך הטיפולי במרחב טיפולי WiseCare.\n\nלפני תחילת הליווי הטיפולי, חשוב לנו שתכיר/י את מסגרת הטיפול, זכויותייך וגבולות הסודיות. נא לקרוא בעיון, לאשר את הסעיפים ולחתום בתיבת החתימה בתחתית המסמך.",
+      "name": "הסכמה מדעת לטיפול",
+      "requiredFields": [
+        {
+          "label": "קראתי והבנתי את תנאי הטיפול ואת גבולות הסודיות",
+          "type": "checkbox"
+        },
+        {
+          "label": "אני מסכים/ה לקבל טיפול רגשי ומאשר/ת את תנאי הביטול",
+          "type": "checkbox"
+        }
+      ],
+      "requiresSignature": true,
       "sections": [
         {
           "heading": "מהות הטיפול",
@@ -1553,24 +1702,144 @@
           "body": "הטיפול הינו התהליך התנדבותי וניתן להפסיקו בכל עת. מומלץ לקיים מפגש סיכום לסגירת התהליך באופן מסודר ובריא."
         }
       ],
+      "therapistId": "therapist-1",
+      "title": "טופס הסכמה מדעת לטיפול רגשי",
+      "sentCount": 2,
+      "updatedAt": "2026-09-16T21:48:27.324Z",
+      "signedCount": 1
+    },
+    {
+      "accentColor": "#0369a1",
+      "active": true,
+      "archived": false,
+      "createdAt": "2026-09-16T21:29:12.882Z",
+      "footerText": "הצהרה זו חסויה ונשמרת בתיק הטיפולי בהתאם לחוק זכויות החולה.",
+      "id": "id-1789594152882-ba16a2ed",
+      "introText": "לצורך התאמת הטיפול ולביטחונך, נא למלא ולאשר את הצהרת הבריאות הבאה. המידע חסוי ומשמש לטיפול בלבד.",
+      "name": "הצהרת בריאות",
       "requiredFields": [
         {
-          "label": "קראתי והבנתי את תנאי הטיפול ואת גבולות הסודיות",
+          "label": "אני מצהיר/ה כי אין לי מידע רפואי שעלול לסכן את בריאותי במהלך הטיפול",
           "type": "checkbox"
         },
         {
-          "label": "אני מסכים/ה לקבל טיפול רגשי ומאשר/ת את תנאי הביטול",
-          "type": "checkbox"
+          "label": "רשימת תרופות נוכחית (או \"אין\")",
+          "type": "text"
+        },
+        {
+          "label": "אבחנות או טיפולים רפואיים רלוונטיים (או \"אין\")",
+          "type": "text"
         }
       ],
-      "footerText": "החתימה בעיגול בתיבה למטה מהווה אישור מחייב של הטופס.",
       "requiresSignature": true,
-      "accentColor": "#0d9488",
-      "active": true,
-      "archived": false
+      "sections": [
+        {
+          "heading": "הנחיות מילוי",
+          "body": "יש לענות ביושר ובמלואה על כל הסעיפים. במידה וקיים מידע רפואי רלוונטי נוסף (טיפול תרופתי, אשפוזים, אבחנות), נא לציינו."
+        },
+        {
+          "heading": "חשיבות המידע",
+          "body": "מידע רפואי מסוים (תרופות פסיכיאטריות, מצבים רפואיים כרוניים, הריון וכדומה) עשוי להשפיע על התאמת הטיפול ועל בטיחותו. גילוי נאות מגן עליך."
+        }
+      ],
+      "therapistId": "therapist-1",
+      "title": "הצהרת בריאות וגילוי נאות",
+      "sentCount": 2,
+      "updatedAt": "2026-09-16T21:50:41.608Z"
     }
   ],
-  "formSignatures": [],
+  "formSignatures": [
+    {
+      "answers": {
+        "קראתי והבנתי את תנאי הטיפול ואת גבולות הסודיות": true,
+        "אני מסכים/ה לקבל טיפול רגשי ומאשר/ת את תנאי הביטול": true
+      },
+      "clientId": "id-1789593996975-a3066c21",
+      "createdAt": "2026-09-16T21:27:34.638Z",
+      "formTemplateId": "id-1789593944896-37392191",
+      "id": "id-1789594054638-5599bdc6",
+      "notificationStatus": "sent",
+      "portalUrl": "http://localhost:3000/portal/client-260305?tab=forms&form=id-1789594054638-5599bdc6",
+      "sentAt": "2026-09-16T21:27:34.638Z",
+      "signatureData": "data:image/png;base64,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",
+      "signedName": "עדי לוי",
+      "status": "signed",
+      "therapistId": "therapist-1",
+      "updatedAt": "2026-09-16T21:52:12.219Z",
+      "notificationError": null,
+      "notifiedAt": "2026-09-16T21:27:34.908Z",
+      "signedAt": "2026-09-16T21:52:12.219Z"
+    },
+    {
+      "answers": {
+        "אני מצהיר/ה כי אין לי מידע רפואי שעלול לסכן את בריאותי במהלך הטיפול": true,
+        "רשימת תרופות נוכחית (או \"אין\")": "אין",
+        "אבחנות או טיפולים רפואיים רלוונטיים (או \"אין\")": "אין"
+      },
+      "clientId": "id-1789593996975-a3066c21",
+      "createdAt": "2026-09-16T21:29:20.203Z",
+      "formTemplateId": "id-1789594152882-ba16a2ed",
+      "id": "id-1789594160203-55ee3bf3",
+      "notificationStatus": "sent",
+      "portalUrl": "http://localhost:3000/portal/client-260305?tab=forms&form=id-1789594160203-55ee3bf3",
+      "sentAt": "2026-09-16T21:29:20.203Z",
+      "signatureData": "data:image/png;base64,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",
+      "signedName": "עדי לוי",
+      "status": "signed",
+      "therapistId": "therapist-1",
+      "updatedAt": "2026-09-16T21:30:40.835Z",
+      "notificationError": null,
+      "notifiedAt": "2026-09-16T21:29:20.482Z",
+      "signedAt": "2026-09-16T21:30:40.835Z"
+    },
+    {
+      "answers": {
+        "קראתי והבנתי את תנאי הטיפול ואת גבולות הסודיות": true,
+        "אני מסכים/ה לקבל טיפול רגשי ומאשר/ת את תנאי הביטול": true
+      },
+      "clientId": "id-1789593996975-a3066c21",
+      "createdAt": "2026-09-16T21:47:49.833Z",
+      "formTemplateId": "id-1789593944896-37392191",
+      "id": "id-1789595269832-50985cbf",
+      "notificationStatus": "sent",
+      "portalUrl": "http://localhost:3000/portal/client-260305?tab=forms&form=id-1789595269832-50985cbf",
+      "sentAt": "2026-09-16T21:47:49.832Z",
+      "signatureData": "data:image/png;base64,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",
+      "signedName": "עדי לוי",
+      "status": "signed",
+      "therapistId": "therapist-1",
+      "updatedAt": "2026-09-16T21:48:27.640Z",
+      "viewToken": "sig_1789595269832_l2w1heu",
+      "notificationError": null,
+      "notifiedAt": "2026-09-16T21:47:50.252Z",
+      "signedAt": "2026-09-16T21:48:27.322Z",
+      "adminNotificationError": null,
+      "adminNotificationStatus": "sent",
+      "adminNotifiedAt": "2026-09-16T21:48:27.640Z"
+    },
+    {
+      "answers": {
+        "אני מצהיר/ה כי אין לי מידע רפואי שעלול לסכן את בריאותי במהלך הטיפול": true,
+        "רשימת תרופות נוכחית (או \"אין\")": "tthi",
+        "אבחנות או טיפולים רפואיים רלוונטיים (או \"אין\")": "thi"
+      },
+      "clientId": "id-1789593996975-a3066c21",
+      "createdAt": "2026-09-16T21:50:41.605Z",
+      "formTemplateId": "id-1789594152882-ba16a2ed",
+      "id": "id-1789595441604-a9abe481",
+      "notificationStatus": "sent",
+      "portalUrl": "http://localhost:3000/portal/client-260305?tab=forms&form=id-1789595441604-a9abe481",
+      "sentAt": "2026-09-16T21:50:41.604Z",
+      "signatureData": "data:image/png;base64,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",
+      "signedName": "עדי לוי",
+      "status": "signed",
+      "therapistId": "therapist-1",
+      "updatedAt": "2026-09-16T21:51:06.595Z",
+      "notificationError": null,
+      "notifiedAt": "2026-09-16T21:50:42.024Z",
+      "signedAt": "2026-09-16T21:51:06.594Z"
+    }
+  ],
   "settings": {
     "greenApiToken": "f64af6e10b874cc5b9844eb3c02c0bfe6af45468eee048eb8a",
     "greenApiInstanceId": "710722735138",
@@ -1588,7 +1857,15 @@
     "clinicFloor": "קומה 12, משרד 1204",
     "clinicArrivalInstructions": "חניה פנויה בחניון המגדל (שעה ראשונה חינם בהצגת שובר). קוד כניסה לקליניקה: 4545#.",
     "clinicDescription": "קליניקה מוסמכת לטיפול רגשי, CBT ממוקד, ליווי חרדות וצמיחה אישית באווירה מקצועית ומכילה.",
-    "themeId": "forest"
+    "themeId": "forest",
+    "zoomAccountId": "S3RROsKfT6u9KSq_MfPWeA",
+    "zoomClientId": "NO8jtzunQx2gvKef9m4dXg",
+    "zoomClientSecret": "fpoLDpLdj73k0TfM6do2msHS2CtgUzP8",
+    "zoomSdkKey": "HNtUQY3kRkS_33IwQ5Vd-A",
+    "zoomSdkSecret": "",
+    "zoomConnectedEmail": "",
+    "zoomOAuthClientId": "",
+    "zoomOAuthClientSecret": ""
   },
   "auditLogs": [
     {
@@ -2042,6 +2319,492 @@
       "id": "id-1789583605547-0ff8ea75",
       "targetId": "superadmin-1",
       "timestamp": "2026-09-16T18:33:25.547Z"
+    },
+    {
+      "action": "form_signed",
+      "actor": "client:id-1789593996975-a3066c21",
+      "actorRole": "client",
+      "createdAt": "2026-09-16T21:30:40.838Z",
+      "details": {
+        "formTemplateId": "id-1789594152882-ba16a2ed",
+        "formName": "הצהרת בריאות",
+        "therapistId": "therapist-1",
+        "signedName": "עדי לוי"
+      },
+      "id": "id-1789594240837-e10475b3",
+      "targetId": "id-1789594160203-55ee3bf3",
+      "targetType": "formSignatures",
+      "timestamp": "2026-09-16T21:30:40.837Z"
+    },
+    {
+      "action": "form_signed",
+      "actor": "client:id-1789593996975-a3066c21",
+      "actorRole": "client",
+      "createdAt": "2026-09-16T21:48:27.326Z",
+      "details": {
+        "formTemplateId": "id-1789593944896-37392191",
+        "formName": "הסכמה מדעת לטיפול",
+        "therapistId": "therapist-1",
+        "signedName": "עדי לוי"
+      },
+      "id": "id-1789595307326-7c81a32b",
+      "targetId": "id-1789595269832-50985cbf",
+      "targetType": "formSignatures",
+      "timestamp": "2026-09-16T21:48:27.326Z"
+    },
+    {
+      "action": "form_signed",
+      "actor": "client:id-1789593996975-a3066c21",
+      "actorRole": "client",
+      "createdAt": "2026-09-16T21:51:06.597Z",
+      "details": {
+        "formTemplateId": "id-1789594152882-ba16a2ed",
+        "formName": "הצהרת בריאות",
+        "therapistId": "therapist-1",
+        "signedName": "עדי לוי"
+      },
+      "id": "id-1789595466597-d614123f",
+      "targetId": "id-1789595441604-a9abe481",
+      "targetType": "formSignatures",
+      "timestamp": "2026-09-16T21:51:06.597Z"
+    },
+    {
+      "action": "form_signed",
+      "actor": "client:id-1789593996975-a3066c21",
+      "actorRole": "client",
+      "createdAt": "2026-09-16T21:52:12.221Z",
+      "details": {
+        "formTemplateId": "id-1789593944896-37392191",
+        "formName": "הסכמה מדעת לטיפול",
+        "therapistId": "therapist-1",
+        "signedName": "עדי לוי"
+      },
+      "id": "id-1789595532221-ab02c48c",
+      "targetId": "id-1789594054638-5599bdc6",
+      "targetType": "formSignatures",
+      "timestamp": "2026-09-16T21:52:12.221Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T21:54:11.863Z",
+      "id": "id-1789595651863-1edd33e6",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T21:54:11.863Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-16T21:55:01.577Z",
+      "id": "id-1789595701577-af7596ba",
+      "ip": "::1",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T21:55:01.577Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:07:48.757Z",
+      "id": "id-1789596468756-e70f9178",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:07:48.756Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:12:29.197Z",
+      "id": "id-1789596749197-ac71ce0d",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:12:29.197Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:13:44.325Z",
+      "id": "id-1789596824325-e4935dc6",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:13:44.325Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:14:20.719Z",
+      "id": "id-1789596860719-24358a1f",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:14:20.719Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:22.767Z",
+      "id": "id-1789596922767-f6230e9c",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:15:22.767Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:30.641Z",
+      "id": "id-1789596930641-bb794de3",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:15:30.641Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:43.140Z",
+      "id": "id-1789596943139-bb9a551b",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:15:43.139Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:47.626Z",
+      "id": "id-1789596947626-2e859401",
+      "targetId": "id-1789280216249-ghmjw2",
+      "timestamp": "2026-09-16T22:15:47.626Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:54.236Z",
+      "id": "id-1789596954236-d42c399e",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:15:54.236Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:15:55.815Z",
+      "id": "id-1789596955815-70e38549",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:15:55.815Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:17:04.466Z",
+      "id": "id-1789597024465-9afd34e1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:17:04.465Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:18:01.247Z",
+      "id": "id-1789597081247-1b024da6",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:18:01.247Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-16T22:19:09.583Z",
+      "id": "id-1789597149582-e4c4d5bf",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:19:09.582Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:19:43.825Z",
+      "id": "id-1789597183804-f003c0fc",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:19:43.804Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:19:45.567Z",
+      "id": "id-1789597185567-9ce332a3",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:19:45.567Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:29:45.426Z",
+      "id": "id-1789597785426-9e1647e7",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:29:45.426Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:29:48.176Z",
+      "id": "id-1789597788175-eb6e854b",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-16T22:29:48.175Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:30:09.707Z",
+      "id": "id-1789597809707-dc09ea47",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:30:09.707Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T22:31:44.562Z",
+      "id": "id-1789597904562-29008eac",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T22:31:44.562Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:22:41.639Z",
+      "id": "id-1789600961609-c8e53f5b",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T23:22:41.609Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:23:00.409Z",
+      "id": "id-1789600980409-2482398f",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T23:23:00.409Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:23:22.479Z",
+      "id": "id-1789601002479-013bfac6",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T23:23:22.479Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:23:40.701Z",
+      "id": "id-1789601020700-80d0a7c0",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T23:23:40.700Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:23:59.212Z",
+      "id": "id-1789601039211-4d10dfb0",
+      "ip": "::1",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-16T23:23:59.211Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-16T23:23:59.299Z",
+      "details": {
+        "clientName": "��� �����",
+        "phone": "0511111122"
+      },
+      "id": "id-1789601039299-dfcbcd3c",
+      "targetId": "id-1789600962379-9d057b8e",
+      "targetType": "client",
+      "timestamp": "2026-09-16T23:23:59.299Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-17T10:24:12.521Z",
+      "id": "id-1789640652521-cf00831a",
+      "ip": "46.210.199.237",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-17T10:24:12.521Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-17T10:24:19.426Z",
+      "id": "id-1789640659426-69f14d01",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-17T10:24:19.426Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-17T13:05:47.409Z",
+      "id": "id-1789650347409-d4464b55",
+      "ip": "46.210.162.168",
+      "timestamp": "2026-09-17T13:05:47.409Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-17T13:05:48.517Z",
+      "id": "id-1789650348517-0aab18f1",
+      "ip": "46.210.162.168",
+      "timestamp": "2026-09-17T13:05:48.516Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-17T13:05:57.024Z",
+      "id": "id-1789650357024-c19ca3af",
+      "ip": "46.210.162.168",
+      "timestamp": "2026-09-17T13:05:57.024Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-17T13:06:01.604Z",
+      "id": "id-1789650361604-92cbf16d",
+      "ip": "46.210.162.168",
+      "timestamp": "2026-09-17T13:06:01.604Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-17T13:06:06.849Z",
+      "id": "id-1789650366849-a19e66b7",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-17T13:06:06.849Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-17T13:06:29.970Z",
+      "id": "id-1789650389970-a6b4aae9",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-17T13:06:29.970Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-17T13:06:38.433Z",
+      "id": "id-1789650398433-766759dd",
+      "ip": "46.210.162.168",
+      "timestamp": "2026-09-17T13:06:38.432Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore77",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-18T04:51:28.328Z",
+      "id": "id-1789707088328-a5dd51f3",
+      "targetId": "id-1789706962499-b9a9271e",
+      "timestamp": "2026-09-18T04:51:28.328Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-18T04:51:33.805Z",
+      "id": "id-1789707093805-03aee397",
+      "ip": "46.117.26.28",
+      "timestamp": "2026-09-18T04:51:33.805Z"
+    },
+    {
+      "action": "login_failed",
+      "actor": "0501234568",
+      "actorRole": "unknown",
+      "createdAt": "2026-09-18T04:51:34.862Z",
+      "id": "id-1789707094862-e99b1dd5",
+      "ip": "46.117.26.28",
+      "timestamp": "2026-09-18T04:51:34.862Z"
+    },
+    {
+      "action": "logout_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-18T05:26:03.769Z",
+      "id": "id-1789709163767-029e4b61",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-18T05:26:03.767Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore77",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-18T05:26:31.059Z",
+      "id": "id-1789709191059-61f7a4ee",
+      "ip": "::1",
+      "targetId": "id-1789706962499-b9a9271e",
+      "timestamp": "2026-09-18T05:26:31.059Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "naor_bz",
+      "actorRole": "client",
+      "createdAt": "2026-09-18T05:45:22.637Z",
+      "id": "id-1789710322636-50384842",
+      "ip": "::1",
+      "targetId": "id-1789393569880-01e2813c",
+      "timestamp": "2026-09-18T05:45:22.636Z"
+    },
+    {
+      "id": "id-1789710331019-07bc9d49",
+      "createdAt": "2026-09-18T05:45:31.020Z",
+      "actor": "naor_bz",
+      "actorRole": "client",
+      "action": "login_success",
+      "targetId": "id-1789393569880-01e2813c",
+      "ip": "::1",
+      "timestamp": "2026-09-18T05:45:31.019Z"
+    },
+    {
+      "id": "id-1789710334642-3a6e3118",
+      "createdAt": "2026-09-18T05:45:34.643Z",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "action": "login_success",
+      "targetId": "therapist-1",
+      "ip": "::1",
+      "timestamp": "2026-09-18T05:45:34.642Z"
     }
   ]
 }

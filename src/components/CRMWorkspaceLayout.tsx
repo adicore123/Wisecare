@@ -94,6 +94,7 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
     if (pathname.includes('/clients')) return 'clients';
     if (pathname.includes('/content')) return 'content';
     if (pathname.includes('/forms')) return 'forms';
+    if (pathname.includes('/zoom')) return 'zoom';
     if (pathname.includes('/appointments')) return 'appointments';
     if (pathname.includes('/settings')) return 'settings';
     return 'clients';

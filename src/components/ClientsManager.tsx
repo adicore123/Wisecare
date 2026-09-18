@@ -10,7 +10,9 @@ import {
   CheckCircle2, 
   Clock, 
   Users, 
-  Phone
+  Phone,
+  Building2,
+  Globe
 } from 'lucide-react';
 import ClientModal from './ClientModal';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -25,6 +27,7 @@ export default function ClientsManager() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
+  const [portalFilter, setPortalFilter] = useState<'all' | 'portal' | 'clinic'>('all');
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [clientTasks, setClientTasks] = useState<any[]>([]);
@@ -166,7 +169,12 @@ export default function ClientsManager() {
     const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || 
                           (c.phone && c.phone.includes(searchTerm));
     const matchesGender = genderFilter === 'all' || c.gender === genderFilter;
-    return matchesSearch && matchesGender;
+    const matchesPortal = portalFilter === 'all' 
+      ? true 
+      : portalFilter === 'portal' 
+        ? c.portalEnabled !== false 
+        : c.portalEnabled === false;
+    return matchesSearch && matchesGender && matchesPortal;
   });
 
   // KPI Statistics
@@ -256,6 +264,21 @@ export default function ClientsManager() {
           </div>
 
           <div className="toolbar-filter">
+            <label htmlFor="portal-filter">סוג סביבה:</label>
+            <select 
+              id="portal-filter"
+              className="form-control"
+              style={{ width: '145px', padding: '6px 10px', fontSize: '0.88rem' }}
+              value={portalFilter}
+              onChange={e => setPortalFilter(e.target.value as any)}
+            >
+              <option value="all">כל הלקוחות</option>
+              <option value="portal">🌐 עם מרחב אישי</option>
+              <option value="clinic">🏢 קליניקה בלבד</option>
+            </select>
+          </div>
+
+          <div className="toolbar-filter">
             <label htmlFor="gender-filter">סינון לפי מין:</label>
             <select 
               id="gender-filter"
@@ -327,6 +350,11 @@ export default function ClientsManager() {
                                 🌱 עצמאי (/join)
                               </span>
                             )}
+                            {client.portalEnabled === false && (
+                              <span style={{ fontSize: '0.72rem', background: '#f1f5f9', color: '#475569', padding: '1px 7px', borderRadius: '999px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
+                                🏢 קליניקה
+                              </span>
+                            )}
                           </div>
                           {client.notes && (
                             <div className="client-note-preview">
@@ -359,24 +387,47 @@ export default function ClientsManager() {
                     </td>
 
                     <td>
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          window.open(`/portal/${client.portalCode}`, '_blank');
-                        }}
-                        className="btn btn-secondary"
-                        style={{ padding: '4px 10px', fontSize: '0.8rem' }}
-                        title="צפה במרחב הלקוח כפי שהוא רואה אותו מהבית (חלון חדש)"
-                      >
-                        <ExternalLink size={13} />
-                        <span>צפה בפורטל</span>
-                      </button>
+                      {client.portalEnabled !== false ? (
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            window.open(`/portal/${client.portalCode}`, '_blank');
+                          }}
+                          className="btn btn-secondary"
+                          style={{ padding: '4px 10px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                          title="צפה במרחב הלקוח כפי שהוא רואה אותו מהבית (חלון חדש)"
+                        >
+                          <ExternalLink size={13} />
+                          <span>צפה בפורטל</span>
+                        </button>
+                      ) : (
+                        <span 
+                          style={{
+                            fontSize: '0.78rem',
+                            color: '#64748b',
+                            background: '#f8fafc',
+                            padding: '4px 9px',
+                            borderRadius: '6px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            border: '1px solid #e2e8f0',
+                            fontWeight: 600
+                          }}
+                          title="לקוח קליניקה בלבד — ניתן להפעיל פורטל בכל עת מכרטיס הלקוח"
+                        >
+                          <Building2 size={13} color="#64748b" />
+                          <span>קליניקה בלבד</span>
+                        </span>
+                      )}
                     </td>
 
                     <td>
-                      {client.whatsappStatus === 'sent' ? (
+                      {client.portalEnabled === false ? (
+                        <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>—</span>
+                      ) : client.whatsappStatus === 'sent' ? (
                         <span className="badge badge-success">
                           <CheckCircle2 size={12} /> נשלח בהצלחה
                         </span>
@@ -389,25 +440,27 @@ export default function ClientsManager() {
 
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
-                        <button
-                          type="button"
-                          className="btn btn-secondary"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '0.8rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: '#166534',
-                            background: '#f0fdf4',
-                            borderColor: '#bbf7d0'
-                          }}
-                          onClick={(e) => handleQuickWhatsApp(client.id, e)}
-                          title="שלח הזמנה או תזכורת למרחב הטיפולי ב-WhatsApp"
-                        >
-                          <WhatsAppIcon size={14} />
-                          <span>שלח WhatsApp</span>
-                        </button>
+                        {client.portalEnabled !== false && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '0.8rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              color: '#166534',
+                              background: '#f0fdf4',
+                              borderColor: '#bbf7d0'
+                            }}
+                            onClick={(e) => handleQuickWhatsApp(client.id, e)}
+                            title="שלח הזמנה או תזכורת למרחב הטיפולי ב-WhatsApp"
+                          >
+                            <WhatsAppIcon size={14} />
+                            <span>שלח WhatsApp</span>
+                          </button>
+                        )}
 
                         <button 
                           type="button"

@@ -13,10 +13,15 @@ import {
   HeartHandshake, 
   KeyRound,
   Stethoscope,
-  ChevronLeft
+  ChevronLeft,
+  X,
+  Phone,
+  CheckCircle2,
+  Loader2
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
+import WhatsAppIcon from './WhatsAppIcon';
 
 interface TherapistLoginFormProps {
   loginCode?: string;
@@ -37,6 +42,19 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string>('');
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState<boolean>(false);
+
+  // Forgot Password Modal State
+  const [isForgotOpen, setIsForgotOpen] = useState<boolean>(false);
+  const [forgotStep, setForgotStep] = useState<'request' | 'verify'>('request');
+  const [forgotIdentifier, setForgotIdentifier] = useState<string>('');
+  const [forgotCode, setForgotCode] = useState<string>('');
+  const [forgotNewPassword, setForgotNewPassword] = useState<string>('');
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState<string>('');
+  const [showForgotNewPassword, setShowForgotNewPassword] = useState<boolean>(false);
+  const [forgotMaskedPhone, setForgotMaskedPhone] = useState<string>('');
+  const [forgotLoading, setForgotLoading] = useState<boolean>(false);
+  const [forgotError, setForgotError] = useState<string>('');
+  const [forgotSuccess, setForgotSuccess] = useState<string>('');
 
   useEffect(() => {
     if (loginCode) {
@@ -79,7 +97,22 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
       } else {
         response = await api.login(username.trim(), password);
       }
-      
+
+      // 1. Role is Patient / Client (Unified Login routing)
+      if (response && response.role === 'client') {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('wisecare_portal_token', response.token);
+          localStorage.setItem('wisecare_last_portal', response.portalCode);
+          localStorage.setItem(`wisecare_portal_auth_${response.portalCode}`, 'true');
+          if (rememberMe) {
+            localStorage.setItem(`wisecare_saved_user_${response.portalCode}`, username.trim());
+          }
+        }
+        router.push(response.redirectUrl || `/portal/${encodeURIComponent(response.portalCode)}`);
+        return;
+      }
+
+      // 2. Role is Therapist / Staff
       if (response && response.user) {
         if (response.user.role === 'superadmin') {
           setAuthError('גישת מנהל מערכת ראשי (SuperAdmin) מבוצעת אך ורק דרך הכתובת הייעודית המאובטחת: /superadmin');
@@ -108,13 +141,78 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
               return;
             } catch {}
           }
-          router.push(`/crm/${code}/clients`);
+          router.push(response.redirectUrl || `/crm/${code}/clients`);
         }
+        return;
       }
     } catch (err: any) {
       setAuthError(err.message || 'שם משתמש או סיסמה שגויים');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  // Forgot Password Handlers
+  const handleForgotRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotIdentifier.trim()) {
+      setForgotError('נא להזין שם משתמש, אימייל או מספר טלפון');
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError('');
+    try {
+      const res = await api.requestSelfCarePasswordReset({
+        identifier: forgotIdentifier.trim()
+      });
+      setForgotMaskedPhone(res.maskedPhone || '');
+      setForgotStep('verify');
+      setForgotSuccess(res.whatsappSent ? 'קוד אימות בן 6 ספרות נשלח בהצלחה ל-WhatsApp שלך 📲' : 'קוד אימות הופק במערכת');
+    } catch (err: any) {
+      setForgotError(err.message || 'לא נמצא חשבון תואם לפרטים שהוזנו');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleForgotReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotCode.trim() || forgotCode.trim().length !== 6) {
+      setForgotError('נא להזין קוד אימות בן 6 ספרות');
+      return;
+    }
+    if (!forgotNewPassword.trim() || forgotNewPassword.trim().length < 4) {
+      setForgotError('הסיסמה החדשה חייבת להכיל לפחות 4 תווים');
+      return;
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('אימות הסיסמה אינו תואם לסיסמה החדשה');
+      return;
+    }
+    setForgotLoading(true);
+    setForgotError('');
+    try {
+      const res = await api.resetSelfCarePassword({
+        identifier: forgotIdentifier.trim(),
+        code: forgotCode.trim(),
+        newPassword: forgotNewPassword.trim()
+      });
+      if (res?.token) {
+        localStorage.setItem('wisecare_portal_token', res.token);
+      }
+      if (res?.portalCode) {
+        localStorage.setItem('wisecare_last_portal', res.portalCode);
+        localStorage.setItem(`wisecare_portal_auth_${res.portalCode}`, 'true');
+        window.location.replace(`/portal/${encodeURIComponent(res.portalCode)}`);
+        return;
+      }
+      setIsForgotOpen(false);
+      setAuthError('');
+      alert('הסיסמה אופסה בהצלחה! כעת ניתן להתחבר עם הסיסמה החדשה.');
+    } catch (err: any) {
+      setForgotError(err.message || 'קוד אימות שגוי או שפג תוקפו');
+    } finally {
+      setForgotLoading(false);
     }
   };
 
@@ -214,17 +312,17 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
         <div className="therapist-login-header">
           <div className="therapist-login-badge">
             <ShieldCheck size={16} />
-            <span>{loginCode ? 'מרחב כניסה אישי ומאובטח למטפל/ת' : 'מרחב כניסה מורשה למטפלים ולמנהלי מערכת'}</span>
+            <span>{loginCode ? 'מרחב כניסה אישי ומאובטח למטפל/ת' : 'מרחב כניסה מאובטח למטפלים ולמטופלים'}</span>
           </div>
 
           <div className="therapist-login-avatar">
             <div className="therapist-login-avatar-inner">
-              <Stethoscope size={38} />
+              {loginCode ? <Stethoscope size={38} /> : <HeartHandshake size={38} />}
             </div>
           </div>
 
           <h1 className="therapist-login-title">
-            {loginCode ? (workspace?.clinicName || 'קליניקת WiseCare') : 'WiseCare Clinical CRM'}
+            {loginCode ? (workspace?.clinicName || 'קליניקת WiseCare') : 'WiseCare'}
           </h1>
 
           <div className="therapist-login-subtitle">
@@ -241,7 +339,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                 )}
               </>
             ) : (
-              <span>הזן/הזיני שם משתמש וסיסמה לכניסה למרחב המקצועי</span>
+              <span>כניסה למערכת עם שם משתמש, אימייל או מספר טלפון</span>
             )}
           </div>
         </div>
@@ -277,7 +375,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
             {/* Username Input */}
             <div className="therapist-field-group">
               <label className="therapist-field-label">
-                שם משתמש
+                שם משתמש / אימייל / טלפון
               </label>
               <div className="therapist-input-wrapper">
                 <span className="therapist-input-icon">
@@ -287,19 +385,46 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="הזן שם משתמש"
+                  placeholder="הזן/י שם משתמש, אימייל או טלפון"
                   required
                   className="therapist-input"
                   autoComplete="username"
+                  dir="ltr"
+                  style={{ textAlign: 'right' }}
                 />
               </div>
             </div>
 
             {/* Password Input */}
             <div className="therapist-field-group">
-              <label className="therapist-field-label">
-                סיסמה אישית
-              </label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label className="therapist-field-label" style={{ margin: 0 }}>
+                  סיסמה אישית
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsForgotOpen(true);
+                    setForgotStep('request');
+                    setForgotError('');
+                    setForgotSuccess('');
+                    if (username.trim()) setForgotIdentifier(username.trim());
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#2dd4bf',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px'
+                  }}
+                >
+                  שכחת סיסמה?
+                </button>
+              </div>
+
               <div className="therapist-input-wrapper">
                 <span className="therapist-input-icon">
                   <Lock size={18} />
@@ -308,11 +433,12 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="הזן סיסמה"
+                  placeholder="הזן/י סיסמה"
                   required
                   className="therapist-input"
                   autoComplete="current-password"
-                  style={{ direction: showPassword ? 'rtl' : 'ltr', textAlign: showPassword ? 'right' : 'left' }}
+                  dir="ltr"
+                  style={{ textAlign: 'right' }}
                 />
                 <button
                   type="button"
@@ -356,7 +482,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                 </>
               ) : (
                 <>
-                  <span>{loginCode ? 'התחבר למרחב הטיפולי' : 'התחברות למערכת'}</span>
+                  <span>{loginCode ? 'התחבר למרחב הטיפולי' : 'כניסה למערכת 🔐'}</span>
                   <ChevronLeft size={18} />
                 </>
               )}
@@ -369,14 +495,14 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
               <ShieldCheck size={14} color="#10b981" />
               <span>חיבור מוצפן TLS 256-bit</span>
             </div>
-            <span>WiseCare Clinical CRM</span>
+            <span>WiseCare Clinical & Patient Portal</span>
           </div>
         </div>
 
-        {/* Privacy Policy & Support Footer */}
+        {/* Support & Privacy Policy Footer */}
         <div style={{ marginTop: '20px', textAlign: 'center' }}>
           <p style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '8px' }}>
-            נתקלת בבעיית התחברות? פנה/י למנהל הקליניקה.
+            נתקלת בבעיית התחברות? פנה/י למטפל/ת שלך או לקליניקה.
           </p>
           <button
             type="button"
@@ -399,6 +525,157 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
           </button>
         </div>
 
+        {/* Forgot Password Modal */}
+        {isForgotOpen && (
+          <div className="modal-overlay" style={{ zIndex: 1200 }} onClick={() => setIsForgotOpen(false)}>
+            <div className="modal-card" style={{ maxWidth: '440px', background: '#0f172a', border: '1px solid rgba(45, 212, 191, 0.3)', color: '#ffffff' }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(45, 212, 191, 0.15)', color: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <KeyRound size={20} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#ffffff' }}>שחזור ואיפוס סיסמה</h3>
+                    <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#94a3b8' }}>
+                      אימות מהיר ושליחת קוד ל-WhatsApp
+                    </p>
+                  </div>
+                </div>
+                <button className="btn-icon" type="button" onClick={() => setIsForgotOpen(false)} style={{ color: '#94a3b8' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              {forgotStep === 'request' ? (
+                <form onSubmit={handleForgotRequest}>
+                  <div className="modal-body" style={{ padding: '20px' }}>
+                    {forgotError && (
+                      <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', color: '#fca5a5', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <AlertCircle size={16} />
+                        <span>{forgotError}</span>
+                      </div>
+                    )}
+
+                    <p style={{ fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.5, marginBottom: '16px' }}>
+                      הזן/י את שם המשתמש, כתובת האימייל או מספר הטלפון המשויך לחשבונך. נשלח אליך קוד אימות חד-פעמי ב-WhatsApp.
+                    </p>
+
+                    <div className="form-group" style={{ marginBottom: '18px' }}>
+                      <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', display: 'block' }}>
+                        שם משתמש / אימייל / טלפון
+                      </label>
+                      <input
+                        type="text"
+                        dir="ltr"
+                        required
+                        className="form-control"
+                        placeholder="למשל: 050-1234567"
+                        style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#ffffff', padding: '12px 14px', borderRadius: '10px' }}
+                        value={forgotIdentifier}
+                        onChange={e => setForgotIdentifier(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="modal-footer" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', padding: '12px 20px', display: 'flex', justifyContent: 'space-between' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setIsForgotOpen(false)} style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', border: 'none' }}>
+                      ביטול
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {forgotLoading ? <Loader2 size={16} className="spin" /> : <WhatsAppIcon size={16} color="#ffffff" />}
+                      <span>{forgotLoading ? 'שולח קוד...' : 'שלח קוד אימות ב-WhatsApp 📲'}</span>
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <form onSubmit={handleForgotReset}>
+                  <div className="modal-body" style={{ padding: '20px' }}>
+                    {forgotError && (
+                      <div style={{ background: 'rgba(239, 68, 68, 0.2)', border: '1px solid rgba(239, 68, 68, 0.4)', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', color: '#fca5a5', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <AlertCircle size={16} />
+                        <span>{forgotError}</span>
+                      </div>
+                    )}
+                    {forgotSuccess && (
+                      <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', color: '#6ee7b7', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CheckCircle2 size={16} />
+                        <span>{forgotSuccess}</span>
+                      </div>
+                    )}
+
+                    <div className="form-group" style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', display: 'block' }}>
+                        קוד אימות בן 6 ספרות
+                      </label>
+                      <input
+                        type="text"
+                        dir="ltr"
+                        required
+                        maxLength={6}
+                        className="form-control"
+                        placeholder="123456"
+                        style={{ textAlign: 'center', fontSize: '1.3rem', letterSpacing: '6px', fontWeight: 700, background: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#ffffff', padding: '10px', borderRadius: '10px' }}
+                        value={forgotCode}
+                        onChange={e => setForgotCode(e.target.value.replace(/\D/g, ''))}
+                      />
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '14px' }}>
+                      <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', display: 'block' }}>
+                        סיסמה חדשה
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type={showForgotNewPassword ? 'text' : 'password'}
+                          dir="ltr"
+                          required
+                          className="form-control"
+                          placeholder="לפחות 4 תווים"
+                          style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#ffffff', padding: '10px 14px', paddingLeft: '40px', borderRadius: '10px' }}
+                          value={forgotNewPassword}
+                          onChange={e => setForgotNewPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowForgotNewPassword(!showForgotNewPassword)}
+                          style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                        >
+                          {showForgotNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="form-group" style={{ marginBottom: '16px' }}>
+                      <label style={{ fontSize: '0.86rem', fontWeight: 700, color: '#cbd5e1', marginBottom: '6px', display: 'block' }}>
+                        אימות סיסמה חדשה
+                      </label>
+                      <input
+                        type={showForgotNewPassword ? 'text' : 'password'}
+                        dir="ltr"
+                        required
+                        className="form-control"
+                        placeholder="הקלד/י שוב את הסיסמה"
+                        style={{ textAlign: 'right', background: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.15)', color: '#ffffff', padding: '10px 14px', borderRadius: '10px' }}
+                        value={forgotConfirmPassword}
+                        onChange={e => setForgotConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="modal-footer" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', padding: '12px 20px', display: 'flex', justifyContent: 'space-between' }}>
+                    <button type="button" className="btn btn-secondary" onClick={() => setForgotStep('request')} style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', border: 'none' }}>
+                      חזרה
+                    </button>
+                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)' }}>
+                      {forgotLoading ? 'מאפס ונכנס...' : 'אפס סיסמה והיכנס למרחב ✨'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Privacy Policy Modal */}
         <PrivacyPolicyModal 
           isOpen={isPrivacyModalOpen}
@@ -408,3 +685,4 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
     </div>
   );
 }
+
