@@ -5,7 +5,8 @@ import { sendScheduledCallCancellation } from '@/services/scheduledCallScheduler
 
 /**
  * DELETE /api/livekit/schedule/{id}
- * Cancels a scheduled call and notifies the client on WhatsApp.
+ * - status 'scheduled' → cancel (WhatsApp notice to the client) and keep the record
+ * - any other status (cancelled / started / missed) → purge the record entirely
  */
 export async function DELETE(
   request: NextRequest,
@@ -26,29 +27,42 @@ export async function DELETE(
     if (schedule.therapistId !== auth.userId) {
       return NextResponse.json({ error: 'אין לך הרשאה לבטל שיחה זו' }, { status: 403 });
     }
-    if (schedule.status !== 'scheduled') {
-      return NextResponse.json({ error: 'ניתן לבטל רק שיחה מתוכננת שטרם החלה' }, { status: 400 });
+
+    if (schedule.status === 'scheduled') {
+      db.collection('scheduledCalls').updateOne({ id: schedule.id }, {
+        status: 'cancelled',
+        cancelledAt: new Date().toISOString()
+      });
+
+      let whatsappSent = false;
+      try {
+        whatsappSent = await sendScheduledCallCancellation(schedule);
+      } catch (waErr: any) {
+        console.error('[ScheduledCalls] cancellation WhatsApp failed:', waErr.message);
+      }
+
+      await db.flush();
+      return NextResponse.json({
+        success: true,
+        whatsappSent,
+        message: whatsappSent ? 'השיחה בוטלה והודעה נשלחה למטופל' : 'השיחה בוטלה'
+      });
     }
 
-    db.collection('scheduledCalls').updateOne({ id: schedule.id }, {
-      status: 'cancelled',
-      cancelledAt: new Date().toISOString()
-    });
-
-    let whatsappSent = false;
-    try {
-      whatsappSent = await sendScheduledCallCancellation(schedule);
-    } catch (waErr: any) {
-      console.error('[ScheduledCalls] cancellation WhatsApp failed:', waErr.message);
-    }
-
+    // Non-scheduled records (cancelled / started / missed) — remove outright
+    db.collection('scheduledCalls').deleteById(schedule.id);
     await db.flush();
 
-    return NextResponse.json({
-      success: true,
-      whatsappSent,
-      message: whatsappSent ? 'השיחה בוטלה והודעה נשלחה למטופל' : 'השיחה בוטלה'
-    });
+    db.logAudit({
+      actor: auth.username,
+      actorRole: auth.role,
+      action: 'delete_scheduled_call_record',
+      targetId: schedule.id,
+      targetType: 'scheduledCall',
+      details: { clientName: schedule.clientName, date: schedule.date, time: schedule.time, status: schedule.status }
+    } as any);
+
+    return NextResponse.json({ success: true, message: 'הרישום נמחק' });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בביטול השיחה';
     return NextResponse.json({ error: message }, { status: 500 });

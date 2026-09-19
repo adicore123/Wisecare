@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Video, VideoOff, PhoneCall, Loader2, CheckCircle2, AlertCircle, Copy,
-  KeyRound, History, Users, X, Clock, CalendarClock, Search, CalendarPlus
+  KeyRound, History, Users, X, Clock, CalendarClock, Search, CalendarPlus, Trash2
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -249,6 +249,34 @@ export default function LiveKitManager() {
       if (!res.ok) throw new Error(data.error || 'שגיאה בביטול');
       showToast(data.message || 'השיחה בוטלה', 'success');
       loadSchedules();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  /** Purges a non-scheduled schedule record (cancelled / started / missed) */
+  const deleteScheduleRecord = async (id: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('למחוק את הרישום מהטבלה?')) return;
+    try {
+      const res = await fetch(`/api/livekit/schedule/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'שגיאה במחיקה');
+      showToast(data.message || 'הרישום נמחק', 'success');
+      loadSchedules();
+    } catch (err: any) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  /** Removes an ended call record from history */
+  const deleteCallRecord = async (id: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('למחוק את רישום השיחה מההיסטוריה?')) return;
+    try {
+      const res = await fetch(`/api/livekit/calls/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'שגיאה במחיקה');
+      showToast(data.message || 'רישום השיחה נמחק', 'success');
+      loadCalls();
     } catch (err: any) {
       showToast(err.message, 'error');
     }
@@ -773,7 +801,7 @@ export default function LiveKitManager() {
                           <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{s.notes || '—'}</span>
                         </td>
                         <td data-label="פעולות">
-                          {s.status === 'scheduled' && (
+                          {s.status === 'scheduled' ? (
                             <button
                               type="button"
                               className="btn btn-secondary"
@@ -781,6 +809,16 @@ export default function LiveKitManager() {
                               style={{ padding: '6px 14px', fontSize: '0.8rem', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                             >
                               <X size={13} /> ביטול
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              title="מחיקת הרישום"
+                              onClick={() => deleteScheduleRecord(s.id)}
+                              style={{ padding: '6px 12px', fontSize: '0.8rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              <Trash2 size={13} /> מחיקה
                             </button>
                           )}
                         </td>
@@ -860,6 +898,7 @@ export default function LiveKitManager() {
                     <th>משך</th>
                     <th>נפתחה ע"י</th>
                     <th>סטטוס</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -891,6 +930,19 @@ export default function LiveKitManager() {
                             <span className={`lk-dot${active ? ' lk-dot-pulse' : ''}`} style={{ background: active ? '#22c55e' : '#94a3b8' }} />
                             {active ? 'פעילה עכשיו' : 'הסתיימה'}
                           </span>
+                        </td>
+                        <td data-label="פעולות">
+                          {!active && (
+                            <button
+                              type="button"
+                              className="btn btn-secondary"
+                              title="מחיקת רישום השיחה"
+                              onClick={() => deleteCallRecord(c.id)}
+                              style={{ padding: '6px 12px', fontSize: '0.8rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                            >
+                              <Trash2 size={13} /> מחיקה
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
