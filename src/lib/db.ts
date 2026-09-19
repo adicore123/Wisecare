@@ -101,7 +101,8 @@ const ENTITY_COLLECTIONS = [
   'contentAssignments',
   'formTemplates',
   'formSignatures',
-  'auditLogs'
+  'auditLogs',
+  'videoCalls'
 ];
 
 export class Database {

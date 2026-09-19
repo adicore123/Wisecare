@@ -405,7 +405,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
 
                 <div style={{ fontSize: '0.88rem', color: '#334155', background: '#f8fafc', padding: '8px 12px', borderRadius: '6px' }}>
                   <div><strong>מועד מבוקש:</strong> {getHebrewDateDisplay(req.date)} בשעה {req.time}</div>
-                  <div><strong>סוג:</strong> {req.typeName || (req.type === 'zoom' ? 'וידאו (Zoom)' : 'בקליניקה')}</div>
+                  <div><strong>סוג:</strong> {req.typeName || (req.type === 'zoom' || req.type === 'video' ? 'וידאו' : 'בקליניקה')}</div>
                   {req.notes && <div style={{ marginTop: '4px', fontSize: '0.82rem', color: '#64748b' }}>"{req.notes}"</div>}
                 </div>
 
@@ -619,9 +619,9 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                       {/* Type & Location */}
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
-                          {apt.type === 'zoom' ? (
+                          {(apt.type === 'zoom' || apt.type === 'video') ? (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb', fontWeight: 600 }}>
-                              <Video size={14} /> וידאו (Zoom)
+                              <Video size={14} /> וידאו
                             </span>
                           ) : apt.type === 'phone' ? (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0891b2', fontWeight: 600 }}>
@@ -814,8 +814,8 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                       value={formData.type}
                       onChange={e => {
                         const t = e.target.value;
-                        const defaultLoc = t === 'zoom' 
-                          ? 'קישור Zoom יישלח סמוך למועד' 
+                        const defaultLoc = (t === 'zoom' || t === 'video')
+                          ? 'קישור יישלח סמוך למועד'
                           : t === 'phone' 
                             ? 'שיחה טלפונית' 
                             : (clinicSettings?.clinicName || 'רחוב רוטשילד 45, תל אביב');
@@ -823,7 +823,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                       }}
                     >
                       <option value="in_person">פגישה פרונטלית בקליניקה</option>
-                      <option value="zoom">פגישת וידאו (Zoom)</option>
+                      <option value="video">פגישת וידאו מרחוק</option>
                       <option value="phone">שיחה טלפונית</option>
                     </select>
                   </div>
@@ -835,7 +835,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                   <input
                     type="text"
                     className="form-control"
-                    placeholder="כתובת קליניקה / קישור ל-Zoom / חדר טיפול"
+                    placeholder="כתובת קליניקה / פרטי הצטרפות לשיחת וידאו / חדר טיפול"
                     value={formData.location}
                     onChange={e => setFormData({ ...formData, location: e.target.value })}
                   />

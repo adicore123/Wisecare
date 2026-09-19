@@ -38,6 +38,7 @@
   "exclude": [
     "node_modules",
     "client",
-    "server"
+    "server",
+    "src/_parked-zoom"
   ]
 }

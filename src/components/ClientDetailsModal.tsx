@@ -1158,14 +1158,14 @@ export default function ClientDetailsModal({
                         onChange={e => setAppointmentForm({ ...appointmentForm, type: e.target.value })}
                       >
                         <option value="in_person">פגישה פרונטלית בקליניקה</option>
-                        <option value="zoom">פגישת וידאו (Zoom)</option>
+                        <option value="video">פגישת וידאו מרחוק</option>
                         <option value="phone">שיחה טלפונית</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="form-group">
-                    <label>מיקום / קישור ל-Zoom</label>
+                    <label>מיקום / פרטי הצטרפות</label>
                     <input
                       type="text"
                       className="form-control"
@@ -1263,7 +1263,7 @@ export default function ClientDetailsModal({
                           </span>
                         </div>
                         <div style={{ fontSize: '0.84rem', color: '#475569', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span>{apt.typeName || (apt.type === 'zoom' ? 'Zoom' : 'קליניקה')}</span>
+                          <span>{apt.typeName || (apt.type === 'zoom' || apt.type === 'video' ? 'וידאו' : 'קליניקה')}</span>
                           <span>•</span>
                           <span>{apt.location}</span>
                           {apt.notes && <span>• "{apt.notes}"</span>}

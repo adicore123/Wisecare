@@ -13,6 +13,7 @@ import {
   Library,
   FileSignature,
   Video,
+  Webcam,
   X
 } from 'lucide-react';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
@@ -100,12 +101,12 @@ export default function Sidebar({
 
           <button
             type="button"
-            className={`nav-item ${currentTab === 'zoom' ? 'active' : ''}`}
-            onClick={() => handleNavClick('zoom')}
-            aria-current={currentTab === 'zoom' ? 'page' : undefined}
+            className={`nav-item ${currentTab === 'meetings' ? 'active' : ''}`}
+            onClick={() => handleNavClick('meetings')}
+            aria-current={currentTab === 'meetings' ? 'page' : undefined}
           >
-            <Video size={20} />
-            <span>פגישות זום</span>
+            <Webcam size={20} />
+            <span>פגישות וידאו</span>
           </button>
 
           <button 

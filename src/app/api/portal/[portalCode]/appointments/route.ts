@@ -50,7 +50,8 @@ export async function POST(
     const settings = db.getSettings();
     const clinicName = settings.clinicName || 'הקליניקה';
 
-    const defaultLocation = type === 'zoom' ? 'פגישת וידאו (Zoom)' : type === 'phone' ? 'שיחת טלפון' : clinicName;
+    const isVideo = type === 'zoom' || type === 'video';
+    const defaultLocation = isVideo ? 'פגישת וידאו' : type === 'phone' ? 'שיחת טלפון' : clinicName;
     const location = customLocation || defaultLocation;
 
     const newAppointment = db.collection('appointments').insertOne({
@@ -64,7 +65,7 @@ export async function POST(
       time: preferredTime || '10:00',
       durationMinutes: 50,
       type,
-      typeName: type === 'zoom' ? 'פגישת וידאו (Zoom)' : type === 'phone' ? 'שיחה טלפונית' : 'פגישה בקליניקה',
+      typeName: isVideo ? 'פגישת וידאו' : type === 'phone' ? 'שיחה טלפונית' : 'פגישה בקליניקה',
       location,
       status: isSelf ? 'confirmed' : 'pending',
       isSelfManaged: isSelf,

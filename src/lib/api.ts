@@ -20,11 +20,11 @@ const authHeaders = (extra: Record<string, string> = {}) => {
 
 export const api = {
   // Auth
-  login: async (username, password) => {
+  login: async (username, password, extra?: { adminPortal?: boolean }) => {
     const res = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, ...extra })
     });
     if (!res.ok) {
       const err = await res.json();

@@ -334,7 +334,7 @@ export default function SuperAdminPage({
     setLoginLoading(true);
     setLoginError('');
     try {
-      const res = await api.login(loginUsername.trim(), loginPassword.trim());
+      const res = await api.login(loginUsername.trim(), loginPassword.trim(), { adminPortal: true });
       if (!res.user || res.user.role !== 'superadmin') {
         throw new Error('משתמש זה אינו מורשה לניהול ראשי (SuperAdmin)');
       }

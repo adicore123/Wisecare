@@ -238,6 +238,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
   // Appointments state
   const [portalAppointments, setPortalAppointments] = useState<any[]>(initialPayload?.appointments || []);
+  const [activeVideoCall, setActiveVideoCall] = useState<any>(null);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({
     preferredDate: '',
@@ -638,6 +639,29 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     }
     // If data is already available (from SSR initialPayload or local cache), refresh silently without blocking UI
     loadPortalAll(hasSnapshot);
+  }, [portalCode]);
+
+  // LiveKit active-call banner — light polling so the client sees a call the moment the therapist opens it
+  useEffect(() => {
+    if (!portalCode) return undefined;
+
+    let cancelled = false;
+    const checkActiveCall = async () => {
+      try {
+        const res = await fetch(`/api/livekit/portal/${portalCode}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (!cancelled) setActiveVideoCall(data.activeCall || null);
+        }
+      } catch { /* keep last known state */ }
+    };
+
+    checkActiveCall();
+    const interval = window.setInterval(checkActiveCall, 25000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [portalCode]);
 
   useEffect(() => {
@@ -3640,6 +3664,51 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 </div>
               </div>
 
+              {/* LiveKit: active video call — join now */}
+              {activeVideoCall && (
+                <div dir="rtl" style={{
+                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+                  border: '1.5px solid #34d399',
+                  borderRadius: 'var(--radius-xl)',
+                  padding: '20px 24px',
+                  marginBottom: '28px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  flexWrap: 'wrap',
+                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{
+                      width: '48px', height: '48px', borderRadius: '13px', flexShrink: 0,
+                      background: '#059669', color: '#ffffff',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+                    }}>
+                      <Video size={24} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.8)', display: 'inline-block' }} />
+                        שיחת וידאו פעילה עכשיו
+                      </div>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>
+                        {activeVideoCall.therapistName ? `${activeVideoCall.therapistName} ממתין/ה לך בשיחה` : 'המטפל/ת שלך ממתין/ה לך בשיחה'}
+                      </div>
+                    </div>
+                  </div>
+                  <a
+                    href={`/video-call/${portalCode}`}
+                    className="btn btn-primary"
+                    style={{ textDecoration: 'none', background: '#059669', borderColor: '#059669', fontSize: '0.95rem', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                  >
+                    <Video size={17} />
+                    <span>הצטרף/י לשיחה</span>
+                  </a>
+                </div>
+              )}
+
               {/* Highlight: Next Upcoming Confirmed Appointment */}
               {(() => {
                 const todayStr = new Date().toISOString().split('T')[0];
@@ -3685,7 +3754,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '0.88rem', color: '#166534' }}>
                             <span><strong>משך:</strong> {nextApt.durationMinutes || 50} דקות</span>
                             <span>•</span>
-                            <span><strong>סוג:</strong> {nextApt.typeName || (nextApt.type === 'zoom' ? 'וידאו (Zoom)' : 'בקליניקה')}</span>
+                            <span><strong>סוג:</strong> {nextApt.typeName || (nextApt.type === 'zoom' || nextApt.type === 'video' ? 'וידאו' : 'בקליניקה')}</span>
                             {portalInfo.therapist && (
                               <>
                                 <span>•</span>
@@ -3714,20 +3783,10 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1f2937', flexWrap: 'wrap' }}>
                         <MapPin size={16} color="#16a34a" />
-                        <span><strong>מיקום / פרטים:</strong> {nextApt.type === 'zoom' ? (nextApt.joinUrl ? 'פגישת וידאו (Zoom)' : 'קישור זום יישלח סמוך למועד') : (nextApt.location || portalInfo.clinicAddress || 'קליניקה')}</span>
+                        <span><strong>מיקום / פרטים:</strong> {nextApt.type === 'zoom' || nextApt.type === 'video' ? (nextApt.joinUrl ? 'פגישת וידאו' : 'שיחת וידאו — פרטים בקרוב') : (nextApt.location || portalInfo.clinicAddress || 'קליניקה')}</span>
                       </div>
 
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-                        {nextApt.type === 'zoom' && nextApt.joinUrl && (
-                          <a
-                            href={`/join-meeting/${nextApt.id}`}
-                            className="btn btn-primary"
-                            style={{ fontSize: '0.85rem', padding: '7px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#4f46e5', borderColor: '#4f46e5' }}
-                          >
-                            <Video size={15} />
-                            <span>הצטרף לפגישת זום</span>
-                          </a>
-                        )}
                         {aptWaUrl && (
                           <a
                             href={aptWaUrl}
@@ -3823,9 +3882,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                             </div>
 
                             <div style={{ fontSize: '0.86rem', color: '#475569', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              {apt.type === 'zoom' ? (
+                              {apt.type === 'zoom' || apt.type === 'video' ? (
                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#2563eb' }}>
-                                  <Video size={14} /> פגישת וידאו (Zoom)
+                                  <Video size={14} /> פגישת וידאו
                                 </span>
                               ) : (
                                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0d9488' }}>
@@ -3837,16 +3896,6 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            {apt.type === 'zoom' && apt.joinUrl && apt.status === 'confirmed' && (
-                              <a
-                                href={`/join-meeting/${apt.id}`}
-                                className="btn btn-primary"
-                                style={{ fontSize: '0.78rem', padding: '5px 12px', display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#4f46e5', borderColor: '#4f46e5' }}
-                              >
-                                <Video size={13} />
-                                <span>הצטרף</span>
-                              </a>
-                            )}
                             {apt.status === 'confirmed' ? (
                               <span className="badge badge-success" style={{ fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                                 <CheckCircle2 size={13} /> מאושר
@@ -4275,7 +4324,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     onChange={e => setRequestForm({ ...requestForm, type: e.target.value })}
                   >
                     <option value="in_person">פגישה פרונטלית בקליניקה</option>
-                    <option value="zoom">פגישת וידאו מרחוק (Zoom)</option>
+                    <option value="video">פגישת וידאו מרחוק</option>
                     <option value="phone">שיחה טלפונית</option>
                   </select>
                 </div>
@@ -4286,7 +4335,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="למשל: רחוב הרצל 10, תל אביב או קישור לזום"
+                      placeholder="למשל: רחוב הרצל 10, תל אביב או פרטי הצטרפות לשיחת וידאו"
                       value={requestForm.location || ''}
                       onChange={e => setRequestForm({ ...requestForm, location: e.target.value })}
                     />

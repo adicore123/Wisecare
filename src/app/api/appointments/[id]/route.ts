@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
-import { isZoomS2SConfigured, isUserZoomConnected, updateZoomMeeting, deleteZoomMeeting } from '@/services/zoom';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -55,34 +54,6 @@ export async function PUT(request: NextRequest, props: RouteProps) {
       }
     });
 
-    // Two-way sync with the linked Zoom meeting
-    if (existing.zoomMeetingId) {
-      const scheduleChanged =
-        (updates.date && updates.date !== existing.date) ||
-        (updates.time && updates.time !== existing.time) ||
-        (updates.durationMinutes && updates.durationMinutes !== existing.durationMinutes);
-      const isBeingCancelled = updates.status === 'cancelled';
-
-      if (existing.therapistId && (isZoomS2SConfigured() || isUserZoomConnected(existing.therapistId))) {
-        try {
-          if (isBeingCancelled) {
-            await deleteZoomMeeting(existing.therapistId, existing.zoomMeetingId);
-            updates.zoomCancelledAt = new Date().toISOString();
-          } else if (scheduleChanged) {
-            await updateZoomMeeting(existing.therapistId, existing.zoomMeetingId, {
-              date: updates.date || existing.date,
-              time: updates.time || existing.time,
-              durationMinutes: updates.durationMinutes || existing.durationMinutes
-            });
-            updates.zoomSyncedAt = new Date().toISOString();
-          }
-        } catch (zoomErr: any) {
-          console.error('[Zoom] two-way sync failed:', zoomErr.message);
-          updates.zoomSyncError = zoomErr.message;
-        }
-      }
-    }
-
     const updated = db.collection('appointments').updateById(id, updates);
     if (!updated) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
@@ -104,15 +75,6 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
 
     const { id } = await props.params;
     const existing = db.collection('appointments').findById(id);
-
-    // Delete the linked Zoom room as well (best effort — never block the deletion)
-    if (existing?.zoomMeetingId && existing.therapistId && (isZoomS2SConfigured() || isUserZoomConnected(existing.therapistId))) {
-      try {
-        await deleteZoomMeeting(existing.therapistId, existing.zoomMeetingId);
-      } catch (zoomErr: any) {
-        console.error('[Zoom] failed to delete linked meeting:', zoomErr.message);
-      }
-    }
 
     const success = db.collection('appointments').deleteById(id);
 

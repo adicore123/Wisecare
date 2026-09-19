@@ -96,8 +96,9 @@ export async function POST(request: NextRequest) {
     }
 
     const settings = db.getSettings();
-    const defaultTypeName = type === 'zoom' ? 'פגישת וידאו (Zoom)' : 'פגישה בקליניקה';
-    const defaultLocation = location || (type === 'zoom' ? 'קישור יישלח לקראת המועד' : (settings.clinicName || 'הקליניקה'));
+    const isVideo = type === 'zoom' || type === 'video';
+    const defaultTypeName = isVideo ? 'פגישת וידאו' : 'פגישה בקליניקה';
+    const defaultLocation = location || (isVideo ? 'קישור יישלח לקראת המועד' : (settings.clinicName || 'הקליניקה'));
 
     const newApt = db.collection('appointments').insertOne({
       therapistId,

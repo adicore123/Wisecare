@@ -24,14 +24,14 @@ export function formatHebrewDateString(dateStr: string): string {
  */
 export function buildConfirmationMessage(appointment: any, therapistName?: string, clinicName?: string): string {
   const dateFormatted = formatHebrewDateString(appointment.date);
-  const typeText = appointment.typeName || (appointment.type === 'zoom' ? 'פגישת וידאו (Zoom)' : 'פגישה בקליניקה');
-  const isZoom = appointment.type === 'zoom';
-  const loc = isZoom
-    ? (appointment.joinUrl ? 'פגישת וידאו — קישור הצטרפות למטה 👇' : 'קישור Zoom יישלח סמוך למועד')
+  const isVideo = appointment.type === 'zoom' || appointment.type === 'video';
+  const typeText = appointment.typeName || (isVideo ? 'פגישת וידאו' : 'פגישה בקליניקה');
+  const loc = isVideo
+    ? (appointment.joinUrl ? 'פגישת וידאו — קישור הצטרפות למטה 👇' : 'קישור ההצטרפות יישלח סמוך למועד')
     : (appointment.location || clinicName || 'הקליניקה');
 
-  const zoomLinkBlock = isZoom && appointment.joinUrl
-    ? `\n💻 קישור הצטרפות לפגישה:\n${appointment.joinUrl}${appointment.passcode ? `\n🔑 קוד כניסה: ${appointment.passcode}` : ''}\n💡 אפשר להיכנס גם דרך המרחב האישי שלך בלחיצה על "הצטרף לפגישה"\n`
+  const videoLinkBlock = isVideo && appointment.joinUrl
+    ? `\n💻 קישור הצטרפות לפגישה:\n${appointment.joinUrl}${appointment.passcode ? `\n🔑 קוד כניסה: ${appointment.passcode}` : ''}\n`
     : '';
 
   return `שלום ${appointment.clientName} יקר/ה,
@@ -41,7 +41,7 @@ export function buildConfirmationMessage(appointment: any, therapistName?: strin
 📋 סוג פגישה: ${typeText}
 📍 מיקום / פרטים: ${loc}
 👩‍⚕️ מטפל/ת: ${therapistName || 'צוות הקליניקה'}
-${zoomLinkBlock}
+${videoLinkBlock}
 נשמח לראותך! 🌿
 מרחב טיפולי ${clinicName || 'WiseCare'}`;
 }
@@ -51,14 +51,14 @@ ${zoomLinkBlock}
  */
 export function buildReminderMessage(appointment: any, therapistName?: string, clinicName?: string): string {
   const dateFormatted = formatHebrewDateString(appointment.date);
-  const typeText = appointment.typeName || (appointment.type === 'zoom' ? 'פגישת וידאו (Zoom)' : 'פגישה בקליניקה');
-  const isZoom = appointment.type === 'zoom';
-  const loc = isZoom
-    ? (appointment.joinUrl ? 'פגישת וידאו — קישור הצטרפות למטה 👇' : 'קישור Zoom יישלח סמוך למועד')
+  const isVideo = appointment.type === 'zoom' || appointment.type === 'video';
+  const typeText = appointment.typeName || (isVideo ? 'פגישת וידאו' : 'פגישה בקליניקה');
+  const loc = isVideo
+    ? (appointment.joinUrl ? 'פגישת וידאו — קישור הצטרפות למטה 👇' : 'קישור ההצטרפות יישלח סמוך למועד')
     : (appointment.location || clinicName || 'הקליניקה');
 
-  const zoomLinkBlock = isZoom && appointment.joinUrl
-    ? `\n💻 קישור הצטרפות לפגישה:\n${appointment.joinUrl}${appointment.passcode ? `\n🔑 קוד כניסה: ${appointment.passcode}` : ''}\n💡 אפשר להיכנס גם דרך המרחב האישי שלך בלחיצה על "הצטרף לפגישה"\n`
+  const videoLinkBlock = isVideo && appointment.joinUrl
+    ? `\n💻 קישור הצטרפות לפגישה:\n${appointment.joinUrl}${appointment.passcode ? `\n🔑 קוד כניסה: ${appointment.passcode}` : ''}\n`
     : '';
 
   return `שלום ${appointment.clientName} יקר/ה,
@@ -68,7 +68,7 @@ export function buildReminderMessage(appointment: any, therapistName?: string, c
 📋 סוג פגישה: ${typeText}
 📍 פרטים: ${loc}
 👩‍⚕️ מטפל/ת: ${therapistName || 'צוות הקליניקה'}
-${zoomLinkBlock}
+${videoLinkBlock}
 מאחלים לך המשך יום רגוע ושקט, נשמח לראותך! 🌿
 (במידה ויש צורך בשינוי מועד, ניתן לפנות ישירות בהודעה זו)`;
 }

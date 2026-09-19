@@ -47,8 +47,10 @@ export async function POST(request: Request) {
     });
 
     if (user) {
-      // SuperAdmin must use dedicated /superadmin route as requested
-      if (user.role === 'superadmin') {
+      // SuperAdmin credentials may only be used through the dedicated /superadmin
+      // login form (it sends adminPortal: true). The regular /login form keeps
+      // receiving the dedicated-route message.
+      if (user.role === 'superadmin' && body.adminPortal !== true) {
         return NextResponse.json({
           error: 'גישת מנהל מערכת ראשי (SuperAdmin) מבוצעת אך ורק דרך הכתובת הייעודית המאובטחת: /superadmin'
         }, { status: 403 });
@@ -95,12 +97,13 @@ export async function POST(request: Request) {
 
       const { password: _, ...userInfo } = user;
       const token = signToken(user);
+      const isAdmin = user.role === 'superadmin';
       const code = user.loginCode || 'dr-sarah-8821';
-      const redirectUrl = `/crm/${encodeURIComponent(code)}/clients`;
+      const redirectUrl = isAdmin ? '/superadmin' : `/crm/${encodeURIComponent(code)}/clients`;
 
       const response = NextResponse.json({
         success: true,
-        role: 'therapist',
+        role: user.role || 'therapist',
         redirectUrl,
         user: userInfo,
         token
