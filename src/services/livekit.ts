@@ -1,4 +1,5 @@
 import { AccessToken } from 'livekit-server-sdk';
+import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 
 /**
  * LiveKit video-calls service — credentials resolution + access-token minting.
@@ -77,4 +78,29 @@ export async function mintLiveKitToken(opts: MintTokenOptions): Promise<string> 
   });
 
   return token.toJwt();
+}
+
+/**
+ * Per-call guest join token for the /join/{callId}/{token} link.
+ * 192 random bits, passed to the client only via the WhatsApp/copy link;
+ * the DB stores just its SHA-256 hash so a DB leak exposes no usable link.
+ */
+export function generateJoinToken(): { token: string; hash: string } {
+  const token = randomBytes(24).toString('hex');
+  return { token, hash: hashJoinToken(token) };
+}
+
+function hashJoinToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+/** Constant-time verification against the stored hash; false on any malformed input. */
+export function verifyJoinToken(token: string, storedHash: string): boolean {
+  try {
+    const a = Buffer.from(hashJoinToken(String(token || '')), 'hex');
+    const b = Buffer.from(String(storedHash || ''), 'hex');
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }

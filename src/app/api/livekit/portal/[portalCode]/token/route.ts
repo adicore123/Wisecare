@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { checkRateLimit } from '@/lib/rateLimit';
 import { getLiveKitConfig, clientRoom, mintLiveKitToken } from '@/services/livekit';
 
 /**
  * POST /api/livekit/portal/{portalCode}/token
  * Issues a participant (client-side) LiveKit token for the client's currently
  * active call room — the client can only join while the therapist has an open call.
+ * Used by the "join now" banner inside the personal space (portalCode = credential).
  */
 export async function POST(
   request: NextRequest,
@@ -15,9 +17,21 @@ export async function POST(
     await db.ensureLoaded();
     const { portalCode } = await props.params;
 
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
+    const rate = checkRateLimit(`livekit-portal-join:${ip}`, 10, 60);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'בוצעו יותר מדי ניסיונות הצטרפות — נסו שוב בעוד דקה' },
+        { status: 429 }
+      );
+    }
+
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });
+    }
+    if ((client as any).portalEnabled === false) {
+      return NextResponse.json({ error: 'המרחב האישי אינו פעיל' }, { status: 403 });
     }
 
     const config = getLiveKitConfig();

@@ -19,6 +19,9 @@ export async function GET(
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });
     }
+    if ((client as any).portalEnabled === false) {
+      return NextResponse.json({ error: 'המרחב האישי אינו פעיל' }, { status: 403 });
+    }
 
     const activeCall = db.collection('videoCalls').findOne({ clientId: client.id, status: 'active' }) as any;
 

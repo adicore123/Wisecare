@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
-import { getLiveKitConfig, clientRoom, mintLiveKitToken } from '@/services/livekit';
+import { getLiveKitConfig, clientRoom, mintLiveKitToken, generateJoinToken } from '@/services/livekit';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
 
@@ -62,6 +62,10 @@ export async function POST(request: NextRequest) {
     const room = clientRoom(client.id);
     const startedAt = now.toISOString();
 
+    // Per-call secure join link: raw token goes only to the therapist response
+    // (WhatsApp message / copy button); the DB keeps its SHA-256 hash alone.
+    const join = generateJoinToken();
+
     // The "Video Call Started" event
     const call = db.collection('videoCalls').insertOne({
       therapistId: auth.userId,
@@ -71,7 +75,8 @@ export async function POST(request: NextRequest) {
       room,
       startedAt,
       status: 'active',
-      startedBy: 'therapist'
+      startedBy: 'therapist',
+      joinTokenHash: join.hash
     });
 
     const token = await mintLiveKitToken({
@@ -81,15 +86,17 @@ export async function POST(request: NextRequest) {
       role: 'host'
     });
 
+    const joinPath = `/join/${call.id}/${join.token}`;
+
     // Optional WhatsApp invite with the client-side join link
     let whatsappSent = false;
     if (sendWhatsApp && client.phone) {
       try {
-        const joinUrl = `${getBaseUrl(request)}/video-call/${client.portalCode}`;
+        const joinUrl = `${getBaseUrl(request)}${joinPath}`;
         const firstName = client.firstName || '';
         await sendWhatsAppMessage({
           phone: client.phone,
-          message: `שלום ${firstName} יקר/ה,\n🎥 נפתחה שיחת וידאו עם ${therapist?.name || 'המטפל/ת'}\nלהצטרפות לשיחה מהמרחב האישי שלך:\n${joinUrl}\n\nבברכה,\nמרחב טיפולי WiseCare 🌿`
+          message: `שלום ${firstName} יקר/ה,\n🎥 נפתחה שיחת וידאו עם ${therapist?.name || 'המטפל/ת'}\nלהצטרפות לשיחה לחצ/י על הקישור:\n${joinUrl}\n\nבברכה,\nמרחב טיפולי WiseCare 🌿`
         });
         whatsappSent = true;
       } catch (waErr: any) {
@@ -105,7 +112,7 @@ export async function POST(request: NextRequest) {
       room,
       token,
       url: config.url,
-      joinUrl: `/video-call/${client.portalCode}`,
+      joinUrl: joinPath,
       whatsappSent,
       message: whatsappSent
         ? 'השיחה נפתחה וקישור הצטרפות נשלח למטופל בוואטסאפ'

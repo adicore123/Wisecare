@@ -158,10 +158,9 @@ export default function LiveKitManager() {
   };
 
   const copyJoinLink = async () => {
-    if (!activeCall?.joinUrl && !selectedClient?.portalCode) return;
-    const link = activeCall?.joinUrl || `/video-call/${selectedClient?.portalCode}`;
+    if (!activeCall?.joinUrl) return;
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}${link}`);
+      await navigator.clipboard.writeText(`${window.location.origin}${activeCall.joinUrl}`);
       showToast('קישור ההצטרפות הועתק');
     } catch {
       showToast('העתקה נכשלה — נסה שוב', 'error');
@@ -240,7 +239,7 @@ export default function LiveKitManager() {
             padding: '12px 18px', flexWrap: 'wrap', borderTop: '1px solid rgba(13,148,136,0.15)'
           }}>
             <span style={{ fontSize: '0.88rem', color: 'var(--text-secondary, #64748b)' }}>
-              💡 המטופל יכול להצטרף מהמרחב האישי שלו, או דרך הקישור שנשלח אליו בוואטסאפ
+              💡 הקישור המאובטח פועל עבור כל מטופל — גם כזה ללא מרחב אישי — ותקף לשיחה הנוכחית בלבד. המטופל יכול להצטרף דרך הקישור שנשלח אליו בוואטסאפ, או מהמרחב האישי אם יש לו
             </span>
             <button type="button" className="btn btn-secondary" onClick={copyJoinLink}
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem' }}>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
 import { 
   HeartHandshake, 
   CheckCircle2, 
@@ -239,6 +240,27 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   // Appointments state
   const [portalAppointments, setPortalAppointments] = useState<any[]>(initialPayload?.appointments || []);
   const [activeVideoCall, setActiveVideoCall] = useState<any>(null);
+  const [videoSession, setVideoSession] = useState<(ActiveCallSession & { therapistName?: string }) | null>(null);
+  const [isJoiningVideo, setIsJoiningVideo] = useState(false);
+
+  // Join the active call in-place (full-screen overlay) — the portalCode is
+  // the credential here, exactly like the rest of the personal space
+  const joinActiveVideoCall = async () => {
+    if (isJoiningVideo) return;
+    setIsJoiningVideo(true);
+    try {
+      const res = await fetch(`/api/livekit/portal/${portalCode}/token`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        setVideoSession({ callId: data.callId, token: data.token, serverUrl: data.url, therapistName: data.therapistName });
+      }
+    } catch {
+      // silent — the banner stays and the client can retry
+    } finally {
+      setIsJoiningVideo(false);
+    }
+  };
+
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [requestForm, setRequestForm] = useState({
     preferredDate: '',
@@ -2414,6 +2436,75 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           </div>}
 
 
+          {/* LiveKit: active video call — join now (visible on every tab) */}
+          {activeVideoCall && (
+            <div dir="rtl" style={{
+              background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
+              border: '1.5px solid #34d399',
+              borderRadius: 'var(--radius-xl)',
+              padding: '20px 24px',
+              marginBottom: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              flexWrap: 'wrap',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '13px', flexShrink: 0,
+                  background: '#059669', color: '#ffffff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+                }}>
+                  <Video size={24} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.8)', display: 'inline-block' }} />
+                    שיחת וידאו פעילה עכשיו
+                  </div>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>
+                    {activeVideoCall.therapistName ? `${activeVideoCall.therapistName} ממתין/ה לך בשיחה` : 'המטפל/ת שלך ממתין/ה לך בשיחה'}
+                  </div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={joinActiveVideoCall}
+                disabled={isJoiningVideo}
+                className="btn btn-primary"
+                style={{ background: '#059669', borderColor: '#059669', fontSize: '0.95rem', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              >
+                <Video size={17} />
+                <span>{isJoiningVideo ? 'מתחבר/ת…' : 'הצטרף/י לשיחה'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* In-portal full-screen video call overlay (banner join) */}
+          {videoSession && (
+            <div dir="rtl" style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'linear-gradient(180deg, #04302c 0%, #053f3b 55%, #064a44 100%)',
+              color: '#e8f5f3',
+              fontFamily: 'var(--font-body, Assistant, system-ui, sans-serif)'
+            }}>
+              <LiveKitCallView
+                session={videoSession}
+                role="participant"
+                title={`שיחת וידאו${videoSession.therapistName ? ` עם ${videoSession.therapistName}` : ''}`}
+                subtitle={videoSession.therapistName}
+                onExited={() => setVideoSession(null)}
+              />
+            </div>
+          )}
+
           {/* ========================================================================= */}
           {/* TAB 1: משימות ותרגולים להמשך עבודה בבית                                   */}
           {/* ========================================================================= */}
@@ -3663,51 +3754,6 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   </button>
                 </div>
               </div>
-
-              {/* LiveKit: active video call — join now */}
-              {activeVideoCall && (
-                <div dir="rtl" style={{
-                  background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-                  border: '1.5px solid #34d399',
-                  borderRadius: 'var(--radius-xl)',
-                  padding: '20px 24px',
-                  marginBottom: '28px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '16px',
-                  flexWrap: 'wrap',
-                  boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <div style={{
-                      width: '48px', height: '48px', borderRadius: '13px', flexShrink: 0,
-                      background: '#059669', color: '#ffffff',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
-                    }}>
-                      <Video size={24} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.8)', display: 'inline-block' }} />
-                        שיחת וידאו פעילה עכשיו
-                      </div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>
-                        {activeVideoCall.therapistName ? `${activeVideoCall.therapistName} ממתין/ה לך בשיחה` : 'המטפל/ת שלך ממתין/ה לך בשיחה'}
-                      </div>
-                    </div>
-                  </div>
-                  <a
-                    href={`/video-call/${portalCode}`}
-                    className="btn btn-primary"
-                    style={{ textDecoration: 'none', background: '#059669', borderColor: '#059669', fontSize: '0.95rem', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
-                  >
-                    <Video size={17} />
-                    <span>הצטרף/י לשיחה</span>
-                  </a>
-                </div>
-              )}
 
               {/* Highlight: Next Upcoming Confirmed Appointment */}
               {(() => {

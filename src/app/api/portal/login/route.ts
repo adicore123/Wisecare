@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
+import { normalizePhone } from '@/lib/phoneHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,11 +18,28 @@ export async function POST(request: NextRequest) {
     const cleanId = String(identifier).trim().toLowerCase();
     const clients = db.collection('clients');
 
-    const client = clients.findOne((c: any) =>
+    // Username/email are globally unique; a phone number may now be shared by
+    // the same patient under two therapists, so phone login is only accepted
+    // when it matches exactly one active personal space.
+    let client = clients.findOne((c: any) =>
       (c.username && c.username.toLowerCase() === cleanId) ||
-      (c.email && c.email.toLowerCase() === cleanId) ||
-      (c.phone && c.phone.replace(/\D/g, '') === cleanId.replace(/\D/g, ''))
+      (c.email && c.email.toLowerCase() === cleanId)
     );
+    if (!client) {
+      const digits = cleanId.replace(/\D/g, '');
+      if (digits) {
+        const phoneMatches = clients.find({}).filter((c: any) =>
+          !c.archived && c.portalEnabled !== false && c.phone && normalizePhone(c.phone) === digits
+        );
+        if (phoneMatches.length === 1) {
+          client = phoneMatches[0];
+        } else if (phoneMatches.length > 1) {
+          return NextResponse.json({
+            error: 'מספר טלפון זה משויך ליותר ממרחב אישי אחד. נא להיכנס עם שם המשתמש האישי שקיבלת מהמטפל/ת.'
+          }, { status: 401 });
+        }
+      }
+    }
 
     if (!client) {
       return NextResponse.json({ error: 'פרטי ההתחברות שגויים. לא נמצא משתמש תואם.' }, { status: 401 });

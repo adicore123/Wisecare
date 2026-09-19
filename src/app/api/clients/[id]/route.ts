@@ -73,16 +73,28 @@ export async function PUT(request: NextRequest, props: RouteProps) {
 
     const body = await request.json();
 
-    // Check phone uniqueness rule if phone is updated
+    // Phone uniqueness is scoped per therapist — the same patient may exist under
+    // another therapist, so only a duplicate under THIS client's therapist blocks.
     if (body.phone !== undefined) {
       const cleanPhone = normalizePhone(body.phone);
       if (!isTestPhoneNumber(cleanPhone)) {
-        const existingClientWithPhone = clients.findOne((c: any) => 
-          c.id !== id && !c.archived && normalizePhone(c.phone) === cleanPhone
+        const existingClientWithPhone = clients.findOne((c: any) =>
+          c.id !== id && !c.archived && c.therapistId === existing.therapistId && normalizePhone(c.phone) === cleanPhone
         );
         if (existingClientWithPhone) {
           return NextResponse.json({
-            error: `מספר טלפון זה (${body.phone}) כבר קיים במערכת עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). רק מספר הבדיקות (0509611808) מורשה לרישום כפול.`
+            error: `מספר טלפון זה (${body.phone}) כבר רשום אצל אותו מטפל עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). למעט מספר הבדיקות (0509611808) לא ניתן לשייך אותו מספר לשני תיקים של אותו מטפל.`
+          }, { status: 400 });
+        }
+
+        // Global anti-abuse cap: more than 3 occurrences of the same phone
+        // system-wide is suspicious and rejected (test number exempt).
+        const phoneOwners = clients.find({}).filter((c: any) =>
+          c.id !== id && !c.archived && normalizePhone(c.phone) === cleanPhone
+        );
+        if (phoneOwners.length >= 3) {
+          return NextResponse.json({
+            error: `מספר טלפון זה (${body.phone}) רשום כבר עבור ${phoneOwners.length} לקוחות שונים במערכת. יותר מ-3 הופעות של אותו מספר נחשב לחשוד ואינו מורשה (למעט מספר הבדיקות 0509611808). במידה וזו טעות, נא לפנות למנהל המערכת.`
           }, { status: 400 });
         }
       }

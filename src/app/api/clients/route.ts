@@ -94,15 +94,28 @@ export async function POST(request: NextRequest) {
     const users = db.collection('users');
     const therapist = users.findById(therapistId);
 
-    // Enforce phone uniqueness rule with test number whitelist
+    // Phone uniqueness is scoped per therapist: the same patient may legitimately
+    // exist under another therapist (e.g. switched to a second WiseCare clinic).
+    // Only a duplicate under the SAME therapist is blocked. Test number stays exempt.
     const cleanPhone = normalizePhone(phone);
     if (!isTestPhoneNumber(cleanPhone)) {
-      const existingClientWithPhone = clients.findOne((c: any) => 
-        !c.archived && normalizePhone(c.phone) === cleanPhone
+      const existingClientWithPhone = clients.findOne((c: any) =>
+        !c.archived && c.therapistId === therapistId && normalizePhone(c.phone) === cleanPhone
       );
       if (existingClientWithPhone) {
         return NextResponse.json({
-          error: `מספר טלפון זה (${phone}) כבר קיים במערכת עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). לא ניתן לפתוח משתמשים כפולים עם אותו מספר טלפון (למעט מספר הבדיקות המורשה 0509611808).`
+          error: `מספר טלפון זה (${phone}) כבר רשום אצלך עבור לקוח אחר (${existingClientWithPhone.firstName} ${existingClientWithPhone.lastName}). לא ניתן לשייך אותו מספר לשני תיקים של אותו מטפל (למעט מספר הבדיקות המורשה 0509611808).`
+        }, { status: 400 });
+      }
+
+      // Global anti-abuse cap: a phone shared by more than 3 clients system-wide
+      // (i.e. the same patient "treated" by 4+ therapists) is suspicious.
+      const phoneOwners = clients.find({}).filter((c: any) =>
+        !c.archived && normalizePhone(c.phone) === cleanPhone
+      );
+      if (phoneOwners.length >= 3) {
+        return NextResponse.json({
+          error: `מספר טלפון זה (${phone}) רשום כבר עבור ${phoneOwners.length} לקוחות שונים במערכת. יותר מ-3 הופעות של אותו מספר נחשב לחשוד ואינו מורשה (למעט מספר הבדיקות 0509611808). במידה וזו טעות, נא לפנות למנהל המערכת.`
         }, { status: 400 });
       }
     }

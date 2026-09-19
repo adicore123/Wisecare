@@ -1,35 +1,36 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { Loader2, Video, RefreshCw, ArrowRight, Leaf } from 'lucide-react';
+import { Loader2, Leaf, LinkIcon } from 'lucide-react';
 import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
 
 /**
- * Standalone client-side join page (mirrors the personal-space pattern):
- * the unguessable portalCode is the credential. The page only issues a
- * participant token while the therapist has an ACTIVE call open.
+ * Standalone secure join page for a single video call: /join/{callId}/{token}.
+ * The one-time link (sent via WhatsApp or copied by the therapist) is the
+ * credential — no portal or login required, and it dies when the call ends.
  */
-export default function VideoCallJoinPage() {
-  const params = useParams<{ portalCode: string }>();
-  const portalCode = params?.portalCode || '';
-
-  const [phase, setPhase] = useState<'checking' | 'waiting' | 'unavailable' | 'in-call' | 'ended'>('checking');
+export default function JoinCallClient({ callId, token }: { callId: string; token: string }) {
+  const [phase, setPhase] = useState<'checking' | 'in-call' | 'invalid' | 'ended' | 'unavailable'>('checking');
   const [session, setSession] = useState<(ActiveCallSession & { therapistName?: string }) | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
   const tryJoin = useCallback(async () => {
-    if (!portalCode) return;
     setPhase('checking');
     setErrorMsg('');
     try {
-      const res = await fetch(`/api/livekit/portal/${portalCode}/token`, { method: 'POST' });
+      const res = await fetch(`/api/livekit/join/${encodeURIComponent(callId)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
       const data = await res.json();
       if (res.ok) {
         setSession({ callId: data.callId, token: data.token, serverUrl: data.url, therapistName: data.therapistName });
         setPhase('in-call');
-      } else if (res.status === 404) {
-        setPhase('waiting');
+      } else if (res.status === 410) {
+        setPhase('ended');
+      } else if (res.status === 403 || res.status === 404) {
+        setPhase('invalid');
       } else {
         setErrorMsg(data.error || 'שגיאה בהצטרפות לשיחה');
         setPhase('unavailable');
@@ -38,7 +39,7 @@ export default function VideoCallJoinPage() {
       setErrorMsg('שגיאת רשת — נסו לרענן את הדף');
       setPhase('unavailable');
     }
-  }, [portalCode]);
+  }, [callId, token]);
 
   useEffect(() => {
     tryJoin();
@@ -53,11 +54,11 @@ export default function VideoCallJoinPage() {
       color: '#e8f5f3',
       fontFamily: 'var(--font-body, Assistant, system-ui, sans-serif)'
     }}>
-      {/* Minimal branded header */}
+      {/* Minimal branded header — deliberately no portal link: this page is
+          portal-independent by design */}
       <header style={{
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
         padding: '16px 24px',
         borderBottom: '1px solid rgba(13, 148, 136, 0.25)'
       }}>
@@ -71,12 +72,6 @@ export default function VideoCallJoinPage() {
           </span>
           WiseCare · שיחת וידאו
         </div>
-        <a href={`/portal/${portalCode}`} style={{
-          display: 'inline-flex', alignItems: 'center', gap: '6px',
-          color: 'rgba(232, 245, 243, 0.8)', fontSize: '0.9rem', textDecoration: 'none'
-        }}>
-          חזרה למרחב האישי <ArrowRight size={15} />
-        </a>
       </header>
 
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '18px' }}>
@@ -96,31 +91,31 @@ export default function VideoCallJoinPage() {
             {phase === 'checking' && (
               <>
                 <Loader2 size={36} className="animate-spin" color="#2dd4bf" />
-                <div style={{ fontSize: '1.1rem' }}>בודק אם קיימת שיחה פעילה…</div>
+                <div style={{ fontSize: '1.1rem' }}>מתחבר/ת לשיחה…</div>
               </>
             )}
-            {phase === 'waiting' && (
+            {phase === 'invalid' && (
               <>
                 <span style={{
                   width: 74, height: 74, borderRadius: '50%', display: 'inline-flex',
                   alignItems: 'center', justifyContent: 'center',
                   background: 'rgba(13, 148, 136, 0.12)', border: '1.5px dashed rgba(45, 212, 191, 0.5)'
                 }}>
-                  <Video size={30} color="#2dd4bf" />
+                  <LinkIcon size={30} color="#2dd4bf" />
                 </span>
-                <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>אין שיחת וידאו פעילה כרגע</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>הקישור אינו תקף או שפג תוקפו</div>
                 <div style={{ color: 'rgba(232,245,243,0.7)', maxWidth: '440px', lineHeight: 1.7 }}>
-                  כאשר המטפל/ת שלך יתחיל/ה שיחה — היא תופיע כאן אוטומטית.
-                  אפשר גם ללחוץ על כפתור הרענון, או לחכות לקישור בוואטסאפ.
+                  ייתכן שהשיחה נפתחה מחדש ונשלח קישור חדש, או שהקישור הוקלד בחלקו.
+                  בקשו/י מהמטפל/ת קישור הצטרפות עדכני.
                 </div>
-                <button type="button" onClick={tryJoin} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '11px 24px', borderRadius: '100px', cursor: 'pointer',
-                  background: 'rgba(13, 148, 136, 0.25)', color: '#e8f5f3',
-                  border: '1px solid rgba(45, 212, 191, 0.5)', fontSize: '0.95rem', fontWeight: 500
-                }}>
-                  <RefreshCw size={16} /> בדיקה מחדש
-                </button>
+              </>
+            )}
+            {phase === 'ended' && (
+              <>
+                <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>השיחה הסתיימה. תודה!</div>
+                <div style={{ color: 'rgba(232,245,243,0.7)', maxWidth: '440px', lineHeight: 1.7 }}>
+                  אפשר לסגור את הדף.
+                </div>
               </>
             )}
             {phase === 'unavailable' && (
@@ -133,21 +128,8 @@ export default function VideoCallJoinPage() {
                   background: 'rgba(13, 148, 136, 0.25)', color: '#e8f5f3',
                   border: '1px solid rgba(45, 212, 191, 0.5)'
                 }}>
-                  <RefreshCw size={15} /> נסו שוב
+                  נסו שוב
                 </button>
-              </>
-            )}
-            {phase === 'ended' && (
-              <>
-                <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>השיחה הסתיימה. תודה!</div>
-                <a href={`/portal/${portalCode}`} style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '11px 24px', borderRadius: '100px', textDecoration: 'none',
-                  background: 'rgba(13, 148, 136, 0.25)', color: '#e8f5f3',
-                  border: '1px solid rgba(45, 212, 191, 0.5)'
-                }}>
-                  חזרה למרחב האישי <ArrowRight size={15} />
-                </a>
               </>
             )}
           </div>
