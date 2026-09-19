@@ -944,8 +944,7 @@ table.custom-table tbody tr:hover {
   line-height: 1.3;
 }
 
-.close-btn,
-.toast-close-btn {
+.close-btn {
   min-width: 44px;
   min-height: 44px;
   display: inline-flex;
@@ -1356,34 +1355,62 @@ textarea.form-control {
   to { opacity: 1; transform: translateX(0); }
 }
 
-/* Toast Notification */
+/* Toast Notification — floating centered pill, dismisses on its own */
 .toast-notice {
   position: fixed;
   bottom: 24px;
-  left: 24px;
-  background-color: #0f172a;
-  color: white;
-  padding: 14px 22px;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xl);
+  left: 50%;
+  width: max-content;
+  max-width: min(420px, calc(100vw - 32px));
+  color: #ffffff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 12px 32px -8px rgba(2, 6, 23, 0.45), 0 4px 12px -4px rgba(2, 6, 23, 0.3);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
-  gap: 12px;
-  z-index: 150;
-  animation: slideUp 0.2s ease;
-  max-width: min(440px, calc(100vw - 32px));
+  gap: 10px;
+  z-index: 10001;
+  cursor: pointer;
+  animation: toastIn 0.28s cubic-bezier(0.21, 1.02, 0.73, 1) backwards;
+  transform: translate(-50%, 0);
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
-.toast-close-btn {
-  min-width: 36px;
-  min-height: 36px;
-  margin-inline-start: auto;
-  color: #cbd5e1;
+.toast-notice.is-leaving {
+  opacity: 0;
+  transform: translate(-50%, 14px);
 }
 
-.toast-close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+.toast-text {
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translate(-50%, 16px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (max-width: 768px) {
+  .toast-notice {
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - 24px);
+    padding: 9px 16px;
+  }
+
+  .toast-text {
+    font-size: 0.84rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-notice {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* Settings Tabs Navigation */
