@@ -80,7 +80,7 @@ export default function IntroManager() {
 
           // 2. Otherwise verify sessions concurrently in parallel
           const [therapistRes, portalRes] = await Promise.all([
-            fetch('/api/auth/me').catch(() => null),
+            fetch('/api/auth/me?probe=1').catch(() => null),
             lastPortal
               ? fetch(`/api/portal/${encodeURIComponent(lastPortal)}/verify-auth`, {
                   headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}

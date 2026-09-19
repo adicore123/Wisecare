@@ -6,6 +6,11 @@ export async function GET(request: Request) {
   try {
     const auth = getAuthFromRequest(request);
     if (!auth) {
+      // Probe mode (landing page session check): a silent 200 instead of 401
+      // keeps the browser console clean for anonymous visitors.
+      if (new URL(request.url).searchParams.get('probe') === '1') {
+        return NextResponse.json({ user: null, token: null });
+      }
       return NextResponse.json({ error: 'נדרשת כניסה למערכת. אנא התחבר/י מחדש.' }, { status: 401 });
     }
 
