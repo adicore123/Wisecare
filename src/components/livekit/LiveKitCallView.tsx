@@ -9,10 +9,11 @@ import {
   DisconnectButton,
   useLocalParticipant,
   useRemoteParticipants,
+  useRoomContext,
   useTracks
 } from '@livekit/components-react';
-import { Track } from 'livekit-client';
-import { Mic, MicOff, Video as VideoIcon, VideoOff, PhoneOff, Loader2, ShieldCheck, User } from 'lucide-react';
+import { Room, Track } from 'livekit-client';
+import { Mic, MicOff, Video as VideoIcon, VideoOff, PhoneOff, Loader2, ShieldCheck, SwitchCamera } from 'lucide-react';
 
 export interface ActiveCallSession {
   callId: string;
@@ -35,6 +36,206 @@ const formatDuration = (totalSec: number): string => {
   const s = totalSec % 60;
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
+
+/**
+ * A 1-second truly-silent WAV, generated at runtime.
+ * iOS Safari keeps a WebRTC page alive in the background only while it is
+ * "playing audio" — a looping silent element + MediaSession metadata is the
+ * documented workaround (same trick Google Meet / Jitsi use on iOS web).
+ */
+function makeSilentWavDataUrl(): string {
+  try {
+    const sampleRate = 8000;
+    const numSamples = sampleRate; // 1s
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+    const writeStr = (off: number, s: string) => {
+      for (let i = 0; i < s.length; i++) view.setUint8(off + i, s.charCodeAt(i));
+    };
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, 'data');
+    view.setUint32(40, numSamples * 2, true);
+    // samples default to zero = silence
+    const bytes = new Uint8Array(buffer);
+    let bin = '';
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)) as unknown as number[]);
+    }
+    return 'data:audio/wav;base64,' + btoa(bin);
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Keeps the call alive when the tab/app goes to the background on mobile:
+ * 1. Registers MediaSession metadata → iOS/Android treat the page as an
+ *    active audio session (lock-screen controls, background playback).
+ * 2. Plays a looping silent audio (started from a user gesture whenever
+ *    possible) → Safari does not suspend the page.
+ * 3. Calls room.startAudio() on first interaction → unlocks remote audio
+ *    on iOS and re-asserts playback after backgrounding.
+ */
+function BackgroundAudioKeeper() {
+  const room = useRoomContext();
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+
+    if (!el.src) {
+      el.src = makeSilentWavDataUrl();
+      el.loop = true;
+    }
+
+    const tryKeepAlive = () => {
+      el.play().catch(() => {});
+      room.startAudio().catch(() => {});
+    };
+    tryKeepAlive();
+
+    // Re-assert on any interaction (idempotent) — covers autoplay blocks
+    // and iOS suspending playback when it decides no gesture was recent.
+    window.addEventListener('pointerdown', tryKeepAlive);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tryKeepAlive();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    // MediaSession: makes mobile OSes treat this page as an ongoing call.
+    const mediaSession = (navigator as any).mediaSession;
+    if (mediaSession && typeof MediaMetadata !== 'undefined') {
+      try {
+        mediaSession.metadata = new MediaMetadata({
+          title: 'שיחת וידאו פעילה',
+          artist: 'WiseCare',
+          album: 'WiseCare'
+        });
+        mediaSession.playbackState = 'playing';
+        // Neutral handlers so stray lock-screen taps can't kill the page
+        const noop = () => {};
+        ['play', 'pause', 'stop', 'seekbackward', 'seekforward', 'seekto', 'previoustrack', 'nexttrack'].forEach((action) => {
+          try { mediaSession.setActionHandler(action, noop); } catch {}
+        });
+      } catch {}
+    }
+
+    return () => {
+      window.removeEventListener('pointerdown', tryKeepAlive);
+      document.removeEventListener('visibilitychange', onVisible);
+      try {
+        el.pause();
+        el.removeAttribute('src');
+      } catch {}
+      const ms = (navigator as any).mediaSession;
+      if (ms) {
+        try {
+          ms.metadata = null;
+          ms.playbackState = 'none';
+        } catch {}
+      }
+    };
+  }, [room]);
+
+  return <audio ref={audioRef} playsInline style={{ display: 'none' }} />;
+}
+
+/** Prevents the screen from sleeping mid-call (released when the call ends). */
+function useScreenWakeLock(active: boolean) {
+  useEffect(() => {
+    if (!active || typeof navigator === 'undefined' || !('wakeLock' in navigator)) return;
+    let lock: any = null;
+    let disposed = false;
+    const acquire = async () => {
+      if (disposed || lock) return;
+      try { lock = await (navigator as any).wakeLock.request('screen'); } catch {}
+    };
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        lock = null; // wake locks are released automatically when hidden
+        void acquire();
+      }
+    };
+    void acquire();
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      disposed = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      try { lock?.release(); } catch {}
+    };
+  }, [active]);
+}
+
+/** Cycles between front/back cameras (mobile). Hidden when only one camera exists. */
+function FlipCameraButton() {
+  const room = useRoomContext();
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
+  const [flipping, setFlipping] = useState(false);
+
+  const refreshDevices = useCallback(async (): Promise<MediaDeviceInfo[]> => {
+    try {
+      const list = await Room.getLocalDevices('videoinput', false);
+      setDevices(list);
+      return list;
+    } catch {
+      return [];
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshDevices();
+    // Re-enumerate when returning to the tab (covers plugging/unplugging a camera)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void refreshDevices();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
+  }, [refreshDevices]);
+
+  if (devices.length < 2) return null;
+
+  const flip = async () => {
+    if (flipping) return;
+    setFlipping(true);
+    try {
+      const list = (await refreshDevices()).filter((d) => d.deviceId);
+      const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const currentDeviceId = (pub?.track as any)?.mediaStreamTrack?.getSettings?.().deviceId;
+      const idx = list.findIndex((d) => d.deviceId === currentDeviceId);
+      const next = list[(idx + 1) % list.length];
+      if (next) await room.switchActiveDevice('videoinput', next.deviceId, true);
+    } catch {
+    } finally {
+      setFlipping(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className="lk-ctrl"
+      onClick={flip}
+      disabled={flipping}
+      title="הפוך מצלמה (קדמית/אחורית)"
+      aria-label="הפוך מצלמה"
+    >
+      {flipping ? <Loader2 size={19} className="animate-spin" /> : <SwitchCamera size={19} />}
+      <span>הפוך מצלמה</span>
+    </button>
+  );
+}
 
 /** Compact tile for a connected participant whose camera is off (audio-only). */
 function NoVideoTile({ name, isLocal }: { name: string; isLocal?: boolean }) {
@@ -67,25 +268,99 @@ function CallStage({ clientName }: { clientName?: string }) {
     (p) => !remoteVideo.some((t) => t.participant.identity === p.identity)
   );
   const localVideoTracks = tracks.filter((t) => t.participant?.isLocal);
-  const remoteTiles = remoteVideo.length + remoteNoVideo.length;
 
   const displayName = (p: { name?: string; identity: string }) => p.name || '';
 
+  // WhatsApp-style layout: one MAIN tile + small floating tiles (PiP).
+  // `mainKey` is user-pinned; default = first remote (you see the other person big).
+  const [mainKey, setMainKey] = useState<string | null>(null);
+  const [showSwapHint, setShowSwapHint] = useState(false);
+
+  const localKey = `local-${localParticipant.identity}`;
+  const localEntry = localVideoTracks.length > 0
+    ? {
+        key: localKey,
+        node: (
+          <ParticipantTile
+            trackRef={localVideoTracks[0]}
+            className="lk-tile lk-tile-local"
+          />
+        )
+      }
+    : {
+        key: localKey,
+        node: <NoVideoTile isLocal name={displayName(localParticipant)} />
+      };
+
+  const tileEntries = [
+    ...remoteVideo.map((trackRef) => ({
+      key: `r-${trackRef.participant.identity}`,
+      node: <ParticipantTile trackRef={trackRef} className="lk-tile" />
+    })),
+    ...remoteNoVideo.map((p) => ({
+      key: `rn-${p.identity}`,
+      node: <NoVideoTile name={displayName(p)} />
+    })),
+    localEntry
+  ];
+
+  const autoMainKey = tileEntries.length > 1 && tileEntries[0].key !== localKey
+    ? tileEntries[0].key
+    : localKey;
+  const effectiveMainKey = tileEntries.some((t) => t.key === mainKey)
+    ? (mainKey as string)
+    : autoMainKey;
+  const pipEntries = tileEntries.filter((t) => t.key !== effectiveMainKey);
+  const hasPeer = pipEntries.length > 0;
+
+  // Brief onboarding hint once a peer is on stage
+  useEffect(() => {
+    if (!hasPeer) return;
+    setShowSwapHint(true);
+    const t = setTimeout(() => setShowSwapHint(false), 5000);
+    return () => clearTimeout(t);
+  }, [hasPeer]);
+
+  // Tap any tile: if it's the main one → the OTHER side becomes main;
+  // if it's a small one → IT becomes main. Feels exactly like WhatsApp.
+  const handleTileClick = (key: string) => {
+    if (key === effectiveMainKey) {
+      setMainKey(pipEntries[0]?.key ?? effectiveMainKey);
+    } else {
+      setMainKey(key);
+    }
+  };
+
+  const mainEntry = tileEntries.find((t) => t.key === effectiveMainKey) ?? localEntry;
+  const remoteTiles = remoteVideo.length + remoteNoVideo.length;
+
   return (
-    <div className={`lk-stage${remoteTiles > 1 ? ' lk-stage-2' : ''}`}>
-      {remoteVideo.map((trackRef) => (
-        <ParticipantTile key={trackRef.participant.identity} trackRef={trackRef} className="lk-tile" />
+    <div className="lk-stage">
+      <div
+        className="lk-cell lk-cell-main"
+        onClick={() => handleTileClick(effectiveMainKey)}
+        title="הקש/י כדי להחליף תצוגה"
+        role="button"
+        aria-label="החלפת תצוגה ראשית"
+      >
+        {mainEntry.node}
+        {showSwapHint && (
+          <span className="lk-swap-hint">👆 הקש/י על מסך כדי להחליף תצוגה</span>
+        )}
+      </div>
+      {pipEntries.map((entry, idx) => (
+        <div
+          key={entry.key}
+          className="lk-cell lk-cell-pip"
+          style={{ insetInlineEnd: 18 + idx * 124 }}
+          onClick={() => handleTileClick(entry.key)}
+          title="הקש/י כדי להגדיל"
+          role="button"
+          aria-label="הצגה במסך המלא"
+        >
+          {entry.node}
+        </div>
       ))}
-      {remoteNoVideo.map((p) => (
-        <NoVideoTile key={`novideo-${p.identity}`} name={displayName(p)} />
-      ))}
-      {/* Always render the local tile so the caller sees themselves even before the peer joins */}
-      {localVideoTracks.map((trackRef) => (
-        <ParticipantTile key={`local-${trackRef.participant.identity}`} trackRef={trackRef} className="lk-tile lk-tile-local" />
-      ))}
-      {localVideoTracks.length === 0 && (
-        <NoVideoTile isLocal name={displayName(localParticipant)} />
-      )}
       {remoteTiles === 0 && (
         <div className="lk-waiting" style={{
           display: 'flex',
@@ -95,8 +370,6 @@ function CallStage({ clientName }: { clientName?: string }) {
           gap: '10px',
           color: 'rgba(244, 249, 248, 0.75)',
           fontSize: '1.05rem',
-          border: '1.5px dashed rgba(13, 148, 136, 0.45)',
-          borderRadius: '14px',
           background: 'rgba(13, 148, 136, 0.06)'
         }}>
           <Loader2 size={26} className="animate-spin" color="#2dd4bf" />
@@ -117,6 +390,8 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
     const t = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(t);
   }, []);
+
+  useScreenWakeLock(connected);
 
   /**
    * The call record is closed by the HOST side (per the module's data contract):
@@ -226,6 +501,8 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         {/* Plays every REMOTE participant's mic/screen-share audio.
             ParticipantTile renders video only — without this, calls are silent. */}
         <RoomAudioRenderer />
+        {/* Keeps audio alive when the user minimizes the call / switches apps */}
+        <BackgroundAudioKeeper />
         {!connected ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'rgba(244,249,248,0.8)' }}>
             <Loader2 size={30} className="animate-spin" color="#2dd4bf" />
@@ -256,6 +533,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
               <VideoOff size={19} className="lk-icon-off" />
               <span>מצלמה</span>
             </TrackToggle>
+            <FlipCameraButton />
             <DisconnectButton className="lk-ctrl lk-ctrl-end">
               <PhoneOff size={19} />
               <span>{role === 'host' ? 'סיום שיחה' : 'יציאה מהשיחה'}</span>
@@ -266,14 +544,11 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
 
       <style>{`
         .lk-call-view .lk-tile { background: #0a2e2a; border-radius: 10px; overflow: hidden; border: 1px solid rgba(13,148,136,0.2); }
-        .lk-call-view .lk-tile-local { max-height: 100%; }
         /* Stage layout lives in CSS (not inline) so mobile media queries can override it */
         .lk-call-view .lk-stage {
-          flex: 1; min-height: 0;
-          display: grid; grid-template-columns: 1fr;
-          gap: 10px; padding: 14px;
+          position: relative; flex: 1; min-height: 0;
+          display: block; padding: 12px;
         }
-        .lk-call-view .lk-stage-2 { grid-template-columns: 1fr 1fr; }
         .lk-call-view .lk-tile-novideo {
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           gap: 8px; padding: 16px; text-align: center;
@@ -290,10 +565,43 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
           display: inline-flex; align-items: center; gap: 6px;
           color: rgba(244, 249, 248, 0.55); font-size: 0.82rem;
         }
-        @media (max-width: 760px) {
-          .lk-call-view .lk-novideo-avatar { width: 56px; height: 56px; font-size: 1.3rem; }
-          .lk-call-view .lk-novideo-name { font-size: 0.9rem; }
+
+        /* ===== WhatsApp-style stage: one MAIN tile + floating PiP tiles ===== */
+        .lk-call-view .lk-cell {
+          position: absolute; border-radius: 12px; overflow: hidden;
+          background: #0a2e2a; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+          transition: inset 0.25s ease, width 0.25s ease, height 0.25s ease, top 0.25s ease;
         }
+        .lk-call-view .lk-cell-main {
+          inset: 12px; width: auto; height: auto; z-index: 1;
+          border: 1px solid rgba(13,148,136,0.2);
+        }
+        .lk-call-view .lk-cell-pip {
+          top: 18px; width: 112px; height: 152px; z-index: 3;
+          border: 2px solid rgba(45, 212, 191, 0.65);
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+        }
+        .lk-call-view .lk-cell .lk-tile,
+        .lk-call-view .lk-cell .lk-tile-novideo {
+          width: 100%; height: 100%; border: none; border-radius: 0;
+        }
+        /* Compact rendering for a camera-off participant shown as PiP */
+        .lk-call-view .lk-cell-pip .lk-novideo-avatar { width: 40px; height: 40px; font-size: 1.05rem; }
+        .lk-call-view .lk-cell-pip .lk-novideo-name,
+        .lk-call-view .lk-cell-pip .lk-novideo-hint { display: none; }
+        .lk-call-view .lk-swap-hint {
+          position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+          background: rgba(4, 38, 35, 0.85); color: #e8f5f3;
+          padding: 7px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 500;
+          border: 1px solid rgba(13,148,136,0.4); white-space: nowrap;
+          pointer-events: none; animation: lkHintIn 0.3s ease;
+        }
+        @keyframes lkHintIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        /* Waiting notice: centered overlay above the (self-view) main tile */
+        .lk-call-view .lk-waiting {
+          position: absolute; inset: 12px; z-index: 2; border: 1.5px dashed rgba(13,148,136,0.45);
+        }
+
         .lk-call-view .lk-ctrl {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 10px 20px; border-radius: 100px; border: 1px solid rgba(13,148,136,0.4);
@@ -305,44 +613,28 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         .lk-call-view .lk-ctrl[aria-pressed="true"] .lk-icon-off { display: none; }
         .lk-call-view .lk-ctrl[aria-pressed="false"] { background: rgba(255,255,255,0.92); color: #053f3b; }
         .lk-call-view .lk-ctrl[aria-pressed="false"]:hover { background: #ffffff; }
+        .lk-call-view .lk-ctrl:disabled { opacity: 0.6; cursor: wait; }
         .lk-call-view .lk-ctrl-end { background: #dc2626; border-color: #ef4444; color: #ffffff; }
         .lk-call-view .lk-ctrl-end:hover { background: #b91c1c; }
 
-        /* ===== Mobile: familiar video-call layout (fill + floating self-view) ===== */
+        /* ===== Mobile: tighter chrome, smaller PiP ===== */
         @media (max-width: 760px) {
           .lk-call-view .lk-header { padding: 10px 14px; gap: 8px; }
           .lk-call-view .lk-title { font-size: 0.92rem; }
           .lk-call-view .lk-subtitle { display: none; }
-
-          .lk-call-view .lk-stage { position: relative; display: block; padding: 10px; }
-          /* !important: ParticipantTile applies its own INLINE position:relative,
-             which would otherwise beat these stylesheet rules */
-          .lk-call-view .lk-tile:not(.lk-tile-local) {
-            position: absolute !important; inset: 10px !important;
-            width: calc(100% - 20px) !important; height: calc(100% - 20px) !important; z-index: 1;
-          }
-          /* Waiting notice becomes a centered overlay instead of a row below */
-          .lk-call-view .lk-waiting {
-            position: absolute; inset: 0; z-index: 2; border: none; background: rgba(5, 48, 44, 0.25);
-          }
-          /* Self-view fills the stage while alone… */
-          .lk-call-view .lk-tile-local {
-            position: absolute !important; inset: 10px !important;
-            width: calc(100% - 20px) !important; height: calc(100% - 20px) !important; z-index: 2;
-          }
-          /* …and shrinks to a floating PiP once the peer's video arrives */
-          .lk-call-view .lk-stage:has(.lk-tile:not(.lk-tile-local)) .lk-tile-local {
-            top: auto !important; right: auto !important;
-            bottom: 20px !important; left: 20px !important;
-            width: 104px !important; height: 148px !important; z-index: 3;
-            border: 2px solid rgba(45, 212, 191, 0.65); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-          }
+          .lk-call-view .lk-stage { padding: 10px; }
+          .lk-call-view .lk-cell-main { inset: 10px; }
+          .lk-call-view .lk-cell-pip { top: 14px; width: 100px; height: 138px; }
+          .lk-call-view .lk-waiting { inset: 10px; border-radius: 10px; }
+          .lk-call-view .lk-novideo-avatar { width: 56px; height: 56px; font-size: 1.3rem; }
+          .lk-call-view .lk-novideo-name { font-size: 0.9rem; }
+          .lk-call-view .lk-swap-hint { font-size: 0.76rem; bottom: 10px; padding: 6px 12px; }
         }
 
         /* ===== Small phones: thumb-sized round controls, safe-area aware ===== */
         @media (max-width: 520px) {
           .lk-call-view .lk-controls {
-            gap: 14px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+            gap: 12px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
           }
           .lk-call-view .lk-ctrl {
             width: 52px; height: 52px; padding: 0; gap: 0;
