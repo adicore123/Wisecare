@@ -225,7 +225,7 @@ export default function LiveKitManager() {
           padding: '0', marginBottom: '24px', overflow: 'hidden',
           border: '1px solid rgba(13, 148, 136, 0.25)', borderRadius: '14px'
         }}>
-          <div style={{ height: '72vh', display: 'flex', flexDirection: 'column' }}>
+          <div className="lk-manager-stage" style={{ display: 'flex', flexDirection: 'column' }}>
             <LiveKitCallView
               session={{ callId: activeCall.callId, token: activeCall.token, serverUrl: activeCall.serverUrl }}
               role="host"
@@ -234,6 +234,12 @@ export default function LiveKitManager() {
               onExited={() => { setActiveCall(null); loadCalls(); }}
             />
           </div>
+          <style>{`
+            .lk-manager-stage { height: 72vh; }
+            @media (max-width: 760px) {
+              .lk-manager-stage { height: calc(100dvh - 190px); min-height: 420px; }
+            }
+          `}</style>
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
             padding: '12px 18px', flexWrap: 'wrap', borderTop: '1px solid rgba(13,148,136,0.15)'

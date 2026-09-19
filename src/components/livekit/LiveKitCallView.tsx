@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   LiveKitRoom,
   ParticipantTile,
+  RoomAudioRenderer,
   TrackToggle,
   DisconnectButton,
   useTracks
@@ -172,8 +173,8 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
             flexShrink: 0
           }} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ color: '#e8f5f3', fontWeight: 600, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
-            {subtitle && <div style={{ color: 'rgba(244,249,248,0.65)', fontSize: '0.82rem' }}>{subtitle}</div>}
+            <div className="lk-title" style={{ color: '#e8f5f3', fontWeight: 600, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</div>
+            {subtitle && <div className="lk-subtitle" style={{ color: 'rgba(244,249,248,0.65)', fontSize: '0.82rem' }}>{subtitle}</div>}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
@@ -197,6 +198,9 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         onDisconnected={handleDisconnected}
         style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}
       >
+        {/* Plays every REMOTE participant's mic/screen-share audio.
+            ParticipantTile renders video only — without this, calls are silent. */}
+        <RoomAudioRenderer />
         {!connected ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'rgba(244,249,248,0.8)' }}>
             <Loader2 size={30} className="animate-spin" color="#2dd4bf" />
@@ -251,6 +255,46 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         .lk-call-view .lk-ctrl[aria-pressed="false"]:hover { background: #ffffff; }
         .lk-call-view .lk-ctrl-end { background: #dc2626; border-color: #ef4444; color: #ffffff; }
         .lk-call-view .lk-ctrl-end:hover { background: #b91c1c; }
+
+        /* ===== Mobile: familiar video-call layout (fill + floating self-view) ===== */
+        @media (max-width: 760px) {
+          .lk-call-view .lk-header { padding: 10px 14px; gap: 8px; }
+          .lk-call-view .lk-title { font-size: 0.92rem; }
+          .lk-call-view .lk-subtitle { display: none; }
+
+          .lk-call-view .lk-stage { position: relative; display: block; padding: 10px; }
+          /* Remote tile fills the stage */
+          .lk-call-view .lk-tile:not(.lk-tile-local) {
+            position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); z-index: 1;
+          }
+          /* Waiting notice becomes a centered overlay instead of a row below */
+          .lk-call-view .lk-waiting {
+            position: absolute; inset: 0; z-index: 2; border: none; background: rgba(5, 48, 44, 0.25);
+          }
+          /* Self-view fills the stage while alone… */
+          .lk-call-view .lk-tile-local {
+            position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); z-index: 2;
+          }
+          /* …and shrinks to a floating PiP once the peer's video arrives */
+          .lk-call-view .lk-stage:has(.lk-tile:not(.lk-tile-local)) .lk-tile-local {
+            inset: auto; bottom: 22px; left: 22px; width: 104px; height: 148px; z-index: 3;
+            border: 2px solid rgba(45, 212, 191, 0.65); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+          }
+        }
+
+        /* ===== Small phones: thumb-sized round controls, safe-area aware ===== */
+        @media (max-width: 520px) {
+          .lk-call-view .lk-controls {
+            gap: 14px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+          }
+          .lk-call-view .lk-ctrl {
+            width: 52px; height: 52px; padding: 0; gap: 0;
+            justify-content: center; border-radius: 50%;
+          }
+          .lk-call-view .lk-ctrl span { display: none; }
+          .lk-call-view .lk-ctrl svg { width: 22px; height: 22px; }
+          .lk-call-view .lk-header .lk-title { font-size: 0.88rem; }
+        }
       `}</style>
     </div>
   );

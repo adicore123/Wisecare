@@ -1,16 +1,18 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { Loader2, Leaf, LinkIcon } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import { Loader2, Leaf, LinkIcon, Video, ShieldCheck } from 'lucide-react';
 import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
 
 /**
  * Standalone secure join page for a single video call: /join/{callId}/{token}.
  * The one-time link (sent via WhatsApp or copied by the therapist) is the
  * credential — no portal or login required, and it dies when the call ends.
+ * Joining is button-gated (never automatic): iOS/Safari require a user gesture
+ * before granting camera/mic and starting audio playback.
  */
 export default function JoinCallClient({ callId, token }: { callId: string; token: string }) {
-  const [phase, setPhase] = useState<'checking' | 'in-call' | 'invalid' | 'ended' | 'unavailable'>('checking');
+  const [phase, setPhase] = useState<'idle' | 'checking' | 'in-call' | 'invalid' | 'ended' | 'unavailable'>('idle');
   const [session, setSession] = useState<(ActiveCallSession & { therapistName?: string }) | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -41,13 +43,9 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
     }
   }, [callId, token]);
 
-  useEffect(() => {
-    tryJoin();
-  }, [tryJoin]);
-
   return (
     <div dir="rtl" style={{
-      minHeight: '100vh',
+      minHeight: '100dvh',
       display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(180deg, #04302c 0%, #053f3b 55%, #064a44 100%)',
@@ -59,7 +57,7 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
       <header style={{
         display: 'flex',
         alignItems: 'center',
-        padding: '16px 24px',
+        padding: 'clamp(10px, 2vw, 16px) clamp(14px, 3vw, 24px)',
         borderBottom: '1px solid rgba(13, 148, 136, 0.25)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 600, letterSpacing: '0.02em' }}>
@@ -74,7 +72,7 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
         </div>
       </header>
 
-      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: '18px' }}>
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, padding: 'clamp(8px, 2vw, 18px)' }}>
         {phase === 'in-call' && session ? (
           <LiveKitCallView
             session={session}
@@ -86,8 +84,37 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
         ) : (
           <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', justifyContent: 'center', gap: '16px', textAlign: 'center', padding: '30px'
+            alignItems: 'center', justifyContent: 'center', gap: '16px', textAlign: 'center', padding: '24px 16px'
           }}>
+            {phase === 'idle' && (
+              <>
+                <span style={{
+                  width: 88, height: 88, borderRadius: '50%', display: 'inline-flex',
+                  alignItems: 'center', justifyContent: 'center',
+                  background: 'rgba(13, 148, 136, 0.12)', border: '1.5px solid rgba(45, 212, 191, 0.5)'
+                }}>
+                  <Video size={36} color="#2dd4bf" />
+                </span>
+                <div style={{ fontSize: '1.35rem', fontWeight: 700 }}>מוזמנ/ת להצטרף לשיחת וידאו</div>
+                <div style={{ color: 'rgba(232,245,243,0.7)', maxWidth: '420px', lineHeight: 1.7 }}>
+                  כשתהיו מוכנים/ות — לחצו על הכפתור ותועברו ישר לשיחה.
+                  בכניסה הדפדפן יבקש לאפשר מצלמה ומיקרופון (מומלץ לאשר את שניהם).
+                </div>
+                <button type="button" onClick={tryJoin} style={{
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  minHeight: 56, padding: '14px 40px', borderRadius: '100px', cursor: 'pointer',
+                  background: '#059669', color: '#ffffff', border: 'none',
+                  fontSize: '1.08rem', fontWeight: 700,
+                  boxShadow: '0 10px 28px rgba(5, 150, 105, 0.35)'
+                }}>
+                  <Video size={22} />
+                  הצטרפ/י לשיחה
+                </button>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'rgba(232,245,243,0.5)', fontSize: '0.8rem' }}>
+                  <ShieldCheck size={14} /> שיחה מוצפנת ופרטית
+                </div>
+              </>
+            )}
             {phase === 'checking' && (
               <>
                 <Loader2 size={36} className="animate-spin" color="#2dd4bf" />
