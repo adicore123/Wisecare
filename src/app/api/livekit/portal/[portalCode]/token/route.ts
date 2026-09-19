@@ -34,6 +34,14 @@ export async function POST(
       return NextResponse.json({ error: 'המרחב האישי אינו פעיל' }, { status: 403 });
     }
 
+    // The therapist can switch the whole video module off per practice
+    const therapist = (client as any).therapistId
+      ? db.collection('users').findById((client as any).therapistId) as any
+      : null;
+    if (therapist?.videoCallsEnabled === false) {
+      return NextResponse.json({ error: 'שיחות הווידאו אינן זמינות במרחב זה' }, { status: 403 });
+    }
+
     const config = getLiveKitConfig();
     if (!config.configured) {
       return NextResponse.json(

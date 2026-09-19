@@ -20,6 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
     }
 
+    // Per-therapist module switch (Settings → שיחות וידאו)
+    const self = db.collection('users').findById(auth.userId) as any;
+    if (self?.videoCallsEnabled === false) {
+      return NextResponse.json(
+        { error: 'מודול שיחות הווידאו כבוי בהגדרות. ניתן להפעיל אותו ממסך ההגדרות של המטפל/ת.' },
+        { status: 403 }
+      );
+    }
+
     const config = getLiveKitConfig();
     if (!config.configured) {
       return NextResponse.json(

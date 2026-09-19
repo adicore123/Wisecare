@@ -668,21 +668,27 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     if (!portalCode) return undefined;
 
     let cancelled = false;
+    let interval: number | undefined;
     const checkActiveCall = async () => {
       try {
         const res = await fetch(`/api/livekit/portal/${portalCode}`);
         if (res.ok) {
           const data = await res.json();
           if (!cancelled) setActiveVideoCall(data.activeCall || null);
+          // Therapist switched the video module off — stop polling entirely
+          if (data.videoEnabled === false) {
+            cancelled = true;
+            if (interval) window.clearInterval(interval);
+          }
         }
       } catch { /* keep last known state */ }
     };
 
     checkActiveCall();
-    const interval = window.setInterval(checkActiveCall, 25000);
+    interval = window.setInterval(checkActiveCall, 25000);
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (interval) window.clearInterval(interval);
     };
   }, [portalCode]);
 

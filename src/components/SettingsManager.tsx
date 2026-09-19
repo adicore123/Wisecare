@@ -21,12 +21,18 @@ import {
   HeartHandshake,
   CheckCircle2,
   Calendar,
-  Layers
+  Layers,
+  Video
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
 import { THEME_PALETTES, applyTheme } from '@/lib/theme';
+
+const authHeaders = (): Record<string, string> => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('wisecare_token') || '' : '';
+  return { Authorization: `Bearer ${token}` };
+};
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('clinic'); // 'clinic' | 'whatsapp' | 'design'
@@ -58,6 +64,10 @@ export default function SettingsPage() {
   const [loadingQr, setLoadingQr] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Per-therapist video-calls module switch
+  const [videoEnabled, setVideoEnabled] = useState(true);
+  const [videoSaving, setVideoSaving] = useState(false);
+
   // Test WhatsApp
   const [testPhone, setTestPhone] = useState('');
   const [testResult, setTestResult] = useState(null);
@@ -86,6 +96,15 @@ export default function SettingsPage() {
         applyTheme(data.themeId);
       }
       checkStatus();
+
+      // Video module preference (per therapist)
+      try {
+        const videoRes = await fetch('/api/settings/video-calls', { headers: authHeaders() });
+        if (videoRes.ok) {
+          const videoData = await videoRes.json();
+          setVideoEnabled(videoData.enabled !== false);
+        }
+      } catch { /* default: enabled */ }
     } catch (err) {
       console.error('Failed to load settings:', err);
     } finally {
@@ -117,6 +136,40 @@ export default function SettingsPage() {
       setInstanceStatus({ configured: false, status: 'error', message: err.message });
     } finally {
       setCheckingStatus(false);
+    }
+  };
+
+  const toggleVideoModule = async () => {
+    if (videoSaving) return;
+    const next = !videoEnabled;
+    setVideoSaving(true);
+    try {
+      const res = await fetch('/api/settings/video-calls', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ enabled: next })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'שגיאה בעדכון ההגדרה');
+      }
+      setVideoEnabled(next);
+      // keep the cached user in sync so the sidebar hides/shows the module right away
+      try {
+        const stored = JSON.parse(localStorage.getItem('wisecare_user') || '{}');
+        stored.videoCallsEnabled = next;
+        localStorage.setItem('wisecare_user', JSON.stringify(stored));
+      } catch {}
+      showToast(
+        next
+          ? 'מודול שיחות הווידאו הופעל — הוא יופיע בתפריט הניווט'
+          : 'מודול שיחות הווידאו כובה — יוסר מהתפריט ולא יוצג למטופלים. רענן/י את הדף לעדכון התפריט',
+        'success'
+      );
+    } catch (err) {
+      showToast(err.message || 'שגיאה בעדכון ההגדרה', 'error');
+    } finally {
+      setVideoSaving(false);
     }
   };
 
@@ -259,6 +312,7 @@ export default function SettingsPage() {
 
       {/* TAB 1: פרטי העסק והקליניקה */}
       {activeTab === 'clinic' && (
+        <>
         <div>
           <form onSubmit={handleSaveSettings}>
             {/* Card: Core Clinic Details */}
@@ -509,6 +563,52 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+
+        {/* Video-calls module switch (per therapist) */}
+        <div className="card-table" style={{ padding: '28px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '18px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '10px',
+                background: videoEnabled ? '#ccfbf1' : '#f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Video size={22} color={videoEnabled ? '#0d9488' : '#94a3b8'} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>שיחות וידאו</h3>
+                <p style={{ fontSize: '0.85rem', color: '#64748b', maxWidth: '540px', lineHeight: 1.6 }}>
+                  שיחות וידאו פרטיות 1-על-1 עם מטופלים דרך המערכת. בעת כיבוי — המודול יוסר מהתפריט שלך,
+                  לא ניתן יהיה לפתוח שיחות, והמטופלים לא יראו אותו במרחב האישי.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={toggleVideoModule}
+              disabled={videoSaving}
+              aria-pressed={videoEnabled}
+              title={videoEnabled ? 'לחץ/י לכיבוי המודול' : 'לחץ/י להפעלת המודול'}
+              style={{
+                width: '64px', height: '34px', borderRadius: '100px', position: 'relative',
+                background: videoEnabled ? '#10b981' : '#cbd5e1', border: 'none',
+                cursor: videoSaving ? 'wait' : 'pointer', transition: 'background 0.2s ease',
+                flexShrink: 0, direction: 'ltr'
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: '3px', width: '28px', height: '28px', borderRadius: '50%',
+                background: '#ffffff', boxShadow: '0 1px 4px rgba(0,0,0,0.25)',
+                left: videoEnabled ? '33px' : '3px', transition: 'left 0.2s ease'
+              }} />
+            </button>
+          </div>
+        </div>
+        </>
       )}
 
       {/* TAB 2: WhatsApp ו-Green API */}

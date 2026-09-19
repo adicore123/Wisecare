@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Video, PhoneCall, Loader2, CheckCircle2, AlertCircle, Copy,
+  Video, VideoOff, PhoneCall, Loader2, CheckCircle2, AlertCircle, Copy,
   KeyRound, History, Users, X
 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -66,6 +66,7 @@ const formatStartedAt = (iso?: string): string => {
 
 export default function LiveKitManager() {
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [videoDisabled, setVideoDisabled] = useState(false);
   const [status, setStatus] = useState<LiveKitStatus | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -94,6 +95,11 @@ export default function LiveKitManager() {
         return;
       }
       setCurrentUser(parsed);
+      // Server is the source of truth — localStorage may hold a stale flag
+      fetch('/api/settings/video-calls', { headers: authHeaders() })
+        .then((r) => (r.ok ? r.json() : { enabled: true }))
+        .then((d) => { if (d.enabled === false) setVideoDisabled(true); })
+        .catch(() => {});
     } catch {
       window.location.href = '/login';
     }
@@ -170,6 +176,26 @@ export default function LiveKitManager() {
   return (
     <div className="page-content" dir="rtl">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+      {videoDisabled ? (
+        <div className="card" style={{ padding: '48px 28px', textAlign: 'center', maxWidth: '560px', margin: '48px auto' }}>
+          <div style={{
+            width: 68, height: 68, borderRadius: '18px', margin: '0 auto 18px',
+            background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <VideoOff size={32} color="#64748b" />
+          </div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '10px' }}>מודול שיחות הווידאו כבוי</h2>
+          <p style={{ color: 'var(--text-secondary, #64748b)', lineHeight: 1.7, marginBottom: '20px' }}>
+            שיחות הווידאו הושבתו עבור מרחב זה. המודול אינו מוצג בתפריט, ואינו זמין למטופלים במרחב האישי.
+            ניתן להפעיל אותו בחזרה ממסך ההגדרות, תחת "שיחות וידאו".
+          </p>
+          <button type="button" className="btn btn-primary" onClick={() => window.location.href = `/crm/${currentUser?.loginCode || ''}/settings`}>
+            מעבר להגדרות
+          </button>
+        </div>
+      ) : (
+      <>
 
       <div className="page-header" style={{ marginBottom: '22px' }}>
         <div>
@@ -343,6 +369,8 @@ export default function LiveKitManager() {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }

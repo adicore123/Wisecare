@@ -99,15 +99,17 @@ export default function Sidebar({
             <span>טפסים דיגיטליים וחתימות</span>
           </button>
 
-          <button
-            type="button"
-            className={`nav-item ${currentTab === 'meetings' ? 'active' : ''}`}
-            onClick={() => handleNavClick('meetings')}
-            aria-current={currentTab === 'meetings' ? 'page' : undefined}
-          >
-            <Webcam size={20} />
-            <span>פגישות וידאו</span>
-          </button>
+          {currentUser?.videoCallsEnabled !== false && (
+            <button
+              type="button"
+              className={`nav-item ${currentTab === 'meetings' ? 'active' : ''}`}
+              onClick={() => handleNavClick('meetings')}
+              aria-current={currentTab === 'meetings' ? 'page' : undefined}
+            >
+              <Webcam size={20} />
+              <span>פגישות וידאו</span>
+            </button>
+          )}
 
           <button 
             type="button"

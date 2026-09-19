@@ -23,9 +23,18 @@ export async function GET(
       return NextResponse.json({ error: 'המרחב האישי אינו פעיל' }, { status: 403 });
     }
 
+    // The therapist can switch the whole video module off per practice
+    const therapist = (client as any).therapistId
+      ? db.collection('users').findById((client as any).therapistId) as any
+      : null;
+    if (therapist?.videoCallsEnabled === false) {
+      return NextResponse.json({ videoEnabled: false, activeCall: null });
+    }
+
     const activeCall = db.collection('videoCalls').findOne({ clientId: client.id, status: 'active' }) as any;
 
     return NextResponse.json({
+      videoEnabled: true,
       activeCall: activeCall
         ? {
             id: activeCall.id,
