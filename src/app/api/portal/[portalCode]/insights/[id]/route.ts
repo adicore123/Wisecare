@@ -21,6 +21,7 @@ export async function DELETE(
     }
 
     insights.deleteById(id);
+    await db.flush();
     return NextResponse.json({ success: true, message: 'התובנה נמחקה' });
   } catch (error: any) {
     console.error('[Portal Delete Insight Error]', error);
@@ -60,6 +61,7 @@ export async function PUT(
 
     const updated = insights.updateById(id, updateFields);
 
+    await db.flush();
     return NextResponse.json({
       success: true,
       message: 'התובנה עודכנה בהצלחה',

@@ -855,8 +855,8 @@
       "username": "client6303",
       "whatsappStatus": "not_sent",
       "archived": true,
-      "deletedAt": "2026-09-19T15:03:43.941Z",
-      "updatedAt": "2026-09-19T15:03:43.941Z"
+      "deletedAt": "2026-09-19T15:40:45.545Z",
+      "updatedAt": "2026-09-19T15:40:45.545Z"
     },
     {
       "age": null,
@@ -879,8 +879,8 @@
       "username": "client2867",
       "whatsappStatus": "not_sent",
       "archived": true,
-      "deletedAt": "2026-09-19T14:08:17.732Z",
-      "updatedAt": "2026-09-19T14:08:17.732Z"
+      "deletedAt": "2026-09-19T15:40:55.754Z",
+      "updatedAt": "2026-09-19T15:40:55.754Z"
     },
     {
       "age": null,
@@ -903,8 +903,125 @@
       "username": "client9216",
       "whatsappStatus": "not_sent",
       "archived": true,
-      "deletedAt": "2026-09-19T14:26:45.048Z",
-      "updatedAt": "2026-09-19T14:26:45.048Z"
+      "deletedAt": "2026-09-19T15:40:20.835Z",
+      "updatedAt": "2026-09-19T15:40:20.835Z"
+    },
+    {
+      "age": 37,
+      "clientSetsCredentials": true,
+      "createdAt": "2026-09-19T15:15:08.133Z",
+      "firstName": "אליאור",
+      "gender": "זכר",
+      "hasPassword": false,
+      "id": "id-1789830908133-8708d915",
+      "initialPassword": "",
+      "lastName": "פרץ",
+      "lastSentAt": null,
+      "notes": "",
+      "password": "",
+      "phone": "+972 50-431-2884",
+      "pin": "2800",
+      "portalCode": "client-773649",
+      "portalEnabled": false,
+      "therapistId": "id-1789597934999-c44752d1",
+      "username": "client5029",
+      "whatsappStatus": "not_sent"
+    },
+    {
+      "age": null,
+      "clientSetsCredentials": false,
+      "createdAt": "2026-09-19T15:55:18.942Z",
+      "firstName": "בדיקת",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789833318942-9527d64c",
+      "initialPassword": "$KTv%K%8",
+      "lastName": "מחיקה-נצחית",
+      "lastSentAt": null,
+      "notes": "",
+      "password": "3fc92b52e91aa4da44df94d5f8190a1f:df791f5aadccc218eb26490a63ce2f17f5aa2f39876efa80ed72475088475cbdad3bc3eafd9d509b76d6846778c4bd57fb4b1142eae174749ba79e00e69c3706",
+      "phone": "0599999996",
+      "pin": "6190",
+      "portalCode": "client-184778",
+      "portalEnabled": false,
+      "therapistId": "therapist-1",
+      "username": "client3625",
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T15:55:19.250Z",
+      "updatedAt": "2026-09-19T15:55:19.250Z"
+    },
+    {
+      "age": null,
+      "clientSetsCredentials": false,
+      "createdAt": "2026-09-19T15:55:19.591Z",
+      "firstName": "בדיקת",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789833319590-a968c67a",
+      "initialPassword": "LzQ7@o7E",
+      "lastName": "פרג-purge",
+      "lastSentAt": null,
+      "notes": "",
+      "password": "f2aab91ab8a1fe97bff5f0088f2e38ff:ae9cb3f7dc97c3ac9c550c6bc728a77838c84cdef9c085d600abc46561fb4375e8a933e7d352bd6e5e914055d3cea63e80f36607bb6a43e6d9ee59d7dee33960",
+      "phone": "0599999995",
+      "pin": "9730",
+      "portalCode": "client-915016",
+      "portalEnabled": false,
+      "therapistId": "therapist-1",
+      "username": "client5549",
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T15:55:20.617Z",
+      "updatedAt": "2026-09-19T15:55:20.617Z"
+    },
+    {
+      "age": null,
+      "clientSetsCredentials": false,
+      "createdAt": "2026-09-19T16:01:49.820Z",
+      "firstName": "בדיקת",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789833709820-0ad5ebd3",
+      "initialPassword": "$yDuE4t9",
+      "lastName": "UI-בלי-רענון",
+      "lastSentAt": null,
+      "notes": "",
+      "password": "4821a0553714ae9cec5f2dbdf7122653:04f468357190aee0eee2f2f2df3200121825a400e3072ccc3fa36a6dafef3b4c8adb5d87a670e6bd9c63ae9e0cd509063d0834001f261c52dd7e725351eb0c1c",
+      "phone": "0599999990",
+      "pin": "8054",
+      "portalCode": "client-216978",
+      "portalEnabled": false,
+      "therapistId": "therapist-1",
+      "username": "client7593",
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:03:02.138Z",
+      "updatedAt": "2026-09-19T16:03:02.138Z"
+    },
+    {
+      "id": "id-1789833805261-d9cb5452",
+      "createdAt": "2026-09-19T16:03:25.261Z",
+      "therapistId": "therapist-1",
+      "firstName": "בדיקת",
+      "lastName": "UI-בלי-רענון",
+      "phone": "0599999990",
+      "username": "client4492",
+      "password": "469c783923b07a58b23f0fa45df50dbf:8cb369900a1188c4084d578c12c74d4157631c255bb9ef43920f241ce90ffd95ef1a03e9fc4badbdc3bb4752507c1613ad648551361efd4c7de8ef372299609e",
+      "initialPassword": "W2%qjcJk",
+      "hasPassword": true,
+      "clientSetsCredentials": false,
+      "age": null,
+      "gender": "זכר",
+      "notes": "",
+      "portalEnabled": false,
+      "portalCode": "client-154796",
+      "pin": "7215",
+      "whatsappStatus": "not_sent",
+      "lastSentAt": null,
+      "archived": true,
+      "deletedAt": "2026-09-19T16:03:32.840Z",
+      "updatedAt": "2026-09-19T16:03:32.840Z"
     }
   ],
   "tasks": [
@@ -4958,380 +5075,787 @@
       "timestamp": "2026-09-19T15:05:44.646Z"
     },
     {
-      "id": "id-1789830535171-84a3d98a",
-      "createdAt": "2026-09-19T15:08:55.172Z",
+      "action": "login_success",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "login_success",
-      "targetId": "therapist-1",
+      "createdAt": "2026-09-19T15:08:55.172Z",
+      "id": "id-1789830535171-84a3d98a",
       "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
       "timestamp": "2026-09-19T15:08:55.171Z"
     },
     {
-      "id": "id-1789830535587-de254440",
-      "createdAt": "2026-09-19T15:08:55.587Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789825431700-42d804bb",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:55.587Z",
       "details": {
         "clientName": "ניסיון מתוכנן",
         "date": "2026-09-19",
         "time": "16:45",
         "status": "started"
       },
+      "id": "id-1789830535587-de254440",
+      "targetId": "id-1789825431700-42d804bb",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:55.587Z"
     },
     {
-      "id": "id-1789830535880-7c5edf6e",
-      "createdAt": "2026-09-19T15:08:55.880Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789826893345-6e9177b9",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:55.880Z",
       "details": {
         "clientName": "ניסיון מתוכנן-UI",
         "date": "2026-09-19",
         "time": "18:30",
         "status": "cancelled"
       },
+      "id": "id-1789830535880-7c5edf6e",
+      "targetId": "id-1789826893345-6e9177b9",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:55.880Z"
     },
     {
-      "id": "id-1789830536170-74081c80",
-      "createdAt": "2026-09-19T15:08:56.170Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789825368097-4ffc3cf1",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:56.170Z",
       "details": {
         "clientName": "ניסיון מתוכנן",
         "date": "2026-09-19",
         "time": "18:42",
         "status": "cancelled"
       },
+      "id": "id-1789830536170-74081c80",
+      "targetId": "id-1789825368097-4ffc3cf1",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:56.170Z"
     },
     {
-      "id": "id-1789830536463-e6cdd1b9",
-      "createdAt": "2026-09-19T15:08:56.463Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789825431068-3ffcbe6f",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:56.463Z",
       "details": {
         "clientName": "ניסיון מתוכנן",
         "date": "2026-09-19",
         "time": "18:43",
         "status": "cancelled"
       },
+      "id": "id-1789830536463-e6cdd1b9",
+      "targetId": "id-1789825431068-3ffcbe6f",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:56.463Z"
     },
     {
-      "id": "id-1789830536748-bdfdc42f",
-      "createdAt": "2026-09-19T15:08:56.749Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789827961222-bb8b7a56",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:56.749Z",
       "details": {
         "clientName": "ניסיון טבלאות",
         "date": "2026-09-19",
         "time": "18:45",
         "status": "cancelled"
       },
+      "id": "id-1789830536748-bdfdc42f",
+      "targetId": "id-1789827961222-bb8b7a56",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:56.748Z"
     },
     {
-      "id": "id-1789830537043-78d39065",
-      "createdAt": "2026-09-19T15:08:57.043Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789827989306-b8e52896",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:57.043Z",
       "details": {
         "clientName": "ניסיון טבלאות",
         "date": "2026-09-19",
         "time": "18:45",
         "status": "cancelled"
       },
+      "id": "id-1789830537043-78d39065",
+      "targetId": "id-1789827989306-b8e52896",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:57.043Z"
     },
     {
-      "id": "id-1789830537336-80bd1f59",
-      "createdAt": "2026-09-19T15:08:57.336Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789827969814-b71cbd01",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:57.336Z",
       "details": {
         "clientName": "ניסיון טבלאות",
         "date": "2026-09-19",
         "time": "19:15",
         "status": "cancelled"
       },
+      "id": "id-1789830537336-80bd1f59",
+      "targetId": "id-1789827969814-b71cbd01",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:57.336Z"
     },
     {
-      "id": "id-1789830537625-0c7a70c3",
-      "createdAt": "2026-09-19T15:08:57.625Z",
+      "action": "delete_scheduled_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_scheduled_call_record",
-      "targetId": "id-1789827994772-16750319",
-      "targetType": "scheduledCall",
+      "createdAt": "2026-09-19T15:08:57.625Z",
       "details": {
         "clientName": "ניסיון טבלאות",
         "date": "2026-09-19",
         "time": "19:15",
         "status": "cancelled"
       },
+      "id": "id-1789830537625-0c7a70c3",
+      "targetId": "id-1789827994772-16750319",
+      "targetType": "scheduledCall",
       "timestamp": "2026-09-19T15:08:57.625Z"
     },
     {
-      "id": "id-1789830537931-68dc865d",
-      "createdAt": "2026-09-19T15:08:57.931Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789825583224-5d74415d",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:57.931Z",
       "details": {
         "clientName": "ניסיון מתוכנן",
         "startedAt": "2026-09-19T13:46:23.224Z"
       },
+      "id": "id-1789830537931-68dc865d",
+      "targetId": "id-1789825583224-5d74415d",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:57.931Z"
     },
     {
-      "id": "id-1789830538216-e9ffddac",
-      "createdAt": "2026-09-19T15:08:58.216Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820839812-2216f101",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:58.216Z",
       "details": {
         "clientName": "ניסיון פרוד-בדיקה",
         "startedAt": "2026-09-19T12:27:19.812Z"
       },
+      "id": "id-1789830538216-e9ffddac",
+      "targetId": "id-1789820839812-2216f101",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:58.216Z"
     },
     {
-      "id": "id-1789830538500-4822c5f9",
-      "createdAt": "2026-09-19T15:08:58.500Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820630308-3f6d03e7",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:58.500Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:23:50.308Z"
       },
+      "id": "id-1789830538500-4822c5f9",
+      "targetId": "id-1789820630308-3f6d03e7",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:58.500Z"
     },
     {
-      "id": "id-1789830538792-53dbd75c",
-      "createdAt": "2026-09-19T15:08:58.792Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820557479-f6aa5b85",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:58.792Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:22:37.478Z"
       },
+      "id": "id-1789830538792-53dbd75c",
+      "targetId": "id-1789820557479-f6aa5b85",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:58.792Z"
     },
     {
-      "id": "id-1789830539081-5bd016c3",
-      "createdAt": "2026-09-19T15:08:59.081Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820552470-6b27d492",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:59.081Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:22:32.470Z"
       },
+      "id": "id-1789830539081-5bd016c3",
+      "targetId": "id-1789820552470-6b27d492",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:59.081Z"
     },
     {
-      "id": "id-1789830539366-b8061e97",
-      "createdAt": "2026-09-19T15:08:59.366Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820474614-4c0b73a5",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:59.366Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:21:14.614Z"
       },
+      "id": "id-1789830539366-b8061e97",
+      "targetId": "id-1789820474614-4c0b73a5",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:59.366Z"
     },
     {
-      "id": "id-1789830539656-c06efbb5",
-      "createdAt": "2026-09-19T15:08:59.656Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820439475-9fd6654c",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:59.656Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:20:39.475Z"
       },
+      "id": "id-1789830539656-c06efbb5",
+      "targetId": "id-1789820439475-9fd6654c",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:59.656Z"
     },
     {
-      "id": "id-1789830539944-761bded8",
-      "createdAt": "2026-09-19T15:08:59.944Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820375326-f4962836",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:08:59.944Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:19:35.326Z"
       },
+      "id": "id-1789830539944-761bded8",
+      "targetId": "id-1789820375326-f4962836",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:08:59.944Z"
     },
     {
-      "id": "id-1789830540231-830e01ee",
-      "createdAt": "2026-09-19T15:09:00.231Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820370337-8ffe6cc5",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:00.231Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:19:30.336Z"
       },
+      "id": "id-1789830540231-830e01ee",
+      "targetId": "id-1789820370337-8ffe6cc5",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:00.231Z"
     },
     {
-      "id": "id-1789830540525-9d2a2f4e",
-      "createdAt": "2026-09-19T15:09:00.525Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789820283389-fb6882cc",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:00.525Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:18:03.389Z"
       },
+      "id": "id-1789830540525-9d2a2f4e",
+      "targetId": "id-1789820283389-fb6882cc",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:00.525Z"
     },
     {
-      "id": "id-1789830540811-ef1160d2",
-      "createdAt": "2026-09-19T15:09:00.811Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789819605629-b0f3fb56",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:00.811Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:06:45.629Z"
       },
+      "id": "id-1789830540811-ef1160d2",
+      "targetId": "id-1789819605629-b0f3fb56",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:00.811Z"
     },
     {
-      "id": "id-1789830541098-280bc7cd",
-      "createdAt": "2026-09-19T15:09:01.098Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789819568147-b904e847",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:01.098Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:06:08.144Z"
       },
+      "id": "id-1789830541098-280bc7cd",
+      "targetId": "id-1789819568147-b904e847",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:01.098Z"
     },
     {
-      "id": "id-1789830541390-4c9baf33",
-      "createdAt": "2026-09-19T15:09:01.390Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789819549551-464b1156",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:01.390Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:05:49.551Z"
       },
+      "id": "id-1789830541390-4c9baf33",
+      "targetId": "id-1789819549551-464b1156",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:01.390Z"
     },
     {
-      "id": "id-1789830541681-3ad1f5f8",
-      "createdAt": "2026-09-19T15:09:01.681Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789819456144-dcf30db9",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:01.681Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T12:04:16.143Z"
       },
+      "id": "id-1789830541681-3ad1f5f8",
+      "targetId": "id-1789819456144-dcf30db9",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:01.681Z"
     },
     {
-      "id": "id-1789830541970-ed0b21f6",
-      "createdAt": "2026-09-19T15:09:01.970Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789818830710-b64c1084",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:01.970Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T11:53:50.709Z"
       },
+      "id": "id-1789830541970-ed0b21f6",
+      "targetId": "id-1789818830710-b64c1084",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:01.970Z"
     },
     {
-      "id": "id-1789830542257-707ad51a",
-      "createdAt": "2026-09-19T15:09:02.257Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789818768002-98cb2248",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:02.257Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T11:52:48.001Z"
       },
+      "id": "id-1789830542257-707ad51a",
+      "targetId": "id-1789818768002-98cb2248",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:02.257Z"
     },
     {
-      "id": "id-1789830542543-a5453ad3",
-      "createdAt": "2026-09-19T15:09:02.543Z",
+      "action": "delete_video_call_record",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "delete_video_call_record",
-      "targetId": "id-1789816619578-98556acc",
-      "targetType": "videoCall",
+      "createdAt": "2026-09-19T15:09:02.543Z",
       "details": {
         "clientName": "ניסיון אורח-וידאו",
         "startedAt": "2026-09-19T11:16:59.577Z"
       },
+      "id": "id-1789830542543-a5453ad3",
+      "targetId": "id-1789816619578-98556acc",
+      "targetType": "videoCall",
       "timestamp": "2026-09-19T15:09:02.543Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:29.184Z",
+      "id": "id-1789830629184-acc41b73",
+      "ip": "46.117.28.6",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T15:10:29.184Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:34.576Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "date": "2026-09-19",
+        "time": "16:45",
+        "status": "started"
+      },
+      "id": "id-1789830634576-811c3324",
+      "targetId": "id-1789825431700-42d804bb",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:34.576Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:35.113Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן-UI",
+        "date": "2026-09-19",
+        "time": "18:30",
+        "status": "cancelled"
+      },
+      "id": "id-1789830635113-43ec5444",
+      "targetId": "id-1789826893345-6e9177b9",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:35.113Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:35.488Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "date": "2026-09-19",
+        "time": "18:42",
+        "status": "cancelled"
+      },
+      "id": "id-1789830635488-71bc8943",
+      "targetId": "id-1789825368097-4ffc3cf1",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:35.488Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:35.987Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "date": "2026-09-19",
+        "time": "18:43",
+        "status": "cancelled"
+      },
+      "id": "id-1789830635987-c315be85",
+      "targetId": "id-1789825431068-3ffcbe6f",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:35.987Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:36.504Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "date": "2026-09-19",
+        "time": "18:45",
+        "status": "cancelled"
+      },
+      "id": "id-1789830636504-7e64e348",
+      "targetId": "id-1789827961222-bb8b7a56",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:36.504Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:36.985Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "date": "2026-09-19",
+        "time": "18:45",
+        "status": "cancelled"
+      },
+      "id": "id-1789830636985-877dd42f",
+      "targetId": "id-1789827989306-b8e52896",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:36.985Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:37.354Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "date": "2026-09-19",
+        "time": "19:15",
+        "status": "cancelled"
+      },
+      "id": "id-1789830637353-a896237b",
+      "targetId": "id-1789827969814-b71cbd01",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:37.353Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:37.842Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "date": "2026-09-19",
+        "time": "19:15",
+        "status": "cancelled"
+      },
+      "id": "id-1789830637842-45ff21e3",
+      "targetId": "id-1789827994772-16750319",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:10:37.842Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:10:57.237Z",
+      "id": "id-1789830657237-a0a0bd8b",
+      "ip": "46.117.28.6",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T15:10:57.237Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:12:52.519Z",
+      "id": "id-1789830772519-885d4339",
+      "ip": "46.117.28.6",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-19T15:12:52.519Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:14:37.791Z",
+      "id": "id-1789830877791-f5b64087",
+      "targetId": "id-1789597934999-c44752d1",
+      "timestamp": "2026-09-19T15:14:37.791Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:03.750Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "phone": "0599999999"
+      },
+      "id": "id-1789832403750-ea5abce1",
+      "targetId": "id-1789825361039-261a07a8",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:03.750Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:20.839Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "phone": "0599999997"
+      },
+      "id": "id-1789832420839-997ae5ee",
+      "targetId": "id-1789827960913-b1884d6e",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:20.839Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:25.041Z",
+      "details": {
+        "clientName": "ניסיון טבלאות",
+        "phone": "0599999997"
+      },
+      "id": "id-1789832425041-b7e020c3",
+      "targetId": "id-1789827960913-b1884d6e",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:25.041Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:33.803Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן-UI",
+        "phone": "0599999998"
+      },
+      "id": "id-1789832433803-09730a1c",
+      "targetId": "id-1789825985416-07913092",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:33.803Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:45.548Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "phone": "0599999999"
+      },
+      "id": "id-1789832445547-82e1fd96",
+      "targetId": "id-1789825361039-261a07a8",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:45.547Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:51.044Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן",
+        "phone": "0599999999"
+      },
+      "id": "id-1789832451044-27b9121c",
+      "targetId": "id-1789825361039-261a07a8",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:51.044Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:40:55.757Z",
+      "details": {
+        "clientName": "ניסיון מתוכנן-UI",
+        "phone": "0599999998"
+      },
+      "id": "id-1789832455757-84cd57bb",
+      "targetId": "id-1789825985416-07913092",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:40:55.757Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:55:18.845Z",
+      "id": "id-1789833318845-bdf92375",
+      "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T15:55:18.845Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:55:19.253Z",
+      "details": {
+        "clientName": "בדיקת מחיקה-נצחית",
+        "phone": "0599999996"
+      },
+      "id": "id-1789833319253-dd1b769f",
+      "targetId": "id-1789833318942-9527d64c",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:55:19.253Z"
+    },
+    {
+      "action": "delete_scheduled_call_record",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T15:55:20.606Z",
+      "details": {
+        "clientName": "בדיקת פרג-purge",
+        "date": "2026-09-19",
+        "time": "21:30",
+        "status": "scheduled"
+      },
+      "id": "id-1789833320606-f465ddc6",
+      "targetId": "id-1789833319918-f3d8651e",
+      "targetType": "scheduledCall",
+      "timestamp": "2026-09-19T15:55:20.606Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:55:20.621Z",
+      "details": {
+        "clientName": "בדיקת פרג-purge",
+        "phone": "0599999995"
+      },
+      "id": "id-1789833320621-cb2d58ce",
+      "targetId": "id-1789833319590-a968c67a",
+      "targetType": "client",
+      "timestamp": "2026-09-19T15:55:20.621Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "tmp_del_test",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T15:55:21.174Z",
+      "id": "id-1789833321174-563c13e9",
+      "ip": "::ffff:127.0.0.1",
+      "targetId": "id-1789833320950-cf3f3544",
+      "timestamp": "2026-09-19T15:55:21.174Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T16:00:22.043Z",
+      "id": "id-1789833622043-8b9c6594",
+      "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T16:00:22.043Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "tmp_dur_test",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T16:00:22.741Z",
+      "id": "id-1789833622741-153646c6",
+      "ip": "::ffff:127.0.0.1",
+      "targetId": "id-1789833622140-045d3e44",
+      "timestamp": "2026-09-19T16:00:22.741Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T16:01:49.734Z",
+      "id": "id-1789833709734-1c0a9000",
+      "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T16:01:49.734Z"
+    },
+    {
+      "id": "id-1789833774746-0db30577",
+      "createdAt": "2026-09-19T16:02:54.746Z",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "action": "login_success",
+      "targetId": "therapist-1",
+      "ip": "::ffff:127.0.0.1",
+      "timestamp": "2026-09-19T16:02:54.746Z"
+    },
+    {
+      "id": "id-1789833782142-d739200d",
+      "createdAt": "2026-09-19T16:03:02.142Z",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "action": "archive_client",
+      "targetId": "id-1789833709820-0ad5ebd3",
+      "targetType": "client",
+      "details": {
+        "clientName": "בדיקת UI-בלי-רענון",
+        "phone": "0599999990"
+      },
+      "timestamp": "2026-09-19T16:03:02.142Z"
+    },
+    {
+      "id": "id-1789833805195-e4ac094f",
+      "createdAt": "2026-09-19T16:03:25.196Z",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "action": "login_success",
+      "targetId": "therapist-1",
+      "ip": "::ffff:127.0.0.1",
+      "timestamp": "2026-09-19T16:03:25.195Z"
+    },
+    {
+      "id": "id-1789833812843-21544f31",
+      "createdAt": "2026-09-19T16:03:32.843Z",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "action": "archive_client",
+      "targetId": "id-1789833805261-d9cb5452",
+      "targetType": "client",
+      "details": {
+        "clientName": "בדיקת UI-בלי-רענון",
+        "phone": "0599999990"
+      },
+      "timestamp": "2026-09-19T16:03:32.843Z"
     }
   ],
   "videoCalls": [
@@ -5653,6 +6177,22 @@
       "durationSec": 0,
       "endedAt": "2026-09-19T12:37:28.527Z",
       "updatedAt": "2026-09-19T12:37:28.527Z"
+    },
+    {
+      "clientId": "id-1789830908133-8708d915",
+      "clientName": "אליאור פרץ",
+      "createdAt": "2026-09-19T15:15:24.873Z",
+      "id": "id-1789830924873-9f74d020",
+      "joinTokenHash": "2b376a111c6c48e296d34a81912277b98a4178a54f38c75cae8a972a0217ccfb",
+      "room": "customer_id-1789830908133-8708d915",
+      "startedAt": "2026-09-19T15:15:24.872Z",
+      "startedBy": "therapist",
+      "status": "ended",
+      "therapistId": "id-1789597934999-c44752d1",
+      "therapistName": "עדי",
+      "durationSec": 253,
+      "endedAt": "2026-09-19T15:19:37.577Z",
+      "updatedAt": "2026-09-19T15:19:37.578Z"
     }
   ],
   "scheduledCalls": []

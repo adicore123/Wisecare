@@ -4,16 +4,23 @@ import { getAuthFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || auth.role !== 'superadmin') {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
     }
 
+    // Archived (deleted) clients are hidden by default so deletions visibly
+    // stick; pass ?includeArchived=1 to inspect the archive.
+    const includeArchived = new URL(request.url).searchParams.get('includeArchived') === '1';
+
     const clientsCollection = db.collection('clients');
     const usersCollection = db.collection('users');
     const tasksCollection = db.collection('tasks');
 
-    const allClients = clientsCollection.find().map((client: any) => {
+    const allClients = clientsCollection.find()
+      .filter((client: any) => includeArchived || !client.archived)
+      .map((client: any) => {
       let therapist = null;
       if (client.therapistId) {
         const t = usersCollection.findById(client.therapistId);

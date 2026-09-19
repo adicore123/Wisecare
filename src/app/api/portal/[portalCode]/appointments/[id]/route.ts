@@ -18,6 +18,7 @@ export async function DELETE(
     }
 
     db.collection('appointments').deleteById(id);
+    await db.flush();
     return NextResponse.json({ success: true, message: 'הפגישה נמחקה בהצלחה' });
   } catch (error: any) {
     console.error('[Portal Delete Appointment Error]', error);

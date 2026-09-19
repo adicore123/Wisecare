@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
 
     // Full settings for authenticated users
     if (auth && (auth.role === 'therapist' || auth.role === 'superadmin')) {
+      await db.flush();
       return NextResponse.json(settings);
     }
 
@@ -28,6 +29,7 @@ export async function GET(request: NextRequest) {
       defaultMessageTemplate: settings.defaultMessageTemplate
     };
 
+    await db.flush();
     return NextResponse.json(publicSettings);
   } catch (error: any) {
     console.error('[Settings GET Error]', error);
@@ -72,6 +74,7 @@ export async function PUT(request: NextRequest) {
     if (body.clinicArrivalInstructions !== undefined) update.clinicArrivalInstructions = body.clinicArrivalInstructions;
 
     const updated = db.updateSettings(update);
+    await db.flush();
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error('[Settings PUT Error]', error);

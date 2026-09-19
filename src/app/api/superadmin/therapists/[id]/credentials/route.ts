@@ -81,6 +81,7 @@ ${password ? `🔑 סיסמה חדשה: ${password}` : ''}
       }
     }
 
+    await db.flush();
     return NextResponse.json({
       success: true,
       message: 'פרטי הגישה עודכנו בהצלחה',

@@ -6,6 +6,7 @@ import { sendScheduledCallCancellation } from '@/services/scheduledCallScheduler
 /**
  * DELETE /api/livekit/schedule/{id}
  * - status 'scheduled' → cancel (WhatsApp notice to the client) and keep the record
+ * - status 'scheduled' + ?purge=1 → hard-delete without a WhatsApp notice
  * - any other status (cancelled / started / missed) → purge the record entirely
  */
 export async function DELETE(
@@ -20,15 +21,17 @@ export async function DELETE(
     }
 
     const { id } = await props.params;
+    const purge = new URL(request.url).searchParams.get('purge') === '1';
     const schedule = db.collection('scheduledCalls').findById(id) as any;
     if (!schedule) {
       return NextResponse.json({ error: 'השיחה המתוכננת לא נמצאה' }, { status: 404 });
     }
-    if (schedule.therapistId !== auth.userId) {
+    // Ownership applies to therapists only — a superadmin token may clean up any record
+    if (auth.role === 'therapist' && schedule.therapistId !== auth.userId) {
       return NextResponse.json({ error: 'אין לך הרשאה לבטל שיחה זו' }, { status: 403 });
     }
 
-    if (schedule.status === 'scheduled') {
+    if (schedule.status === 'scheduled' && !purge) {
       db.collection('scheduledCalls').updateOne({ id: schedule.id }, {
         status: 'cancelled',
         cancelledAt: new Date().toISOString()

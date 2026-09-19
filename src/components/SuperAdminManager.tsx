@@ -366,6 +366,7 @@ export default function SuperAdminPage({
   const [searchTerm, setSearchTerm] = useState('');
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState('all'); // 'all' | 'clinic' | 'self_care'
+  const [showArchived, setShowArchived] = useState(false);
   const [impersonatingClientId, setImpersonatingClientId] = useState(null);
   const [impersonatingTherapistId, setImpersonatingTherapistId] = useState<string | null>(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -529,7 +530,7 @@ export default function SuperAdminPage({
         api.getSuperadminStats(),
         api.getTherapists(),
         api.getSuperadminSettings().catch(() => null),
-        api.getSuperadminClients().catch(() => [])
+        api.getSuperadminClients(showArchived).catch(() => [])
       ]);
       setStats(statsRes);
       setTherapists(therapistsRes || []);
@@ -2478,6 +2479,26 @@ export default function SuperAdminPage({
                       משויכי קליניקה ({clinicClients.length})
                     </button>
                   </div>
+
+                  <label style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    fontSize: '0.84rem', color: '#475569', fontWeight: 600,
+                    cursor: 'pointer', userSelect: 'none'
+                  }} title="לקוחות שנמחקו (ארכיון) מוסתרים כברירת מחדל">
+                    <input
+                      type="checkbox"
+                      checked={showArchived}
+                      onChange={async (e) => {
+                        const next = e.target.checked;
+                        setShowArchived(next);
+                        try {
+                          const res = await api.getSuperadminClients(next).catch(() => []);
+                          setClients(res || []);
+                        } catch { /* keep previous list */ }
+                      }}
+                    />
+                    הצגת ארכיון
+                  </label>
                 </div>
 
                 <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
@@ -2535,7 +2556,17 @@ export default function SuperAdminPage({
                                   {firstLetter}
                                 </div>
                                 <div>
-                                  <div style={{ fontWeight: 600, color: '#0f172a' }}>{displayName}</div>
+                                  <div style={{ fontWeight: 600, color: client.archived ? '#94a3b8' : '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    {displayName}
+                                    {client.archived && (
+                                      <span style={{
+                                        fontSize: '0.68rem', fontWeight: 700, padding: '2px 9px', borderRadius: '100px',
+                                        background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0'
+                                      }}>
+                                        בארכיון
+                                      </span>
+                                    )}
+                                  </div>
                                   <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                                     {client.createdAt ? `נוצר: ${new Date(client.createdAt).toLocaleDateString('he-IL')}` : 'פעיל במערכת'}
                                   </div>
@@ -2765,7 +2796,17 @@ export default function SuperAdminPage({
                               {firstLetter}
                             </div>
                             <div>
-                              <div style={{ fontWeight: 700, fontSize: '0.98rem', color: '#0f172a' }}>{displayName}</div>
+                              <div style={{ fontWeight: 700, fontSize: '0.98rem', color: client.archived ? '#94a3b8' : '#0f172a', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                {displayName}
+                                {client.archived && (
+                                  <span style={{
+                                    fontSize: '0.68rem', fontWeight: 700, padding: '2px 9px', borderRadius: '100px',
+                                    background: '#f1f5f9', color: '#64748b', border: '1px solid #e2e8f0'
+                                  }}>
+                                    בארכיון
+                                  </span>
+                                )}
+                              </div>
                               <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                                 {isSelf ? '🌿 מרחב עצמאי (Self-Care)' : `🏥 ${client.therapist?.name || 'משויך לקליניקה'}`}
                               </div>

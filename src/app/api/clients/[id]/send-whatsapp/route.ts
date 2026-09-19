@@ -57,6 +57,7 @@ export async function POST(request: NextRequest, props: RouteProps) {
       lastSentAt: new Date().toISOString()
     });
 
+    await db.flush();
     return NextResponse.json({
       success: true,
       result,

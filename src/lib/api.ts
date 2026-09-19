@@ -524,8 +524,8 @@ export const api = {
     return res.json();
   },
 
-  getSuperadminClients: async (_adminId?: any) => {
-    const res = await fetch(`${API_BASE}/superadmin/clients`, {
+  getSuperadminClients: async (includeArchived: boolean = false) => {
+    const res = await fetch(`${API_BASE}/superadmin/clients${includeArchived ? '?includeArchived=1' : ''}`, {
       headers: authHeaders()
     });
     if (!res.ok) {

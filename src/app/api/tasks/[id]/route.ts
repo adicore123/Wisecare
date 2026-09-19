@@ -36,6 +36,7 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     }
 
     const updated = tasks.updateById(id, updateData);
+    await db.flush();
     return NextResponse.json(updated);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';
@@ -58,6 +59,7 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
       return NextResponse.json({ error: 'משימה לא נמצאה למחיקה' }, { status: 404 });
     }
 
+    await db.flush();
     return NextResponse.json({ message: 'משימה נמחקה בהצלחה' });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';

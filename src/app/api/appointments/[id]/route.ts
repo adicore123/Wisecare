@@ -20,6 +20,7 @@ export async function GET(request: NextRequest, props: RouteProps) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
     }
 
+    await db.flush();
     return NextResponse.json(appointment);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בשליפת פרטי התור';
@@ -59,6 +60,7 @@ export async function PUT(request: NextRequest, props: RouteProps) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
     }
 
+    await db.flush();
     return NextResponse.json(updated);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בעדכון התור';
@@ -82,6 +84,7 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
     }
 
+    await db.flush();
     return NextResponse.json({ message: 'תור נמחק בהצלחה' });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה במחיקת התור';

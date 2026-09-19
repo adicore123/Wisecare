@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
       greenApiStatus = { status: 'error', message: e.message };
     }
 
+    await db.flush();
     return NextResponse.json({
       settings,
       greenApiStatus
@@ -57,6 +58,7 @@ export async function PUT(request: NextRequest) {
     });
 
     const updated = db.updateSettings(updates);
+    await db.flush();
     return NextResponse.json({
       success: true,
       message: 'הגדרות SuperAdmin עודכנו בהצלחה',

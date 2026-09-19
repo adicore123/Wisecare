@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     if (therapistId) filter.therapistId = therapistId;
 
     const tasks = tasksCollection.find(filter);
+    await db.flush();
     return NextResponse.json(tasks);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
       clientNotes: ''
     });
 
+    await db.flush();
     return NextResponse.json(newTask, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';

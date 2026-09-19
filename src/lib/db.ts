@@ -183,14 +183,35 @@ export class Database {
     deletes.add(id);
   }
 
-  // Writes are pushed to MongoDB only when already connected; otherwise delivery is
-  // deferred to the next sync via locallyModifiedIds. Never waits on connect() from
-  // here — that would deadlock against syncWithMongo's initial flush().
+  // Writes are pushed to MongoDB only when already connected; otherwise the op is
+  // BUFFERED and drained the moment the connection opens. Never waits on connect()
+  // from here — that would deadlock against syncWithMongo's initial flush().
+  // (Before this buffer existed, a mutation racing the cold-start connect() was
+  // silently dropped, and the next sync would resurrect/vanish it — the root of
+  // "deleted/created items don't stick" on serverless.)
+  bufferedWrites: Array<{ name: string; label: string; op: (col: any) => Promise<any> }> = [];
+
   queueRemoteWrite(name: string, label: string, op: (col: any) => Promise<any>) {
-    if (!this.isMongoConnected || !this.mongoDb) return;
+    if (!this.isMongoConnected || !this.mongoDb) {
+      this.bufferedWrites.push({ name, label, op });
+      return;
+    }
     const p = op(this.mongoDb.collection(name))
       .catch((err: any) => console.error(`[MongoDB ${label} Error on ${name}]:`, err.message));
     this.pendingWrites.push(p);
+  }
+
+  /** Drain writes that arrived before the MongoDB connection opened. */
+  private drainBufferedWrites() {
+    if (this.bufferedWrites.length === 0) return;
+    const drained = [...this.bufferedWrites];
+    this.bufferedWrites = [];
+    for (const w of drained) {
+      const p = w.op(this.mongoDb!.collection(w.name))
+        .catch((err: any) => console.error(`[MongoDB ${w.label} Error on ${w.name}]:`, err.message));
+      this.pendingWrites.push(p);
+    }
+    console.log(`[MongoDB] Drained ${drained.length} buffered write(s) queued before connection`);
   }
 
   initLoginCodes() {
@@ -269,6 +290,10 @@ export class Database {
         this.mongoClient = client;
         this.mongoDb = client.db(dbName);
         this.isMongoConnected = true;
+
+        // Deliver writes that raced the connection BEFORE syncing — otherwise
+        // the sync's remote snapshot would wipe them out of memory.
+        this.drainBufferedWrites();
 
         await this.syncWithMongo();
         return true;

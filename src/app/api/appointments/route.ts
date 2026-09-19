@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
       return (a.time || '').localeCompare(b.time || '');
     });
 
+    await db.flush();
     return NextResponse.json(appointments);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בשליפת תורים';
@@ -130,6 +131,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    await db.flush();
     return NextResponse.json({
       appointment: newApt,
       confirmationSent

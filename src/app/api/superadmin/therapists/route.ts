@@ -22,6 +22,7 @@ function generateLoginCode(username?: string, name?: string): string {
 
 export async function GET(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || auth.role !== 'superadmin') {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
+    await db.flush();
     return NextResponse.json(therapists);
   } catch (error: any) {
     console.error('[SuperAdmin Therapists GET Error]', error);
@@ -173,6 +175,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    await db.flush();
     return NextResponse.json({
       ...responseData,
       therapist: responseData,

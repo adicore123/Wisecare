@@ -131,6 +131,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Persist the new therapist BEFORE responding — without this the user can
+    // be lost if a Mongo sync replaces the in-memory snapshot first.
+    await db.flush();
+
     const response = NextResponse.json({
       success: true,
       token,

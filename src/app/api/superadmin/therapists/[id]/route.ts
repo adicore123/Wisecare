@@ -48,6 +48,10 @@ export async function DELETE(
   props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Ensure the in-memory DB is hydrated from Mongo BEFORE mutating — on
+    // serverless a cold instance without data would "delete" nothing, and the
+    // therapist would resurrect on the next request.
+    await db.ensureLoaded();
     const auth = getAuthFromRequest(request);
     if (!auth || auth.role !== 'superadmin') {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
@@ -67,6 +71,9 @@ export async function DELETE(
     const insights = db.collection('insights');
     const contentItems = db.collection('contentItems');
     const contentAssignments = db.collection('contentAssignments');
+    const formSignatures = db.collection('formSignatures');
+    const scheduledCalls = db.collection('scheduledCalls');
+    const videoCalls = db.collection('videoCalls');
 
     // 1. Delete associated clients and their child records
     const therapistClients = clients.find({ therapistId: id });
@@ -75,6 +82,7 @@ export async function DELETE(
       insights.find({ clientId: c.id }).forEach((ins: any) => insights.deleteById(ins.id));
       appointments.find({ clientId: c.id }).forEach((app: any) => appointments.deleteById(app.id));
       contentAssignments.find({ clientId: c.id }).forEach((ca: any) => contentAssignments.deleteById(ca.id));
+      formSignatures.find({ clientId: c.id }).forEach((fs: any) => formSignatures.deleteById(fs.id));
       clients.deleteById(c.id);
     });
 
@@ -87,8 +95,16 @@ export async function DELETE(
     // 4. Delete all content items of the therapist
     contentItems.find({ therapistId: id }).forEach((cnt: any) => contentItems.deleteById(cnt.id));
 
-    // 5. Delete therapist user account
+    // 5. Delete the therapist's video-call records and scheduled calls
+    videoCalls.find({ therapistId: id }).forEach((vc: any) => videoCalls.deleteById(vc.id));
+    scheduledCalls.find({ therapistId: id }).forEach((sc: any) => scheduledCalls.deleteById(sc.id));
+
+    // 6. Delete therapist user account
     users.deleteById(id);
+
+    // Flush BEFORE responding — guarantees the deletions reached MongoDB
+    // before the serverless function is frozen.
+    await db.flush();
 
     return NextResponse.json({
       success: true,

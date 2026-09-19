@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
       whatsappError = err.message;
     }
 
+    await db.flush();
     return NextResponse.json({
       success: true,
       whatsappSent,

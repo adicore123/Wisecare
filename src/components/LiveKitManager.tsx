@@ -254,11 +254,15 @@ export default function LiveKitManager() {
     }
   };
 
-  /** Purges a non-scheduled schedule record (cancelled / started / missed) */
-  const deleteScheduleRecord = async (id: string) => {
-    if (typeof window !== 'undefined' && !window.confirm('למחוק את הרישום מהטבלה?')) return;
+  /** Hard-deletes a schedule record. For scheduled rows this removes the
+      upcoming call entirely — the confirm dialog warns no WhatsApp is sent. */
+  const deleteScheduleRecord = async (s: ScheduledCall) => {
+    const msg = s.status === 'scheduled'
+      ? 'מחיקת הרישום תסיר את השיחה המתוכננת לצמיתות — לא תישלח הודעת ביטול למטופל.\nלהמשיך?'
+      : 'למחוק את הרישום מהטבלה?';
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     try {
-      const res = await fetch(`/api/livekit/schedule/${id}`, { method: 'DELETE', headers: authHeaders() });
+      const res = await fetch(`/api/livekit/schedule/${s.id}?purge=1`, { method: 'DELETE', headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'שגיאה במחיקה');
       showToast(data.message || 'הרישום נמחק', 'success');
@@ -801,26 +805,27 @@ export default function LiveKitManager() {
                           <span style={{ fontSize: '0.82rem', color: '#64748b' }}>{s.notes || '—'}</span>
                         </td>
                         <td data-label="פעולות">
-                          {s.status === 'scheduled' ? (
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                            {s.status === 'scheduled' && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary"
+                                onClick={() => cancelSchedule(s.id)}
+                                style={{ padding: '6px 14px', fontSize: '0.8rem', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                              >
+                                <X size={13} /> ביטול
+                              </button>
+                            )}
                             <button
                               type="button"
                               className="btn btn-secondary"
-                              onClick={() => cancelSchedule(s.id)}
-                              style={{ padding: '6px 14px', fontSize: '0.8rem', color: '#dc2626', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                            >
-                              <X size={13} /> ביטול
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              className="btn btn-secondary"
-                              title="מחיקת הרישום"
-                              onClick={() => deleteScheduleRecord(s.id)}
+                              title={s.status === 'scheduled' ? 'מחיקה לצמיתות (בלי הודעה למטופל)' : 'מחיקת הרישום'}
+                              onClick={() => deleteScheduleRecord(s)}
                               style={{ padding: '6px 12px', fontSize: '0.8rem', color: '#64748b', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                             >
                               <Trash2 size={13} /> מחיקה
                             </button>
-                          )}
+                          </div>
                         </td>
                       </tr>
                     );

@@ -63,6 +63,7 @@ ${loginFullUrl}
 
     const result = await sendWhatsAppMessage({ phone: therapist.phone, message });
 
+    await db.flush();
     return NextResponse.json({
       success: true,
       sentViaGreenApi: true,

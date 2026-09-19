@@ -18,6 +18,7 @@ export async function DELETE(
     }
 
     db.collection('tasks').deleteById(taskId);
+    await db.flush();
     return NextResponse.json({ success: true, message: 'המשימה נמחקה בהצלחה' });
   } catch (error: any) {
     console.error('[Portal Delete Task Error]', error);
