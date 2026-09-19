@@ -110,7 +110,9 @@
       "pin": "6716",
       "whatsappStatus": "not_sent",
       "lastSentAt": null,
-      "updatedAt": "2026-09-19T11:28:58.467Z"
+      "updatedAt": "2026-09-19T16:06:10.759Z",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:06:10.759Z"
     },
     {
       "id": "id-1789304147271-yiac6a",
@@ -139,7 +141,10 @@
       "source": "self_join",
       "status": "active",
       "therapistId": null,
-      "username": "test_mongo_5861"
+      "username": "test_mongo_5861",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:06:06.424Z",
+      "updatedAt": "2026-09-19T16:06:06.424Z"
     },
     {
       "age": 37,
@@ -172,7 +177,10 @@
       "pin": "2572",
       "portalCode": "client-130441",
       "therapistId": "therapist-1",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:05:54.550Z",
+      "updatedAt": "2026-09-19T16:05:54.550Z"
     },
     {
       "createdAt": "2026-09-14T13:17:00.252Z",
@@ -421,7 +429,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789280216249-ghmjw2",
       "username": "2255",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:05:59.045Z",
+      "updatedAt": "2026-09-19T16:05:59.045Z"
     },
     {
       "age": null,
@@ -442,7 +453,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789597934999-c44752d1",
       "username": "3244",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:04:54.257Z",
+      "updatedAt": "2026-09-19T16:04:54.257Z"
     },
     {
       "age": null,
@@ -463,7 +477,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789280216249-ghmjw2",
       "username": "1772",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:05:08.602Z",
+      "updatedAt": "2026-09-19T16:05:08.602Z"
     },
     {
       "age": null,
@@ -484,7 +501,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789597934999-c44752d1",
       "username": "2589",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:04:41.941Z",
+      "updatedAt": "2026-09-19T16:04:41.941Z"
     },
     {
       "age": 37,
@@ -526,7 +546,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789706962499-b9a9271e",
       "username": "3779",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:05:26.610Z",
+      "updatedAt": "2026-09-19T16:05:26.610Z"
     },
     {
       "age": null,
@@ -1000,28 +1023,52 @@
       "updatedAt": "2026-09-19T16:03:02.138Z"
     },
     {
-      "id": "id-1789833805261-d9cb5452",
-      "createdAt": "2026-09-19T16:03:25.261Z",
-      "therapistId": "therapist-1",
-      "firstName": "בדיקת",
-      "lastName": "UI-בלי-רענון",
-      "phone": "0599999990",
-      "username": "client4492",
-      "password": "469c783923b07a58b23f0fa45df50dbf:8cb369900a1188c4084d578c12c74d4157631c255bb9ef43920f241ce90ffd95ef1a03e9fc4badbdc3bb4752507c1613ad648551361efd4c7de8ef372299609e",
-      "initialPassword": "W2%qjcJk",
-      "hasPassword": true,
-      "clientSetsCredentials": false,
       "age": null,
+      "clientSetsCredentials": false,
+      "createdAt": "2026-09-19T16:03:25.261Z",
+      "firstName": "בדיקת",
       "gender": "זכר",
-      "notes": "",
-      "portalEnabled": false,
-      "portalCode": "client-154796",
-      "pin": "7215",
-      "whatsappStatus": "not_sent",
+      "hasPassword": true,
+      "id": "id-1789833805261-d9cb5452",
+      "initialPassword": "W2%qjcJk",
+      "lastName": "UI-בלי-רענון",
       "lastSentAt": null,
+      "notes": "",
+      "password": "469c783923b07a58b23f0fa45df50dbf:8cb369900a1188c4084d578c12c74d4157631c255bb9ef43920f241ce90ffd95ef1a03e9fc4badbdc3bb4752507c1613ad648551361efd4c7de8ef372299609e",
+      "phone": "0599999990",
+      "pin": "7215",
+      "portalCode": "client-154796",
+      "portalEnabled": false,
+      "therapistId": "therapist-1",
+      "username": "client4492",
+      "whatsappStatus": "not_sent",
       "archived": true,
       "deletedAt": "2026-09-19T16:03:32.840Z",
       "updatedAt": "2026-09-19T16:03:32.840Z"
+    },
+    {
+      "age": null,
+      "clientSetsCredentials": false,
+      "createdAt": "2026-09-19T16:04:36.786Z",
+      "firstName": "בדיקת",
+      "gender": "זכר",
+      "hasPassword": true,
+      "id": "id-1789833876786-4f862c58",
+      "initialPassword": "6CK#yBkM",
+      "lastName": "פרוד-עמידות",
+      "lastSentAt": null,
+      "notes": "",
+      "password": "492ddcf9bf603c1ece08b4acc7bdcddc:5bc6aad572dae06ba873e8edaf2cc46f6738e9d365fbb112255cf5b4190daa76dca0b9f0f6b1d59fdf7ecd07257331c2a8529c667b0542f3788c1270053c4a01",
+      "phone": "0599999989",
+      "pin": "7890",
+      "portalCode": "client-552955",
+      "portalEnabled": false,
+      "therapistId": "therapist-1",
+      "username": "client6042",
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:04:37.720Z",
+      "updatedAt": "2026-09-19T16:04:37.720Z"
     }
   ],
   "tasks": [
@@ -5810,52 +5857,253 @@
       "timestamp": "2026-09-19T16:01:49.734Z"
     },
     {
-      "id": "id-1789833774746-0db30577",
-      "createdAt": "2026-09-19T16:02:54.746Z",
+      "action": "login_success",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "login_success",
-      "targetId": "therapist-1",
+      "createdAt": "2026-09-19T16:02:54.746Z",
+      "id": "id-1789833774746-0db30577",
       "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
       "timestamp": "2026-09-19T16:02:54.746Z"
     },
     {
-      "id": "id-1789833782142-d739200d",
-      "createdAt": "2026-09-19T16:03:02.142Z",
+      "action": "archive_client",
       "actor": "adicore123",
       "actorRole": "superadmin",
-      "action": "archive_client",
-      "targetId": "id-1789833709820-0ad5ebd3",
-      "targetType": "client",
+      "createdAt": "2026-09-19T16:03:02.142Z",
       "details": {
         "clientName": "בדיקת UI-בלי-רענון",
         "phone": "0599999990"
       },
+      "id": "id-1789833782142-d739200d",
+      "targetId": "id-1789833709820-0ad5ebd3",
+      "targetType": "client",
       "timestamp": "2026-09-19T16:03:02.142Z"
     },
     {
-      "id": "id-1789833805195-e4ac094f",
-      "createdAt": "2026-09-19T16:03:25.196Z",
+      "action": "login_success",
       "actor": "dr_sarah",
       "actorRole": "therapist",
-      "action": "login_success",
-      "targetId": "therapist-1",
+      "createdAt": "2026-09-19T16:03:25.196Z",
+      "id": "id-1789833805195-e4ac094f",
       "ip": "::ffff:127.0.0.1",
+      "targetId": "therapist-1",
       "timestamp": "2026-09-19T16:03:25.195Z"
     },
     {
-      "id": "id-1789833812843-21544f31",
-      "createdAt": "2026-09-19T16:03:32.843Z",
+      "action": "archive_client",
       "actor": "adicore123",
       "actorRole": "superadmin",
-      "action": "archive_client",
-      "targetId": "id-1789833805261-d9cb5452",
-      "targetType": "client",
+      "createdAt": "2026-09-19T16:03:32.843Z",
       "details": {
         "clientName": "בדיקת UI-בלי-רענון",
         "phone": "0599999990"
       },
+      "id": "id-1789833812843-21544f31",
+      "targetId": "id-1789833805261-d9cb5452",
+      "targetType": "client",
       "timestamp": "2026-09-19T16:03:32.843Z"
+    },
+    {
+      "action": "login_success",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "createdAt": "2026-09-19T16:04:36.520Z",
+      "id": "id-1789833876520-0d4113e2",
+      "ip": "46.117.28.6",
+      "targetId": "therapist-1",
+      "timestamp": "2026-09-19T16:04:36.520Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:04:37.723Z",
+      "details": {
+        "clientName": "בדיקת פרוד-עמידות",
+        "phone": "0599999989"
+      },
+      "id": "id-1789833877723-0260d74a",
+      "targetId": "id-1789833876786-4f862c58",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:04:37.723Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:04:41.945Z",
+      "details": {
+        "clientName": "מבחן-עדכון2 תקרה",
+        "phone": "0530000002"
+      },
+      "id": "id-1789833881945-41afd796",
+      "targetId": "id-1789817459019-25e83a3c",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:04:41.945Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:04:54.261Z",
+      "details": {
+        "clientName": "מבחן3 תקרה",
+        "phone": "0530000001"
+      },
+      "id": "id-1789833894261-01fe4b9a",
+      "targetId": "id-1789817440811-39bda223",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:04:54.261Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:03.445Z",
+      "details": {
+        "clientName": "מבחן-עדכון1 תקרה",
+        "phone": "0530000002"
+      },
+      "id": "id-1789833903445-4483633b",
+      "targetId": "id-1789817458689-30f97eaa",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:03.445Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:08.606Z",
+      "details": {
+        "clientName": "מבחן-עדכון1 תקרה",
+        "phone": "0530000002"
+      },
+      "id": "id-1789833908606-5476820a",
+      "targetId": "id-1789817458689-30f97eaa",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:08.606Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:14.016Z",
+      "details": {
+        "clientName": "מבחן2 תקרה",
+        "phone": "0530000001"
+      },
+      "id": "id-1789833914016-e3d53a58",
+      "targetId": "id-1789817440452-096870c2",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:14.016Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:18.316Z",
+      "details": {
+        "clientName": "מבחן-עדכון3 תקרה",
+        "phone": "0530000002"
+      },
+      "id": "id-1789833918316-a3ec4d46",
+      "targetId": "id-1789817459350-2cd2862f",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:18.316Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:26.613Z",
+      "details": {
+        "clientName": "מבחן-עדכון3 תקרה",
+        "phone": "0530000002"
+      },
+      "id": "id-1789833926613-04687e97",
+      "targetId": "id-1789817459350-2cd2862f",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:26.613Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:43.869Z",
+      "details": {
+        "clientName": "בדיקת בדיקת",
+        "phone": "05211122330521112233"
+      },
+      "id": "id-1789833943869-9f5b3f16",
+      "targetId": "id-1789391803003-3b788ce1",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:43.869Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:54.552Z",
+      "details": {
+        "clientName": "בדיקת בדיקת",
+        "phone": "05211122330521112233"
+      },
+      "id": "id-1789833954552-73f85178",
+      "targetId": "id-1789391803003-3b788ce1",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:54.552Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:05:59.049Z",
+      "details": {
+        "clientName": "מבחן2 תקרה",
+        "phone": "0530000001"
+      },
+      "id": "id-1789833959049-1bcf2736",
+      "targetId": "id-1789817440452-096870c2",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:05:59.049Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:06:06.427Z",
+      "details": {
+        "clientName": "ישראל בדיקה",
+        "phone": "0509998877"
+      },
+      "id": "id-1789833966427-2513b840",
+      "targetId": "id-1789329255953-9f4ed12d",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:06:06.427Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:06:10.762Z",
+      "details": {
+        "clientName": "Oren Shahar",
+        "phone": "0501234567"
+      },
+      "id": "id-1789833970762-9486877d",
+      "targetId": "id-1789302768524-gy3llf",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:06:10.762Z"
+    },
+    {
+      "action": "superadmin_impersonate_therapist",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:07:41.421Z",
+      "id": "id-1789834061421-8e480781",
+      "targetId": "id-1789280216249-ghmjw2",
+      "timestamp": "2026-09-19T16:07:41.421Z"
     }
   ],
   "videoCalls": [

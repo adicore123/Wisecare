@@ -367,6 +367,11 @@ export default function SuperAdminPage({
   const [clientSearchTerm, setClientSearchTerm] = useState('');
   const [clientFilter, setClientFilter] = useState('all'); // 'all' | 'clinic' | 'self_care'
   const [showArchived, setShowArchived] = useState(false);
+  // Patients of a therapist shown inline (expandable row) in the therapists table
+  const [expandedTherapistId, setExpandedTherapistId] = useState<string | null>(null);
+
+  const clientsOfTherapist = (therapistId: string) => clients.filter((c: any) => c.therapistId === therapistId);
+  const selfCareClientsOnly = clients.filter((c: any) => c.isSelfCare);
   const [impersonatingClientId, setImpersonatingClientId] = useState(null);
   const [impersonatingTherapistId, setImpersonatingTherapistId] = useState<string | null>(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
@@ -551,10 +556,79 @@ export default function SuperAdminPage({
     }
   };
 
+  /** Mini patient cards — rendered inside an expanded therapist row (desktop + mobile) */
+  const renderPatientsList = (therapistId: string) => {
+    const list = clientsOfTherapist(therapistId);
+    if (list.length === 0) {
+      return (
+        <div style={{ textAlign: 'center', color: '#64748b', fontSize: '0.9rem', padding: '16px' }}>
+          אין מטופלים משויכים למטפל/ת זה
+        </div>
+      );
+    }
+    return (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '10px' }}>
+        {list.map((c: any) => {
+          const name = `${c.firstName || ''} ${c.lastName || ''}`.trim() || 'מטופל/ת';
+          return (
+            <div key={c.id} style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              padding: '10px 12px', background: '#ffffff',
+              border: '1px solid #e2e8f0', borderRadius: '10px'
+            }}>
+              <div style={{
+                width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
+                background: 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)',
+                color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, fontSize: '0.9rem'
+              }}>
+                {name.charAt(0)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
+                  <span style={{
+                    fontSize: '0.66rem', fontWeight: 700, padding: '1px 8px', borderRadius: '100px',
+                    background: c.portalEnabled !== false ? '#f0fdfa' : '#f8fafc',
+                    color: c.portalEnabled !== false ? '#0f766e' : '#64748b'
+                  }}>
+                    {c.portalEnabled !== false ? 'מרחב אישי' : 'קליניקה בלבד'}
+                  </span>
+                </div>
+                <div style={{ fontSize: '0.76rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span dir="ltr">{c.phone || 'אין טלפון'}</span>
+                  {c.phone && (
+                    <a
+                      href={`https://wa.me/${c.phone.replace(/[^0-9]/g, '').startsWith('0') ? '972' + c.phone.replace(/[^0-9]/g, '').slice(1) : c.phone.replace(/[^0-9]/g, '')}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title="פנה למטופל/ת ב-WhatsApp"
+                      style={{ display: 'inline-flex', alignItems: 'center' }}
+                    >
+                      <WhatsAppIcon size={13} />
+                    </a>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteClientModal(c)}
+                className="btn btn-secondary"
+                title={`מחיקת סביבת המשתמש ${name} לצמיתות`}
+                style={{ padding: '5px 8px', fontSize: '0.75rem', color: '#dc2626', borderColor: '#fecaca', background: '#fef2f2', flexShrink: 0 }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   const handleCopyClientPortalLink = (client) => {
     const origin = window.location.origin;
-    const url = `${origin}/portal/${client.portalCode}`;
-    navigator.clipboard.writeText(url);
+    const url = `${origin}/portal/${client.portalCode}`;    navigator.clipboard.writeText(url);
     setCopiedClientId(client.id);
     showToast(`הקישור הישיר למרחב של ${client.firstName || ''} הועתק ללוח! 📋`);
     setTimeout(() => setCopiedClientId(null), 2500);
@@ -1237,7 +1311,7 @@ export default function SuperAdminPage({
           }}
         >
           <UserCheck size={18} />
-          <span>כל המטופלים והלקוחות</span>
+          <span>מרחבים עצמאיים</span>
           <span style={{
             background: activeTab === 'clients' ? '#ccfbf1' : '#f1f5f9',
             color: activeTab === 'clients' ? '#0f766e' : '#64748b',
@@ -1246,7 +1320,7 @@ export default function SuperAdminPage({
             borderRadius: '12px',
             fontWeight: 700
           }}>
-            {clients.length}
+            {selfCareClientsOnly.length}
           </span>
         </button>
 
@@ -1367,7 +1441,8 @@ export default function SuperAdminPage({
                 </thead>
                 <tbody>
                   {filtered.map(therapist => (
-                    <tr key={therapist.id}>
+                    <React.Fragment key={therapist.id}>
+                    <tr>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <div style={{
@@ -1420,7 +1495,22 @@ export default function SuperAdminPage({
                       </td>
 
                       <td>
-                        <span className="badge badge-info">{therapist.clientsCount || 0} לקוחות</span>
+                        <button
+                          type="button"
+                          onClick={() => setExpandedTherapistId(expandedTherapistId === therapist.id ? null : therapist.id)}
+                          className="badge badge-info"
+                          style={{
+                            cursor: 'pointer', border: '1px solid #c7d2fe', display: 'inline-flex',
+                            alignItems: 'center', gap: '6px',
+                            background: expandedTherapistId === therapist.id ? '#e0e7ff' : undefined
+                          }}
+                          title="לחץ להצגת כל המטופלים של מטפל/ת זה"
+                        >
+                          {clientsOfTherapist(therapist.id).length} מטופלים
+                          <span style={{ fontSize: '0.7rem', transition: 'transform 0.15s ease', display: 'inline-block', transform: expandedTherapistId === therapist.id ? 'rotate(180deg)' : 'none' }}>
+                            ▼
+                          </span>
+                        </button>
                       </td>
 
                       <td>
@@ -1593,6 +1683,19 @@ export default function SuperAdminPage({
                         </div>
                       </td>
                     </tr>
+
+                    {/* Expanded row — the therapist's patients */}
+                    {expandedTherapistId === therapist.id && (
+                      <tr style={{ background: '#f8fafc' }}>
+                        <td colSpan={9} style={{ padding: '14px 18px', borderTop: '1px dashed #e2e8f0', borderBottom: '1px dashed #e2e8f0' }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#4338ca', marginBottom: '10px' }}>
+                            👥 המטופלים של {therapist.name} ({clientsOfTherapist(therapist.id).length})
+                          </div>
+                          {renderPatientsList(therapist.id)}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   ))}
                 </tbody>
               </table>
@@ -1634,9 +1737,25 @@ export default function SuperAdminPage({
                       <code style={{ background: '#f1f5f9', padding: '2px 8px', borderRadius: '6px', color: '#475569' }}>
                         @{therapist.username}
                       </code>
-                      <span className="badge badge-info">{therapist.clientsCount || 0} לקוחות</span>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedTherapistId(expandedTherapistId === therapist.id ? null : therapist.id)}
+                        className="badge badge-info"
+                        style={{ cursor: 'pointer', border: '1px solid #c7d2fe', display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.76rem' }}
+                        title="לחץ להצגת כל המטופלים של מטפל/ת זה"
+                      >
+                        👥 {clientsOfTherapist(therapist.id).length} מטופלים
+                        <span style={{ fontSize: '0.68rem', display: 'inline-block', transform: expandedTherapistId === therapist.id ? 'rotate(180deg)' : 'none' }}>▼</span>
+                      </button>
                       <span className="badge badge-neutral">{therapist.activeTasksCount || 0} משימות</span>
                     </div>
+
+                    {/* Expanded patients (mobile) */}
+                    {expandedTherapistId === therapist.id && (
+                      <div style={{ background: '#f8fafc', border: '1px dashed #e2e8f0', borderRadius: '10px', padding: '10px' }}>
+                        {renderPatientsList(therapist.id)}
+                      </div>
+                    )}
 
                     {/* Contact Row */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', fontSize: '0.84rem' }}>
@@ -2290,8 +2409,9 @@ export default function SuperAdminPage({
         const clinicClients = clients.filter(c => !c.isSelfCare);
 
         const filteredClients = clients.filter(c => {
-          if (clientFilter === 'clinic' && c.isSelfCare) return false;
-          if (clientFilter === 'self_care' && !c.isSelfCare) return false;
+          // This tab shows ONLY standalone (self-care) spaces — therapist
+          // patients live inside their therapist's expandable row
+          if (!c.isSelfCare) return false;
 
           if (!clientSearchTerm.trim()) return true;
           const query = clientSearchTerm.trim().toLowerCase();
@@ -2299,14 +2419,12 @@ export default function SuperAdminPage({
           const email = (c.email || '').toLowerCase();
           const phone = (c.phone || '').replace(/[^0-9]/g, '');
           const portalCode = (c.portalCode || '').toLowerCase();
-          const therapistName = (c.therapist?.name || '').toLowerCase();
 
           return (
             fullName.includes(query) ||
             email.includes(query) ||
             phone.includes(query.replace(/[^0-9]/g, '')) ||
-            portalCode.includes(query) ||
-            therapistName.includes(query)
+            portalCode.includes(query)
           );
         });
 
@@ -2425,59 +2543,13 @@ export default function SuperAdminPage({
                     )}
                   </div>
 
-                  {/* Filter Pills */}
-                  <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', padding: '3px', borderRadius: '10px' }}>
-                    <button
-                      type="button"
-                      onClick={() => setClientFilter('all')}
-                      style={{
-                        border: 'none',
-                        background: clientFilter === 'all' ? '#ffffff' : 'transparent',
-                        color: clientFilter === 'all' ? '#0f172a' : '#64748b',
-                        fontWeight: clientFilter === 'all' ? 700 : 500,
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        boxShadow: clientFilter === 'all' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-                      }}
-                    >
-                      הכל ({totalClients})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setClientFilter('self_care')}
-                      style={{
-                        border: 'none',
-                        background: clientFilter === 'self_care' ? '#ffffff' : 'transparent',
-                        color: clientFilter === 'self_care' ? '#0d9488' : '#64748b',
-                        fontWeight: clientFilter === 'self_care' ? 700 : 500,
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        boxShadow: clientFilter === 'self_care' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-                      }}
-                    >
-                      מרחב עצמאי ({selfCareClients.length})
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setClientFilter('clinic')}
-                      style={{
-                        border: 'none',
-                        background: clientFilter === 'clinic' ? '#ffffff' : 'transparent',
-                        color: clientFilter === 'clinic' ? '#4f46e5' : '#64748b',
-                        fontWeight: clientFilter === 'clinic' ? 700 : 500,
-                        padding: '6px 12px',
-                        borderRadius: '8px',
-                        fontSize: '0.82rem',
-                        cursor: 'pointer',
-                        boxShadow: clientFilter === 'clinic' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none'
-                      }}
-                    >
-                      משויכי קליניקה ({clinicClients.length})
-                    </button>
+                  <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    background: '#f0fdfa', border: '1px solid #99f6e4',
+                    padding: '6px 14px', borderRadius: '100px',
+                    fontSize: '0.82rem', fontWeight: 600, color: '#0f766e'
+                  }} title="מטופלים המשויכים למטפלים מוצגים בטאב 'ניהול מטפלים' — בתוך השורה של המטפל שלהם">
+                    🌿 מרחבים עצמאיים בלבד ({selfCareClientsOnly.length})
                   </div>
 
                   <label style={{
