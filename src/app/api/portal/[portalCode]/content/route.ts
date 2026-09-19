@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+import { materializeImageDataField } from '@/services/contentImage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -32,13 +33,16 @@ export async function POST(
             'פריט תוכן'
     );
 
+    // Self-host remote thumbnails so signed CDN links can't rot later
+    const storedImageData = await materializeImageDataField(imageData);
+
     const item = db.collection('contentItems').insertOne({
       therapistId: client.therapistId || null,
       title: finalTitle,
       description: description ? String(description).trim() : '',
       type: type || 'video',
       url: url ? String(url).trim() : '',
-      imageData: imageData || '',
+      imageData: storedImageData || '',
       sourceName: sourceName ? String(sourceName).trim() : '',
       category: category ? String(category).trim() : 'אישי',
       customNote: '',

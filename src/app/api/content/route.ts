@@ -9,6 +9,7 @@ import {
   validateImageData,
   enrichItems
 } from '@/lib/contentHelpers';
+import { materializeImageDataField } from '@/services/contentImage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -94,12 +95,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Self-host remote thumbnails: signed social CDN links rot over time
+    const storedImageData = await materializeImageDataField(imageData);
+
     const item = db.collection('contentItems').insertOne({
       therapistId,
       title,
       type,
       url,
-      imageData,
+      imageData: storedImageData,
       description,
       category: cleanText(body.category, 80) || 'כללי',
       sourceName,

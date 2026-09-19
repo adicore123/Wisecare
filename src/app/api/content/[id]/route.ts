@@ -9,6 +9,7 @@ import {
   enrichItems,
   validateImageData
 } from '@/lib/contentHelpers';
+import { materializeImageDataField } from '@/services/contentImage';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -73,7 +74,8 @@ export async function PUT(
           { status: 413 }
         );
       }
-      updateData.imageData = validated;
+      // Self-host remote thumbnails so signed CDN links can't rot later
+      updateData.imageData = await materializeImageDataField(validated);
     }
 
     const updated = db.collection('contentItems').updateById(id, updateData);

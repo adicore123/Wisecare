@@ -3002,10 +3002,20 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         tabIndex={isFeatured ? -1 : undefined}
                         style={isArticle ? { borderTop: '4px solid #0d9488' } : {}}
                       >
-                        <div className="portal-content-card-media" style={isArticle ? { background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)', color: '#0d9488' } : {}}>
-                          {item.imageData
-                            ? <img src={item.imageData} alt="" loading="lazy" />
-                            : <ContentIcon size={40} aria-hidden="true" />}
+                        <div className="portal-content-card-media" style={{ position: 'relative', ...(isArticle ? { background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)', color: '#0d9488' } : {}) }}>
+                          {/* Icon always rendered underneath — if the thumbnail
+                              fails to load (expired CDN link), it shows instead
+                              of a broken-image glyph */}
+                          <ContentIcon size={40} aria-hidden="true" style={{ position: 'absolute', inset: 0, margin: 'auto', zIndex: 1 }} />
+                          {item.imageData && (
+                            <img
+                              src={item.imageData}
+                              alt=""
+                              loading="lazy"
+                              style={{ position: 'relative', zIndex: 2 }}
+                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            />
+                          )}
                         </div>
                         <div className="portal-content-card-body">
                           {isFeatured && (

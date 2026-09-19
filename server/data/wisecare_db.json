@@ -948,7 +948,10 @@
       "portalEnabled": false,
       "therapistId": "id-1789597934999-c44752d1",
       "username": "client5029",
-      "whatsappStatus": "not_sent"
+      "whatsappStatus": "not_sent",
+      "archived": true,
+      "deletedAt": "2026-09-19T16:19:32.017Z",
+      "updatedAt": "2026-09-19T16:19:32.017Z"
     },
     {
       "age": null,
@@ -2190,13 +2193,6 @@
       "contentId": "id-1789419481894-a68533f3",
       "createdAt": "2026-09-14T20:58:01.895Z",
       "id": "id-1789419481895-ff9f716b",
-      "notificationStatus": "none"
-    },
-    {
-      "clientId": "id-1789391820252-e1468943",
-      "contentId": "id-1789454803223-9cc9c2e0",
-      "createdAt": "2026-09-15T06:46:43.224Z",
-      "id": "id-1789454803224-2884a11b",
       "notificationStatus": "none"
     },
     {
@@ -6104,6 +6100,49 @@
       "id": "id-1789834061421-8e480781",
       "targetId": "id-1789280216249-ghmjw2",
       "timestamp": "2026-09-19T16:07:41.421Z"
+    },
+    {
+      "action": "exit_impersonation",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:18:45.334Z",
+      "id": "id-1789834725334-8c6003a6",
+      "targetId": "superadmin-1",
+      "timestamp": "2026-09-19T16:18:45.334Z"
+    },
+    {
+      "action": "archive_client",
+      "actor": "adicore123",
+      "actorRole": "superadmin",
+      "createdAt": "2026-09-19T16:19:32.021Z",
+      "details": {
+        "clientName": "אליאור פרץ",
+        "phone": "+972 50-431-2884"
+      },
+      "id": "id-1789834772021-fe33086b",
+      "targetId": "id-1789830908133-8708d915",
+      "targetType": "client",
+      "timestamp": "2026-09-19T16:19:32.021Z"
+    },
+    {
+      "id": "id-1789835628056-81dcf35b",
+      "createdAt": "2026-09-19T16:33:48.057Z",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "action": "login_success",
+      "targetId": "therapist-1",
+      "ip": "::ffff:127.0.0.1",
+      "timestamp": "2026-09-19T16:33:48.056Z"
+    },
+    {
+      "id": "id-1789835696812-ad88adad",
+      "createdAt": "2026-09-19T16:34:56.812Z",
+      "actor": "dr_sarah",
+      "actorRole": "therapist",
+      "action": "login_success",
+      "targetId": "therapist-1",
+      "ip": "::ffff:127.0.0.1",
+      "timestamp": "2026-09-19T16:34:56.812Z"
     }
   ],
   "videoCalls": [
