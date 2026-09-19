@@ -2488,6 +2488,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <div dir="rtl" style={{
               position: 'fixed',
               inset: 0,
+              maxHeight: '100dvh',
               zIndex: 9999,
               display: 'flex',
               flexDirection: 'column',

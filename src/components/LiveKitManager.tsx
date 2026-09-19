@@ -236,8 +236,18 @@ export default function LiveKitManager() {
           </div>
           <style>{`
             .lk-manager-stage { height: 72vh; }
+            /* Start-call form: 3 columns on desktop, stacked on phones — the fixed
+               grid used to push the start button off-screen on narrow RTL widths */
+            .lk-start-form {
+              display: grid;
+              grid-template-columns: minmax(260px, 2fr) auto auto;
+              gap: 14px;
+              align-items: end;
+            }
             @media (max-width: 760px) {
               .lk-manager-stage { height: calc(100dvh - 190px); min-height: 420px; }
+              .lk-start-form { grid-template-columns: 1fr; gap: 12px; align-items: stretch; }
+              .lk-start-form > button { justify-self: stretch; padding: 14px 20px; font-size: 1rem; }
             }
           `}</style>
           <div style={{
@@ -258,7 +268,7 @@ export default function LiveKitManager() {
           <h2 style={{ fontSize: '1.15rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <PhoneCall size={20} /> פתיחת שיחה חדשה
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 2fr) auto auto', gap: '14px', alignItems: 'end', flexWrap: 'wrap' }}>
+          <div className="lk-start-form">
             <div>
               <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>בחירת מטופל</label>
               <select

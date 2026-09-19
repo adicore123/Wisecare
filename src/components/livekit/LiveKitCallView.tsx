@@ -7,10 +7,12 @@ import {
   RoomAudioRenderer,
   TrackToggle,
   DisconnectButton,
+  useLocalParticipant,
+  useRemoteParticipants,
   useTracks
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
-import { Mic, MicOff, Video as VideoIcon, VideoOff, PhoneOff, Loader2, ShieldCheck } from 'lucide-react';
+import { Mic, MicOff, Video as VideoIcon, VideoOff, PhoneOff, Loader2, ShieldCheck, User } from 'lucide-react';
 
 export interface ActiveCallSession {
   callId: string;
@@ -34,34 +36,57 @@ const formatDuration = (totalSec: number): string => {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 };
 
+/** Compact tile for a connected participant whose camera is off (audio-only). */
+function NoVideoTile({ name, isLocal }: { name: string; isLocal?: boolean }) {
+  const initial = (name || '?').trim().charAt(0) || '?';
+  return (
+    <div className={`lk-tile lk-tile-novideo${isLocal ? ' lk-tile-local' : ''}`}>
+      <span className="lk-novideo-avatar">{initial}</span>
+      {name && <span className="lk-novideo-name">{name}</span>}
+      <span className="lk-novideo-hint">
+        <VideoOff size={14} />
+        {isLocal ? 'המצלמה שלך כבויה' : 'המצלמה כבויה — ניתן לשמוע'}
+      </span>
+    </div>
+  );
+}
+
 /** The video stage — must live INSIDE <LiveKitRoom> for the hooks to resolve. */
 function CallStage({ clientName }: { clientName?: string }) {
   const tracks = useTracks(
     [Track.Source.Camera, Track.Source.ScreenShare],
     { onlySubscribed: false },
   );
+  // "Joined" is a connected participant, NOT a published video track —
+  // someone who turned their camera off must not look like a no-show.
+  const remoteParticipants = useRemoteParticipants();
+  const { localParticipant } = useLocalParticipant();
 
-  const visible = tracks.filter((t) => t.participant && !t.participant.isLocal);
+  const remoteVideo = tracks.filter((t) => t.participant && !t.participant.isLocal);
+  const remoteNoVideo = remoteParticipants.filter(
+    (p) => !remoteVideo.some((t) => t.participant.identity === p.identity)
+  );
+  const localVideoTracks = tracks.filter((t) => t.participant?.isLocal);
+  const remoteTiles = remoteVideo.length + remoteNoVideo.length;
+
+  const displayName = (p: { name?: string; identity: string }) => p.name || '';
 
   return (
-    <div className="lk-stage" style={{
-      flex: 1,
-      display: 'grid',
-      gridTemplateColumns: visible.length > 1 ? '1fr 1fr' : '1fr',
-      gap: '10px',
-      padding: '14px',
-      minHeight: 0
-    }}>
-      {visible.map((trackRef) => (
+    <div className={`lk-stage${remoteTiles > 1 ? ' lk-stage-2' : ''}`}>
+      {remoteVideo.map((trackRef) => (
         <ParticipantTile key={trackRef.participant.identity} trackRef={trackRef} className="lk-tile" />
       ))}
+      {remoteNoVideo.map((p) => (
+        <NoVideoTile key={`novideo-${p.identity}`} name={displayName(p)} />
+      ))}
       {/* Always render the local tile so the caller sees themselves even before the peer joins */}
-      {tracks
-        .filter((t) => t.participant?.isLocal)
-        .map((trackRef) => (
-          <ParticipantTile key={`local-${trackRef.participant.identity}`} trackRef={trackRef} className="lk-tile lk-tile-local" />
-        ))}
-      {visible.length === 0 && (
+      {localVideoTracks.map((trackRef) => (
+        <ParticipantTile key={`local-${trackRef.participant.identity}`} trackRef={trackRef} className="lk-tile lk-tile-local" />
+      ))}
+      {localVideoTracks.length === 0 && (
+        <NoVideoTile isLocal name={displayName(localParticipant)} />
+      )}
+      {remoteTiles === 0 && (
         <div className="lk-waiting" style={{
           display: 'flex',
           flexDirection: 'column',
@@ -242,6 +267,33 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
       <style>{`
         .lk-call-view .lk-tile { background: #0a2e2a; border-radius: 10px; overflow: hidden; border: 1px solid rgba(13,148,136,0.2); }
         .lk-call-view .lk-tile-local { max-height: 100%; }
+        /* Stage layout lives in CSS (not inline) so mobile media queries can override it */
+        .lk-call-view .lk-stage {
+          flex: 1; min-height: 0;
+          display: grid; grid-template-columns: 1fr;
+          gap: 10px; padding: 14px;
+        }
+        .lk-call-view .lk-stage-2 { grid-template-columns: 1fr 1fr; }
+        .lk-call-view .lk-tile-novideo {
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          gap: 8px; padding: 16px; text-align: center;
+          color: rgba(244, 249, 248, 0.85);
+        }
+        .lk-call-view .lk-novideo-avatar {
+          width: 64px; height: 64px; border-radius: 50%;
+          display: inline-flex; align-items: center; justify-content: center;
+          background: rgba(13, 148, 136, 0.18); border: 1.5px solid rgba(45, 212, 191, 0.5);
+          color: #2dd4bf; font-size: 1.5rem; font-weight: 700;
+        }
+        .lk-call-view .lk-novideo-name { font-weight: 600; font-size: 1rem; }
+        .lk-call-view .lk-novideo-hint {
+          display: inline-flex; align-items: center; gap: 6px;
+          color: rgba(244, 249, 248, 0.55); font-size: 0.82rem;
+        }
+        @media (max-width: 760px) {
+          .lk-call-view .lk-novideo-avatar { width: 56px; height: 56px; font-size: 1.3rem; }
+          .lk-call-view .lk-novideo-name { font-size: 0.9rem; }
+        }
         .lk-call-view .lk-ctrl {
           display: inline-flex; align-items: center; gap: 8px;
           padding: 10px 20px; border-radius: 100px; border: 1px solid rgba(13,148,136,0.4);
@@ -263,9 +315,11 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
           .lk-call-view .lk-subtitle { display: none; }
 
           .lk-call-view .lk-stage { position: relative; display: block; padding: 10px; }
-          /* Remote tile fills the stage */
+          /* !important: ParticipantTile applies its own INLINE position:relative,
+             which would otherwise beat these stylesheet rules */
           .lk-call-view .lk-tile:not(.lk-tile-local) {
-            position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); z-index: 1;
+            position: absolute !important; inset: 10px !important;
+            width: calc(100% - 20px) !important; height: calc(100% - 20px) !important; z-index: 1;
           }
           /* Waiting notice becomes a centered overlay instead of a row below */
           .lk-call-view .lk-waiting {
@@ -273,11 +327,14 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
           }
           /* Self-view fills the stage while alone… */
           .lk-call-view .lk-tile-local {
-            position: absolute; inset: 10px; width: calc(100% - 20px); height: calc(100% - 20px); z-index: 2;
+            position: absolute !important; inset: 10px !important;
+            width: calc(100% - 20px) !important; height: calc(100% - 20px) !important; z-index: 2;
           }
           /* …and shrinks to a floating PiP once the peer's video arrives */
           .lk-call-view .lk-stage:has(.lk-tile:not(.lk-tile-local)) .lk-tile-local {
-            inset: auto; bottom: 22px; left: 22px; width: 104px; height: 148px; z-index: 3;
+            top: auto !important; right: auto !important;
+            bottom: 20px !important; left: 20px !important;
+            width: 104px !important; height: 148px !important; z-index: 3;
             border: 2px solid rgba(45, 212, 191, 0.65); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
           }
         }
