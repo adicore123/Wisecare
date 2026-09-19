@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processAutomaticReminders } from '@/services/reminderScheduler';
+import { processScheduledCallsTick } from '@/services/scheduledCallScheduler';
+import { getBaseUrl } from '@/lib/urlHelpers';
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,11 +13,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const summary = await processAutomaticReminders();
+    const [summary, scheduledCalls] = await Promise.all([
+      processAutomaticReminders(),
+      processScheduledCallsTick({ force: true, baseUrl: getBaseUrl(request) })
+    ]);
     return NextResponse.json({
       success: true,
       timestamp: new Date().toISOString(),
-      summary
+      summary,
+      scheduledCalls
     });
   } catch (err: any) {
     return NextResponse.json({

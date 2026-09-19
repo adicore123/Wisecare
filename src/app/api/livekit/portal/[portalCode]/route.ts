@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getBaseUrl } from '@/lib/urlHelpers';
+import { processScheduledCallsTick } from '@/services/scheduledCallScheduler';
 
 /**
  * GET /api/livekit/portal/{portalCode}
  * Returns the client's currently active video call (if any) so the personal
  * space can show a "join now" banner. Follows the portal routes' portalCode
- * auth model (the unguessable code IS the credential).
+ * auth model (the unguessable code IS the credential). Also opportunistically
+ * drives the scheduled-calls engine (throttled server-side, bounded) — a
+ * client sitting in their space keeps due scheduled calls flowing on time.
  */
 export async function GET(
   request: NextRequest,
@@ -14,6 +18,12 @@ export async function GET(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    // Opportunistic scheduled-calls tick (throttled + bounded, never blocks the poll)
+    void Promise.race([
+      processScheduledCallsTick({ baseUrl: getBaseUrl(request) }),
+      new Promise((r) => setTimeout(r, 3000))
+    ]).catch(() => {});
 
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {

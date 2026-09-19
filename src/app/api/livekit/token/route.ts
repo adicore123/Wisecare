@@ -41,6 +41,36 @@ export async function POST(request: NextRequest) {
     const clientId = String(body.clientId || '').trim();
     const sendWhatsApp = body.sendWhatsApp !== false;
 
+    // Rejoin mode: { callId } mints a host token for an ALREADY-ACTIVE call
+    // (e.g. one the scheduler auto-started). No new call is created, so the
+    // client's /join link that was already sent keeps working.
+    if (body.callId) {
+      const call = db.collection('videoCalls').findById(String(body.callId)) as any;
+      if (!call || call.therapistId !== auth.userId) {
+        return NextResponse.json({ error: 'השיחה לא נמצאה' }, { status: 404 });
+      }
+      if (call.status !== 'active') {
+        return NextResponse.json({ error: 'השיחה כבר הסתיימה' }, { status: 410 });
+      }
+      const rejoinTherapist = db.collection('users').findById(auth.userId);
+      const rejoinToken = await mintLiveKitToken({
+        room: call.room,
+        identity: `therapist-${auth.userId}`,
+        name: rejoinTherapist?.name || 'מטפל/ת',
+        role: 'host'
+      });
+      return NextResponse.json({
+        success: true,
+        callId: call.id,
+        room: call.room,
+        token: rejoinToken,
+        url: config.url,
+        joinUrl: null,
+        whatsappSent: false,
+        message: 'הצטרפת לשיחה'
+      }, { status: 201 });
+    }
+
     if (!clientId) {
       return NextResponse.json({ error: 'נדרש מזהה מטופל' }, { status: 400 });
     }
