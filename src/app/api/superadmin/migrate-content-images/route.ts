@@ -18,8 +18,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
     }
 
+    const retryFailed = new URL(request.url).searchParams.get('retry') === '1';
+    const SKIP_FAILED_MS = 60 * 60 * 1000; // skip items that failed within the last hour
+
     const all = db.collection('contentItems').find({})
-      .filter((item: any) => isHttpImageUrl(item.imageData));
+      .filter((item: any) => isHttpImageUrl(item.imageData))
+      .filter((item: any) =>
+        retryFailed ||
+        !item.imageMigrationFailedAt ||
+        Date.now() - new Date(item.imageMigrationFailedAt).getTime() > SKIP_FAILED_MS
+      );
 
     // Batching: each invocation converts at most `limit` items so the
     // function stays well under the serverless timeout; re-run until done.
@@ -33,9 +41,12 @@ export async function POST(request: NextRequest) {
     for (const item of items) {
       const dataUrl = await materializeImage(String(item.imageData));
       if (dataUrl) {
-        db.collection('contentItems').updateById(item.id, { imageData: dataUrl });
+        db.collection('contentItems').updateById(item.id, { imageData: dataUrl, imageMigrationFailedAt: null });
         converted++;
       } else {
+        // Mark the failure so subsequent batches skip this item (it blocks
+        // the head of the slice otherwise)
+        db.collection('contentItems').updateById(item.id, { imageMigrationFailedAt: new Date().toISOString() });
         failed++;
         if (failedIds.length < 10) failedIds.push(item.id);
       }
@@ -59,7 +70,7 @@ export async function POST(request: NextRequest) {
       converted,
       failed,
       failedIds,
-      message: `הומרו ${converted} מתוך ${items.length} בבאץ' (נותרו ${Math.max(0, all.length - items.length)} להמרה)${failed ? ` — ${failed} נכשלו` : ''}`
+      message: `הומרו ${converted} מתוך ${items.length} בבאץ' (נותרו ${Math.max(0, all.length - items.length)} להמרה)${failed ? ` — ${failed} נכשלו ויידלגו לשעה` : ''}`
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאה בהמרת התמונות';
