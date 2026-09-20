@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuthFromRequest } from '@/lib/auth';
+import { getAuthFromRequest, getClientAuthFromRequest } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
 import {
   cleanUrl,
@@ -10,14 +10,22 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
-    // Authenticated therapists only — this is an outbound fetcher, never a public proxy
+    // The portal's self-content form relies on this preview too — patients
+    // paste links from their own session. Allow either a staff session or a
+    // verified client session; isPublicWebUrl below stays the SSRF guard and
+    // the rate limit is keyed per identity so clients can't drive the fetcher.
     const auth = getAuthFromRequest(request);
-    if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
-      return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
+    const isStaff = Boolean(auth && (auth.role === 'therapist' || auth.role === 'superadmin'));
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!isStaff && !clientAuth) {
+      return NextResponse.json({ error: 'נדרשת התחברות למערכת' }, { status: 403 });
     }
 
+    const identity = isStaff
+      ? `staff:${auth!.username}`
+      : `client:${clientAuth!.clientId}`;
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
-    const rl = checkRateLimit(`preview-url:${ip}`, 30, 60);
+    const rl = checkRateLimit(`preview-url:${identity}:${ip}`, 30, 60);
     if (!rl.allowed) {
       return NextResponse.json({ error: 'בוצעו יותר מדי בקשות. נסה/י שוב בעוד דקה.' }, { status: 429 });
     }
