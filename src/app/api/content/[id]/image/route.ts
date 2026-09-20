@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest, getClientAuthFromRequest } from '@/lib/auth';
+import { isHttpImageUrl } from '@/services/contentImage';
 
 /**
  * GET /api/content/{id}/image
@@ -26,6 +27,18 @@ export async function GET(
     const imageData = await db.getContentImageData(id);
     if (!imageData) {
       return NextResponse.json({ error: 'תמונה לא נמצאה' }, { status: 404 });
+    }
+
+    // Hotlinked thumbnails (social OpenGraph URLs, e.g. scontent*.fbcdn.net):
+    // the browser can fetch them but the server can't (403 on server-side
+    // requests — that's also why materialization failed for these items), so
+    // hand the URL to the client with a redirect. Short cache: these are
+    // signed, expiring links.
+    if (isHttpImageUrl(imageData)) {
+      return NextResponse.redirect(imageData, {
+        status: 302,
+        headers: { 'Cache-Control': 'public, max-age=300' },
+      });
     }
 
     const match = /^data:(image\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(imageData);

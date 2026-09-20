@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
-import { materializeImage } from '@/services/contentImage';
+import { refreshHotlinkedImage } from '@/services/contentImage';
 
 // Sequential downloads (8s timeout each) can exceed the default 10s budget —
 // give the batch room to finish and report instead of dying mid-run.
@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     const failedIds: string[] = [];
 
     for (const item of items) {
-      const dataUrl = await materializeImage(String(item.imageData));
+      // Stored CDN links are signed and expire — when the direct download is
+      // refused, re-scrape the item's source page for a FRESH og:image and
+      // materialize that instead.
+      const dataUrl = await refreshHotlinkedImage(item.url, String(item.imageData));
       if (dataUrl) {
         db.collection('contentItems').updateById(item.id, { imageData: dataUrl, imageMigrationFailedAt: null });
         converted++;

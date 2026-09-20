@@ -223,7 +223,7 @@ export class Database {
    * materialization). Queried directly in MongoDB because the bulk sync no
    * longer carries imageData in memory.
    */
-  async findContentItemsWithHttpImages(): Promise<Array<{ id: string; imageData?: string; imageMigrationFailedAt?: string }>> {
+  async findContentItemsWithHttpImages(): Promise<Array<{ id: string; url?: string; imageData?: string; imageMigrationFailedAt?: string }>> {
     if (!this.mongoDb) {
       await this.connect();
     }
@@ -231,10 +231,11 @@ export class Database {
     try {
       const docs = await this.mongoDb
         .collection('contentItems')
-        .find({ imageData: { $regex: /^https?:\/\//i } }, { projection: { _id: 1, imageData: 1, imageMigrationFailedAt: 1 } })
+        .find({ imageData: { $regex: /^https?:\/\//i } }, { projection: { _id: 1, url: 1, imageData: 1, imageMigrationFailedAt: 1 } })
         .toArray();
       return docs.map(d => ({
         id: String(d._id),
+        url: (d as any).url,
         imageData: (d as any).imageData,
         imageMigrationFailedAt: (d as any).imageMigrationFailedAt
       }));
