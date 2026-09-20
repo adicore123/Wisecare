@@ -11,6 +11,22 @@
   --color-primary-hover: var(--primary-hover);
   --color-primary-light: var(--primary-light);
 
+  /* Full numbered scale — components migrated off teal/emerald reference these
+     (bg-primary-600, text-primary-400, border-primary-500…). Same runtime
+     derivation as the brand ramp below: light steps mix toward white, dark
+     toward black, 600 = the palette base, 700 = its hover shade. */
+  --color-primary-50: var(--primary-faint);
+  --color-primary-100: var(--primary-light);
+  --color-primary-200: color-mix(in srgb, var(--primary) 30%, white);
+  --color-primary-300: color-mix(in srgb, var(--primary) 45%, white);
+  --color-primary-400: color-mix(in srgb, var(--primary) 65%, white);
+  --color-primary-500: color-mix(in srgb, var(--primary) 88%, white);
+  --color-primary-600: var(--primary);
+  --color-primary-700: var(--primary-hover);
+  --color-primary-800: color-mix(in srgb, var(--primary) 78%, black);
+  --color-primary-900: color-mix(in srgb, var(--primary) 60%, black);
+  --color-primary-950: color-mix(in srgb, var(--primary) 45%, black);
+
   /* Brand ramp derived from --primary at runtime: light steps mix toward white,
      dark steps toward black. Switching the theme remaps the whole scale. */
   --color-brand-50: color-mix(in srgb, var(--primary) 5%, white);
