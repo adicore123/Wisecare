@@ -21,14 +21,14 @@ export async function GET(
     }
 
     const { id } = await props.params;
-    await db.ensureLoaded();
 
-    const item = db.collection('contentItems').findById(id) as any;
-    if (!item || typeof item.imageData !== 'string' || !item.imageData) {
+    // imageData stays out of the bulk sync (multi-MB); fetched per item on demand
+    const imageData = await db.getContentImageData(id);
+    if (!imageData) {
       return NextResponse.json({ error: 'תמונה לא נמצאה' }, { status: 404 });
     }
 
-    const match = /^data:(image\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(item.imageData);
+    const match = /^data:(image\/[a-z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/i.exec(imageData);
     if (!match) {
       return NextResponse.json({ error: 'פורמט תמונה שמור אינו נתמך' }, { status: 415 });
     }

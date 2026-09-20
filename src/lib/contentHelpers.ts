@@ -187,11 +187,13 @@ export function enrichItems(items: any[]) {
 
   return items.map(item => {
     // Embedded base64 images never ride inside list payloads — they are served
-    // by /api/content/[id]/image with browser caching instead.
-    const { imageData, ...rest } = item;
+    // by /api/content/[id]/image with browser caching instead. imageData itself
+    // is absent from synced memory (hasImageData marks presence), so honor both.
+    const { imageData, hasImageData, ...rest } = item;
+    const hasImage = Boolean(imageData) || hasImageData === true;
     return {
       ...rest,
-      ...(imageData ? { imageUrl: `/api/content/${item.id}/image` } : {}),
+      ...(hasImage ? { imageUrl: `/api/content/${item.id}/image` } : {}),
       assignments: (assignmentsByContent.get(item.id) || []).map((assignment: any) => {
         const client = clientsById.get(assignment.clientId);
         return {

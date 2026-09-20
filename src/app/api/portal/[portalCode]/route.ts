@@ -75,8 +75,9 @@ export async function getPortalPayload(portalCode: string, options: { includePri
         description: item.description,
         type: item.type,
         url: item.url,
-        // Served by the cached image endpoint — not embedded in the payload
-        imageUrl: item.imageData ? `/api/content/${item.id}/image` : '',
+        // Served by the cached image endpoint — not embedded in the payload.
+        // hasImageData: the bulk sync carries presence, not the blob itself.
+        imageUrl: (item.imageData || item.hasImageData) ? `/api/content/${item.id}/image` : '',
         category: item.category,
         sourceName: item.sourceName,
         assignedAt: assignment.createdAt

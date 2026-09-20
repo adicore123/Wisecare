@@ -180,6 +180,70 @@ export class Database {
     this.lastSyncTime = Date.now();
   }
 
+  // Cold instances keep image blobs out of the bulk sync (see syncWithMongo);
+  // /api/content/[id]/image pulls one item's imageData from MongoDB on demand.
+  // Bounded FIFO cache — thumbnails are ~100KB each, 64 entries ≈ 6MB max.
+  private imageDataCache = new Map<string, string>();
+
+  async getContentImageData(id: string): Promise<string | null> {
+    if (!id) return null;
+    const memoryItem = (this.data.contentItems || []).find(
+      (item: any) => item?.id === id || item?._id?.toString() === id
+    );
+    if (memoryItem && typeof memoryItem.imageData === 'string' && memoryItem.imageData) {
+      return memoryItem.imageData;
+    }
+    if (this.imageDataCache.has(id)) {
+      return this.imageDataCache.get(id) || null;
+    }
+
+    if (!this.mongoDb) {
+      await this.connect();
+    }
+    if (!this.mongoDb) return null;
+    try {
+      const doc = await this.mongoDb
+        .collection('contentItems')
+        .findOne({ _id: id as any }, { projection: { imageData: 1 } });
+      const value = doc && typeof (doc as any).imageData === 'string' ? (doc as any).imageData : '';
+      this.imageDataCache.set(id, value);
+      if (this.imageDataCache.size > 64) {
+        const oldest = this.imageDataCache.keys().next().value;
+        if (oldest !== undefined) this.imageDataCache.delete(oldest);
+      }
+      return value || null;
+    } catch (err: any) {
+      console.warn('[MongoDB imageData fetch error]:', err?.message);
+      return null;
+    }
+  }
+
+  /**
+   * Content items whose imageData is still a hotlinked http(s) URL (pending
+   * materialization). Queried directly in MongoDB because the bulk sync no
+   * longer carries imageData in memory.
+   */
+  async findContentItemsWithHttpImages(): Promise<Array<{ id: string; imageData?: string; imageMigrationFailedAt?: string }>> {
+    if (!this.mongoDb) {
+      await this.connect();
+    }
+    if (!this.mongoDb) return [];
+    try {
+      const docs = await this.mongoDb
+        .collection('contentItems')
+        .find({ imageData: { $regex: /^https?:\/\//i } }, { projection: { _id: 1, imageData: 1, imageMigrationFailedAt: 1 } })
+        .toArray();
+      return docs.map(d => ({
+        id: String(d._id),
+        imageData: (d as any).imageData,
+        imageMigrationFailedAt: (d as any).imageMigrationFailedAt
+      }));
+    } catch (err: any) {
+      console.warn('[MongoDB http-image scan error]:', err?.message);
+      return [];
+    }
+  }
+
   markModified(name: string, id: string) {
     if (!id) return;
     let set = this.locallyModifiedIds.get(name);
@@ -334,6 +398,8 @@ export class Database {
     this.syncingPromise = (async () => {
       try {
         await this.flush();
+        // Another instance may have rewritten an image since we cached it
+        this.imageDataCache.clear();
         this.lastSyncTime = Date.now();
         const dbInstance = this.mongoDb;
         if (!dbInstance) return;
@@ -352,13 +418,30 @@ export class Database {
                 ids.forEach(id => pendingDeletes.delete(id));
               }
 
-              const remoteDocs = await col.find({}).toArray();
+              // Base64 thumbnails dominate contentItems (multi-MB — the bulk sync
+              // took ~90s with them and every cold start paid it). They are fetched
+              // per item on demand via getContentImageData; here we only carry a
+              // lightweight hasImageData presence flag for list mappings.
+              const isContentItems = name === 'contentItems';
+              const remoteDocs = await (isContentItems
+                ? col.find({}, { projection: { imageData: 0 } })
+                : col.find({})
+              ).toArray();
+              const imagePresenceIds = isContentItems
+                ? new Set(
+                    (await col
+                      .find({ imageData: { $exists: true, $ne: '' } }, { projection: { _id: 1 } })
+                      .toArray()
+                    ).map(d => String(d._id))
+                  )
+                : null;
 
               if (remoteDocs && remoteDocs.length > 0) {
                 const remoteList = remoteDocs.map(doc => {
                   const item: any = { ...doc };
                   item.id = item.id || item._id?.toString();
                   delete item._id;
+                  if (imagePresenceIds) item.hasImageData = imagePresenceIds.has(String(item.id));
                   return item;
                 });
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
-import { isHttpImageUrl, materializeImage } from '@/services/contentImage';
+import { materializeImage } from '@/services/contentImage';
 
 // Sequential downloads (8s timeout each) can exceed the default 10s budget —
 // give the batch room to finish and report instead of dying mid-run.
@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
     const retryFailed = new URL(request.url).searchParams.get('retry') === '1';
     const SKIP_FAILED_MS = 60 * 60 * 1000; // skip items that failed within the last hour
 
-    const all = db.collection('contentItems').find({})
-      .filter((item: any) => isHttpImageUrl(item.imageData))
+    // imageData no longer rides in the in-memory bulk sync (multi-MB) — ask
+    // MongoDB directly for the items still holding a hotlinked http(s) URL.
+    const all = (await db.findContentItemsWithHttpImages())
       .filter((item: any) =>
         retryFailed ||
         !item.imageMigrationFailedAt ||
