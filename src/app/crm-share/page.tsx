@@ -3,7 +3,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Share2,
   Video,
   ExternalLink,
   Loader2,
@@ -195,9 +194,9 @@ function ShareTargetContent() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary-light/50 via-white to-primary-light/30" dir="rtl">
       <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-primary-100/80 p-6 md:p-8 text-center transition-all animate-fadeIn">
-        {/* WiseCare Branding */}
+        {/* WiseCare Branding — the heart-handshake logo, same as login/CRM/portal */}
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 text-white shadow-lg shadow-primary-600/25 mb-4">
-          <Share2 size={28} className="animate-pulse" />
+          <HeartHandshake size={30} className="animate-pulse" />
         </div>
 
         <h1 className="text-2xl font-black text-slate-800 mb-1 tracking-tight">
