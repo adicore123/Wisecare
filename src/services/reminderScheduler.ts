@@ -1,5 +1,6 @@
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from './greenApi';
+import { israelNow, minutesBetween } from '@/lib/israelTime';
 
 // Hebrew day names mapping
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -125,24 +126,28 @@ export async function sendAppointmentReminder(appointmentId: string) {
 export async function processAutomaticReminders() {
   const summary = { processed: 0, sent: 0, errors: [] as string[] };
   try {
+    await db.ensureLoaded();
     const allAppointments = db.collection('appointments').find({ status: 'confirmed' });
-    const now = new Date();
     const settings = db.getSettings();
     const clinicName = settings.clinicName || 'מרחב טיפולי WiseCare';
 
-    // Look for appointments scheduled within the next 1-36 hours (covering next day on daily run)
-    const minThreshold = new Date(now.getTime() + 1 * 60 * 60 * 1000);
-    const maxThreshold = new Date(now.getTime() + 36 * 60 * 60 * 1000);
+    // Appointment date/time are Israel wall-clock strings — compare them against
+    // Israel "now" (DST-safe), never against the server's UTC clock. Window:
+    // appointments happening between 1 and 36 hours from now (covers the next
+    // day on the daily cron run).
+    const now = israelNow();
+    const MIN_LEAD_MINUTES = 60;
+    const MAX_LEAD_MINUTES = 36 * 60;
 
     for (const apt of allAppointments) {
       if (apt.reminderSent) continue;
       if (!apt.date || !apt.time || !apt.clientPhone) continue;
 
       try {
-        const aptDateTime = new Date(`${apt.date}T${apt.time}:00`);
-        if (isNaN(aptDateTime.getTime())) continue;
+        const leadMinutes = -minutesBetween(now.stamp, `${apt.date}T${apt.time}`);
+        if (isNaN(leadMinutes)) continue;
 
-        if (aptDateTime >= minThreshold && aptDateTime <= maxThreshold) {
+        if (leadMinutes >= MIN_LEAD_MINUTES && leadMinutes <= MAX_LEAD_MINUTES) {
           summary.processed++;
           const therapist = db.collection('users').findById(apt.therapistId) || { name: 'צוות הקליניקה' };
           const message = buildReminderMessage(apt, therapist.name, clinicName);

@@ -575,8 +575,8 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
                     <td>
                       <div className="content-table-primary">
                         <div className="content-table-thumbnail">
-                          {item.imageData
-                            ? <img src={item.imageData} alt="" loading="lazy" />
+                          {(item.imageUrl || item.imageData)
+                            ? <img src={item.imageUrl || item.imageData} alt="" loading="lazy" />
                             : <TypeIcon size={22} aria-hidden="true" />}
                         </div>
                         <div className="content-table-copy">

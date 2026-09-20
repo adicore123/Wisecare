@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import { israelNow } from '@/lib/israelTime';
 import { 
   Calendar, 
   Clock, 
@@ -82,7 +83,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [formData, setFormData] = useState({
     clientId: '',
-    date: new Date().toISOString().split('T')[0],
+    date: israelNow().date,
     time: '10:00',
     durationMinutes: 50,
     type: 'in_person',
@@ -123,7 +124,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
     setEditingAppointment(null);
     setFormData({
       clientId: clientDefaultId || (clients[0]?.id || ''),
-      date: new Date().toISOString().split('T')[0],
+      date: israelNow().date,
       time: '10:00',
       durationMinutes: 50,
       type: 'in_person',
@@ -268,7 +269,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
   });
 
   // Calculate stats
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = israelNow().date;
   const todayCount = appointments.filter(a => a.date === todayStr && a.status !== 'cancelled').length;
   const pendingRequests = appointments.filter(a => a.status === 'pending');
   const upcomingCount = appointments.filter(a => a.date >= todayStr && a.status === 'confirmed').length;

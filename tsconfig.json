@@ -39,6 +39,7 @@
     "node_modules",
     "client",
     "server",
-    "src/_parked-zoom"
+    "src/_parked-zoom",
+    "wiseenergy"
   ]
 }

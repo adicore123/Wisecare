@@ -27,7 +27,7 @@ export const api = {
       body: JSON.stringify({ username, password, ...extra })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהתחברות');
     }
     return res.json();
@@ -67,7 +67,7 @@ export const api = {
       body: JSON.stringify({ targetTherapistId })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בכניסה לסביבת המטפל');
     }
     return res.json();
@@ -80,7 +80,7 @@ export const api = {
       headers: authHeaders(adminToken ? { Authorization: `Bearer ${adminToken}` } : {})
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בחזרה ל-SuperAdmin');
     }
     return res.json();
@@ -89,7 +89,7 @@ export const api = {
   getTherapistLoginInfo: async (loginCode) => {
     const res = await fetch(`${API_BASE}/auth/therapist-login/${loginCode}`);
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'קישור כניסה לא תקין או פג תוקף');
     }
     return res.json();
@@ -102,7 +102,7 @@ export const api = {
       body: JSON.stringify({ username, password })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שם משתמש או סיסמה שגויים');
     }
     return res.json();
@@ -199,7 +199,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה ביצירת לקוח חדש');
     }
     return res.json();
@@ -231,7 +231,7 @@ export const api = {
       body: JSON.stringify({ customMessage })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת וואטסאפ');
     }
     return res.json();
@@ -249,7 +249,7 @@ export const api = {
       body: JSON.stringify(taskData)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהקצאת משימה');
     }
     return res.json();
@@ -286,7 +286,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשמירת פריט התוכן');
     }
     return res.json();
@@ -312,7 +312,7 @@ export const api = {
       body: JSON.stringify({ clientIds, sendWhatsApp })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשיוך התוכן');
     }
     return res.json();
@@ -333,7 +333,7 @@ export const api = {
       headers: authHeaders()
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת התראת WhatsApp');
     }
     return res.json();
@@ -342,7 +342,7 @@ export const api = {
   deleteContentItem: async (contentId) => {
     const res = await fetch(`${API_BASE}/content/${contentId}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה במחיקת פריט התוכן');
     }
     return res.json();
@@ -358,7 +358,7 @@ export const api = {
       cache: 'no-store'
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'מרחב אישי לא נמצא');
     }
     return res.json();
@@ -371,7 +371,7 @@ export const api = {
       body: JSON.stringify({ taskId, completed, clientNotes })
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בעדכון משימה');
     }
     return res.json();
@@ -391,7 +391,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשמירת התובנה');
     }
     return res.json();
@@ -443,7 +443,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה ביצירת מטפל');
     }
     return res.json();
@@ -481,7 +481,7 @@ export const api = {
       headers: authHeaders()
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת פרטי התחברות בוואטסאפ');
     }
     return res.json();
@@ -496,7 +496,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה באיפוס פרטי גישה');
     }
     return res.json();
@@ -518,7 +518,7 @@ export const api = {
       body: JSON.stringify(settings)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בעדכון הגדרות SuperAdmin');
     }
     return res.json();
@@ -613,7 +613,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה ביצירת תור חדש');
     }
     return res.json();
@@ -626,7 +626,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בעדכון פרטי התור');
     }
     return res.json();
@@ -647,7 +647,7 @@ export const api = {
       headers: authHeaders()
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת תזכורת WhatsApp');
     }
     return res.json();
@@ -659,7 +659,7 @@ export const api = {
       headers: authHeaders()
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת אישור פגישה בוואטסאפ');
     }
     return res.json();
@@ -679,7 +679,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהגשת בקשת תור');
     }
     return res.json();
@@ -701,7 +701,7 @@ export const api = {
       body: JSON.stringify(data)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהרשמה למרחב האישי');
     }
     return res.json();
@@ -714,7 +714,7 @@ export const api = {
       body: JSON.stringify(taskData)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהוספת משימה');
     }
     return res.json();
@@ -735,7 +735,7 @@ export const api = {
       body: JSON.stringify(contentData)
     });
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בהוספת תוכן למרחב האישי');
     }
     return res.json();

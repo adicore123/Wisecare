@@ -34,6 +34,7 @@ export interface TickSummary {
   remindersSent: number;
   callsStarted: number;
   missed: number;
+  retriesQueued: number;
 }
 
 async function safeWhatsApp(phone: string, message: string): Promise<boolean> {
@@ -58,35 +59,63 @@ function crmMeetingsUrl(therapistLoginCode: string, baseUrl: string): string {
 }
 
 /** Creates the live call for a due scheduled call and notifies both sides. */
-async function startScheduledCall(sc: any, therapist: any, baseUrl: string): Promise<void> {
-  const join = generateJoinToken();
+async function startScheduledCall(
+  sc: any,
+  therapist: any,
+  baseUrl: string
+): Promise<'started' | 'skipped' | 'failed'> {
+  const scheduledCalls = db.collection('scheduledCalls');
+  const videoCalls = db.collection('videoCalls');
+
+  // Claim the transition FIRST and only if still 'scheduled' — two concurrent
+  // ticks (CRM poll + portal poll usually land on different lambdas) must not
+  // both mint a join token and WhatsApp two different links.
+  const fresh = scheduledCalls.findById(sc.id);
+  if (!fresh || fresh.status !== 'scheduled') return 'skipped';
+  scheduledCalls.updateOne({ id: sc.id }, { status: 'starting' });
+
+  // Idempotency: reuse the call record from a previous attempt whose link send
+  // failed — never create two live calls for the same scheduled call.
   const room = clientRoom(sc.clientId);
-
-  const call = db.collection('videoCalls').insertOne({
-    therapistId: sc.therapistId,
-    therapistName: sc.therapistName || therapist?.name || '',
-    clientId: sc.clientId,
-    clientName: sc.clientName,
-    room,
-    startedAt: new Date().toISOString(),
-    status: 'active',
-    startedBy: 'scheduled',
-    scheduledCallId: sc.id,
-    joinTokenHash: join.hash
-  });
-
-  db.collection('scheduledCalls').updateOne({ id: sc.id }, {
-    status: 'started',
-    videoCallId: call.id
-  });
+  const join = generateJoinToken();
+  let call = videoCalls.findOne({ scheduledCallId: sc.id, status: 'active' }) as any;
+  if (call) {
+    videoCalls.updateById(call.id, {
+      joinTokenHash: join.hash,
+      startedAt: new Date().toISOString()
+    });
+    call = videoCalls.findById(call.id);
+  } else {
+    call = videoCalls.insertOne({
+      therapistId: sc.therapistId,
+      therapistName: sc.therapistName || therapist?.name || '',
+      clientId: sc.clientId,
+      clientName: sc.clientName,
+      room,
+      startedAt: new Date().toISOString(),
+      status: 'active',
+      startedBy: 'scheduled',
+      scheduledCallId: sc.id,
+      joinTokenHash: join.hash
+    });
+  }
 
   const joinUrl = `${baseUrl}/join/${call.id}/${join.token}`;
 
-  // Client gets the join link (works with or without a personal space)
-  await safeWhatsApp(
+  // Client gets the join link (works with or without a personal space).
+  // Mark 'started' only AFTER the link actually went out — a failed send
+  // returns the call to 'scheduled' so the next tick retries with a fresh token.
+  const clientNotified = await safeWhatsApp(
     sc.clientPhone,
     `שלום ${firstName(sc.clientName)} יקר/ה,\n🎥 הגיע הזמן לשיחת הווידאו שלך עם ${sc.therapistName || 'המטפל/ת'}!\nלהצטרפות לשיחה לחצ/י על הקישור:\n${joinUrl}\n\nבברכה,\nמרחב טיפולי WiseCare 🌿`
   );
+  if (!clientNotified) {
+    scheduledCalls.updateOne({ id: sc.id }, {
+      status: sc.clientPhone ? 'scheduled' : 'failed',
+      joinLinkError: sc.clientPhone ? 'whatsapp_send_failed' : 'client_has_no_phone'
+    });
+    return 'failed';
+  }
 
   // Therapist gets a heads-up with a shortcut into the meetings screen
   if (therapist?.phone) {
@@ -95,10 +124,17 @@ async function startScheduledCall(sc: any, therapist: any, baseUrl: string): Pro
       `🕒 ${sc.clientName || 'המטופל/ת'} ממתין/ה לך לשיחת הווידאו שנקבעה.\nלכניסה למסך הפגישות והצטרפות לשיחה:\n${crmMeetingsUrl(therapist.loginCode, baseUrl)}`
     );
   }
+
+  scheduledCalls.updateOne({ id: sc.id }, {
+    status: 'started',
+    videoCallId: call.id,
+    joinLinkError: null
+  });
+  return 'started';
 }
 
 export async function processScheduledCallsTick(opts: { force?: boolean; baseUrl?: string } = {}): Promise<TickSummary> {
-  const summary: TickSummary = { remindersSent: 0, callsStarted: 0, missed: 0 };
+  const summary: TickSummary = { remindersSent: 0, callsStarted: 0, missed: 0, retriesQueued: 0 };
 
   if (!opts.force && Date.now() - lastTickAt < TICK_THROTTLE_MS) {
     return { ...summary, skipped: true };
@@ -109,6 +145,17 @@ export async function processScheduledCallsTick(opts: { force?: boolean; baseUrl
     await db.ensureLoaded();
     const now = israelNow();
     const baseUrl = opts.baseUrl || '';
+
+    // Requeue calls stuck mid-start (a lambda that died between 'starting' and
+    // 'started') so they are retried instead of hanging forever.
+    const stuck = db.collection('scheduledCalls').find({ status: 'starting' });
+    for (const sc of stuck as any[]) {
+      const staleFor = sc.updatedAt ? Date.now() - new Date(sc.updatedAt).getTime() : Infinity;
+      if (staleFor > 10 * 60 * 1000) {
+        db.collection('scheduledCalls').updateOne({ id: sc.id }, { status: 'scheduled' });
+        summary.retriesQueued++;
+      }
+    }
 
     const pending = db.collection('scheduledCalls').find({ status: 'scheduled' });
     for (const sc of pending) {
@@ -142,8 +189,8 @@ export async function processScheduledCallsTick(opts: { force?: boolean; baseUrl
       // 2) At the appointed time — start (or miss) the call
       if (!isNaN(dueMinutes) && dueMinutes >= 0) {
         if (dueMinutes <= START_GRACE_MINUTES) {
-          await startScheduledCall(sc, therapist, baseUrl);
-          summary.callsStarted++;
+          const outcome = await startScheduledCall(sc, therapist, baseUrl);
+          if (outcome === 'started') summary.callsStarted++;
         } else {
           db.collection('scheduledCalls').updateOne({ id: sc.id }, { status: 'missed' });
           summary.missed++;

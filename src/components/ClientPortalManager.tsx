@@ -3062,7 +3062,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     return (
                       <article
                         id={`portal-content-${item.id}`}
-                        className={`portal-content-card ${!item.url && !item.imageData ? 'is-text-only' : ''} ${isFeatured ? 'is-featured' : ''} ${isExpanded ? 'is-expanded' : ''} ${isArticle ? 'is-article-card' : ''}`}
+                        className={`portal-content-card ${!item.url && !item.imageData && !item.imageUrl ? 'is-text-only' : ''} ${isFeatured ? 'is-featured' : ''} ${isExpanded ? 'is-expanded' : ''} ${isArticle ? 'is-article-card' : ''}`}
                         key={item.assignmentId || item.id}
                         tabIndex={isFeatured ? -1 : undefined}
                         style={isArticle ? { borderTop: '4px solid #0d9488' } : {}}
@@ -3072,9 +3072,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               fails to load (expired CDN link), it shows instead
                               of a broken-image glyph */}
                           <ContentIcon size={40} aria-hidden="true" style={{ position: 'absolute', inset: 0, margin: 'auto', zIndex: 1 }} />
-                          {item.imageData && (
+                          {(item.imageUrl || item.imageData) && (
                             <img
-                              src={item.imageData}
+                              src={item.imageUrl || item.imageData}
                               alt=""
                               loading="lazy"
                               style={{ position: 'relative', zIndex: 2 }}
@@ -3157,8 +3157,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               <span>קישור מקור</span>
                             </a>
                           )}
-                          {!item.url && item.type === 'image' && item.imageData && (
-                            <a className="btn btn-primary" href={item.imageData} target="_blank" rel="noreferrer">
+                          {!item.url && item.type === 'image' && (item.imageUrl || item.imageData) && (
+                            <a className="btn btn-primary" href={item.imageUrl || item.imageData} target="_blank" rel="noreferrer">
                               <ExternalLink size={16} aria-hidden="true" />
                               <span>צפה בתמונה</span>
                             </a>

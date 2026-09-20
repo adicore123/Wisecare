@@ -172,19 +172,35 @@ export function validateImageData(value: unknown): string | null {
 }
 
 export function enrichItems(items: any[]) {
-  const assignments = db.collection('contentAssignments');
-  const clients = db.collection('clients');
+  // Map indexes keep enrichment linear instead of rescanning every assignment
+  // and client per item (quadratic on growing libraries).
+  const assignmentsByContent = new Map<string, any[]>();
+  for (const assignment of db.collection('contentAssignments').find()) {
+    const list = assignmentsByContent.get(assignment.contentId);
+    if (list) list.push(assignment);
+    else assignmentsByContent.set(assignment.contentId, [assignment]);
+  }
+  const clientsById = new Map<string, any>();
+  for (const client of db.collection('clients').find()) {
+    clientsById.set(client.id, client);
+  }
 
-  return items.map(item => ({
-    ...item,
-    assignments: assignments.find({ contentId: item.id }).map((assignment: any) => {
-      const client = clients.findById(assignment.clientId);
-      return {
-        ...assignment,
-        clientName: client ? `${client.firstName} ${client.lastName}` : 'מטופל לא זמין'
-      };
-    })
-  }));
+  return items.map(item => {
+    // Embedded base64 images never ride inside list payloads — they are served
+    // by /api/content/[id]/image with browser caching instead.
+    const { imageData, ...rest } = item;
+    return {
+      ...rest,
+      ...(imageData ? { imageUrl: `/api/content/${item.id}/image` } : {}),
+      assignments: (assignmentsByContent.get(item.id) || []).map((assignment: any) => {
+        const client = clientsById.get(assignment.clientId);
+        return {
+          ...assignment,
+          clientName: client ? `${client.firstName} ${client.lastName}` : 'מטופל לא זמין'
+        };
+      })
+    };
+  });
 }
 
 export async function notifyClient(client: any, assignment: any, item: any) {

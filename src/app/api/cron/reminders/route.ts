@@ -3,6 +3,10 @@ import { processAutomaticReminders } from '@/services/reminderScheduler';
 import { processScheduledCallsTick } from '@/services/scheduledCallScheduler';
 import { getBaseUrl } from '@/lib/urlHelpers';
 
+// The tick walks appointments and sends WhatsApp messages sequentially — it
+// needs more than the default budget as the clinic grows.
+export const maxDuration = 60;
+
 export async function GET(request: NextRequest) {
   try {
     const authHeader = request.headers.get('authorization');

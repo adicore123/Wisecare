@@ -75,7 +75,8 @@ export async function getPortalPayload(portalCode: string, options: { includePri
         description: item.description,
         type: item.type,
         url: item.url,
-        imageData: item.imageData,
+        // Served by the cached image endpoint — not embedded in the payload
+        imageUrl: item.imageData ? `/api/content/${item.id}/image` : '',
         category: item.category,
         sourceName: item.sourceName,
         assignedAt: assignment.createdAt

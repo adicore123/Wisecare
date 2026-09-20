@@ -39,6 +39,12 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    // Legacy dev-server proxy: only active in local development. In production it
+    // would turn every unknown /api/* path into a connection-refused 500 instead
+    // of a clean 404.
+    if (process.env.NODE_ENV === 'production') {
+      return { fallback: [] };
+    }
     return {
       fallback: [
         {

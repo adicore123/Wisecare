@@ -3,6 +3,10 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { isHttpImageUrl, materializeImage } from '@/services/contentImage';
 
+// Sequential downloads (8s timeout each) can exceed the default 10s budget —
+// give the batch room to finish and report instead of dying mid-run.
+export const maxDuration = 60;
+
 /**
  * POST /api/superadmin/migrate-content-images
  * One-shot (re-runnable) migration: walks every content item whose imageData
