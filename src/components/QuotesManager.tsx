@@ -1,22 +1,25 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Receipt,
   Plus,
   Send,
   Pencil,
   Trash2,
-  Link2,
   Copy,
+  CopyPlus,
   Loader2,
   CheckCircle2,
   XCircle,
   Package,
-  User
+  User,
+  UserPlus,
+  Link2,
+  Search
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { formatILS } from '@/lib/quoteHelpers';
+import { formatILS, quoteStatusMeta, quoteOptionsSummary, quoteChosenOptionLabel } from '@/lib/quoteHelpers';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -29,8 +32,19 @@ interface QuoteOptionDraft {
   sessionsCount: string;
 }
 
+interface QuoteDraft {
+  clientId: string;
+  newClient: { firstName: string; lastName: string; phone: string } | null;
+  leadName: string;
+  leadPhone: string;
+  title: string;
+  description: string;
+  options: QuoteOptionDraft[];
+}
+
 interface QuoteRow {
   id: string;
+  clientId: string | null;
   leadName: string;
   leadPhone: string;
   title: string;
@@ -51,14 +65,25 @@ interface QuoteRow {
   createdAt: string;
 }
 
-const STATUS_LABELS: Record<QuoteRow['status'], { text: string; bg: string; color: string; border: string }> = {
-  draft: { text: 'טיוטה', bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' },
-  sent: { text: 'נשלחה — ממתינה לתשובה', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  confirmed: { text: 'אושרה ✅', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
-  declined: { text: 'נדחתה', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' }
-};
+interface ClientOption {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}
 
-const EMPTY_DRAFT = (): { leadName: string; leadPhone: string; title: string; description: string; options: QuoteOptionDraft[] } => ({
+type StatusFilter = 'all' | 'sent' | 'confirmed' | 'declined';
+
+const STATUS_FILTERS: Array<{ key: StatusFilter; label: string; color: string; bg: string; border: string }> = [
+  { key: 'all', label: 'הכל', color: '#334155', bg: '#f8fafc', border: '#e2e8f0' },
+  { key: 'sent', label: 'נשלח', color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
+  { key: 'confirmed', label: 'אושר', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  { key: 'declined', label: 'לא אושר', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' }
+];
+
+const EMPTY_DRAFT = (): QuoteDraft => ({
+  clientId: '',
+  newClient: null,
   leadName: '',
   leadPhone: '',
   title: '',
@@ -69,16 +94,31 @@ const EMPTY_DRAFT = (): { leadName: string; leadPhone: string; title: string; de
   ]
 });
 
+function formatDate(value: string | null): string {
+  if (!value) return '—';
+  try {
+    return new Date(value).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: '2-digit' });
+  } catch {
+    return '—';
+  }
+}
+
 export default function QuotesManager() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
+  const [clients, setClients] = useState<ClientOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
 
   // Editor state (null = list view)
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [draft, setDraft] = useState(EMPTY_DRAFT());
+  const [draft, setDraft] = useState<QuoteDraft>(EMPTY_DRAFT());
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+
+  // List filters — status chips (נשלח / אושר / לא אושר) + free search
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Send / delete state
   const [sendingId, setSendingId] = useState<string | null>(null);
@@ -101,18 +141,31 @@ export default function QuotesManager() {
     }
   }, []);
 
+  const loadClients = useCallback(async () => {
+    try {
+      const data = await api.getClients();
+      setClients(Array.isArray(data) ? data : []);
+    } catch {
+      // Non-blocking — manual lead entry still works without the picker
+    }
+  }, []);
+
   useEffect(() => {
     loadQuotes();
-  }, [loadQuotes]);
+    loadClients();
+  }, [loadQuotes, loadClients]);
 
   const openNew = () => {
     setDraft(EMPTY_DRAFT());
     setEditingId(null);
+    setShowNewClientForm(false);
     setIsNew(true);
   };
 
-  const openEdit = (quote: QuoteRow) => {
+  const applyQuoteToDraft = (quote: QuoteRow) => {
     setDraft({
+      clientId: quote.clientId || '',
+      newClient: null,
       leadName: quote.leadName || '',
       leadPhone: quote.leadPhone || '',
       title: quote.title || '',
@@ -125,8 +178,44 @@ export default function QuotesManager() {
         sessionsCount: String(o.sessionsCount || '')
       }))
     });
+    setShowNewClientForm(false);
+  };
+
+  const openEdit = (quote: QuoteRow) => {
+    applyQuoteToDraft(quote);
     setEditingId(quote.id);
     setIsNew(false);
+  };
+
+  // Duplicate: open a pre-filled editor for a NEW quote (similar offers in one click)
+  const duplicateQuote = (quote: QuoteRow) => {
+    applyQuoteToDraft(quote);
+    setEditingId(null);
+    setIsNew(true);
+    showToast('ההצעה שוכפלה — בדוק/י את הפרטים ושמור/י');
+  };
+
+  const pickClient = (clientId: string) => {
+    setShowNewClientForm(false);
+    if (!clientId) {
+      setDraft(d => ({ ...d, clientId: '', newClient: null }));
+      return;
+    }
+    const client = clients.find(c => c.id === clientId);
+    setDraft(d => ({
+      ...d,
+      clientId,
+      newClient: null,
+      leadName: client ? `${client.firstName} ${client.lastName || ''}`.trim() : d.leadName,
+      leadPhone: client ? client.phone : d.leadPhone
+    }));
+  };
+
+  const updateNewClientForm = (patch: Partial<NonNullable<QuoteDraft['newClient']>>) => {
+    setDraft(d => ({
+      ...d,
+      newClient: { ...(d.newClient || { firstName: '', lastName: '', phone: '' }), ...patch }
+    }));
   };
 
   const updateOption = (optionId: string, patch: Partial<QuoteOptionDraft>) => {
@@ -154,13 +243,16 @@ export default function QuotesManager() {
   };
 
   const handleSave = async () => {
-    if (!draft.leadName.trim()) { showToast('נא להזין את שם הלקוח הפוטנציאלי', 'error'); return; }
-    if (draft.leadPhone.replace(/\D/g, '').length < 9) { showToast('נא להזין מספר טלפון תקין', 'error'); return; }
+    if (draft.newClient) {
+      if (!draft.newClient.firstName.trim()) { showToast('נא להזין שם פרטי ללקוח החדש', 'error'); return; }
+      if (draft.newClient.phone.replace(/\D/g, '').length < 9) { showToast('נא להזין מספר טלפון תקין ללקוח החדש', 'error'); return; }
+    } else if (!draft.clientId) {
+      if (!draft.leadName.trim()) { showToast('נא להזין את שם הלקוח הפוטנציאלי', 'error'); return; }
+      if (draft.leadPhone.replace(/\D/g, '').length < 9) { showToast('נא להזין מספר טלפון תקין', 'error'); return; }
+    }
     if (draft.options.length === 0) { showToast('יש להוסיף לפחות אפשרות מחיר אחת', 'error'); return; }
 
-    const payload = {
-      leadName: draft.leadName.trim(),
-      leadPhone: draft.leadPhone.trim(),
+    const payload: Record<string, unknown> = {
       title: draft.title.trim(),
       description: draft.description.trim(),
       options: draft.options.map(o => ({
@@ -171,6 +263,18 @@ export default function QuotesManager() {
         sessionsCount: Number(o.sessionsCount)
       }))
     };
+    if (draft.clientId) {
+      payload.clientId = draft.clientId;
+    } else if (draft.newClient) {
+      payload.newClient = {
+        firstName: draft.newClient.firstName.trim(),
+        lastName: draft.newClient.lastName.trim(),
+        phone: draft.newClient.phone.trim()
+      };
+    } else {
+      payload.leadName = draft.leadName.trim();
+      payload.leadPhone = draft.leadPhone.trim();
+    }
 
     setSaving(true);
     try {
@@ -184,6 +288,7 @@ export default function QuotesManager() {
       setIsNew(false);
       setEditingId(null);
       await loadQuotes();
+      await loadClients(); // a new client may have just been created
     } catch (err: any) {
       showToast(err.message || 'שגיאה בשמירת ההצעה', 'error');
     } finally {
@@ -233,6 +338,18 @@ export default function QuotesManager() {
     declined: quotes.filter(q => q.status === 'declined').length
   };
 
+  const filteredQuotes = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return quotes.filter(q => {
+      const matchesStatus = statusFilter === 'all' || q.status === statusFilter;
+      if (!matchesStatus) return false;
+      if (!term) return true;
+      return `${q.leadName} ${q.leadPhone} ${q.title} ${quoteOptionsSummary(q.options)}`.toLowerCase().includes(term);
+    });
+  }, [quotes, statusFilter, searchTerm]);
+
+  const clientLinked = Boolean(draft.clientId) || Boolean(draft.newClient);
+
   // ---------- Editor view ----------
   if (isNew || editingId) {
     return (
@@ -248,36 +365,139 @@ export default function QuotesManager() {
         </div>
 
         <div className="card" style={{ padding: '24px', maxWidth: '760px' }}>
-          <div className="form-group">
-            <label>שם הלקוח הפוטנציאלי *</label>
-            <input
-              className="form-control"
-              value={draft.leadName}
-              onChange={e => setDraft(d => ({ ...d, leadName: e.target.value }))}
-              placeholder="למשל: דניאל כהן"
-            />
+          {/* ---- Client association ---- */}
+          <div style={{ marginBottom: '8px' }}>
+            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <User size={16} /> לקוח ההצעה
+            </strong>
+            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+              שיוך לתיק לקוח קיים, יצירת לקוח חדש, או הזנת פרטים ידנית ללקוח שאינו במערכת.
+            </span>
           </div>
 
           <div className="form-row">
-            <div className="form-group">
-              <label>טלפון (וואטסאפ) *</label>
-              <input
+            <div className="form-group" style={{ flex: 2 }}>
+              <label>שיוך לתיק לקוח קיים</label>
+              <select
                 className="form-control"
-                dir="ltr"
-                value={draft.leadPhone}
-                onChange={e => setDraft(d => ({ ...d, leadPhone: e.target.value }))}
-                placeholder="050-1234567"
-              />
+                value={draft.clientId}
+                onChange={e => pickClient(e.target.value)}
+                disabled={Boolean(draft.newClient)}
+              >
+                <option value="">— לקוח חדש / הזנה ידנית —</option>
+                {clients.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {`${c.firstName} ${c.lastName || ''}`.trim()}{c.phone ? ` · ${c.phone}` : ''}
+                  </option>
+                ))}
+              </select>
             </div>
-            <div className="form-group">
-              <label>כותרת ההצעה</label>
-              <input
-                className="form-control"
-                value={draft.title}
-                onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
-                placeholder="למשל: טיפול CBT — מפגשי היכרות"
-              />
+            <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowNewClientForm(v => !v);
+                  if (!showNewClientForm) {
+                    setDraft(d => ({ ...d, clientId: '', newClient: d.newClient || { firstName: d.leadName, lastName: '', phone: d.leadPhone } }));
+                  }
+                }}
+                disabled={Boolean(draft.clientId)}
+              >
+                <UserPlus size={16} /> יצירת לקוח חדש במערכת
+              </button>
             </div>
+          </div>
+
+          {showNewClientForm && draft.newClient && (
+            <div style={{ border: '1px dashed #99f6e4', borderRadius: '14px', padding: '14px 16px', marginBottom: '14px', background: '#f0fdfa' }}>
+              <strong style={{ fontSize: '0.88rem', color: '#0f766e' }}>לקוח חדש — יירשם במערכת בשמירת ההצעה</strong>
+              <div className="form-row" style={{ marginTop: '8px' }}>
+                <div className="form-group">
+                  <label>שם פרטי *</label>
+                  <input
+                    className="form-control"
+                    value={draft.newClient.firstName}
+                    onChange={e => updateNewClientForm({ firstName: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>שם משפחה</label>
+                  <input
+                    className="form-control"
+                    value={draft.newClient.lastName}
+                    onChange={e => updateNewClientForm({ lastName: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>טלפון (וואטסאפ) *</label>
+                  <input
+                    className="form-control"
+                    dir="ltr"
+                    value={draft.newClient.phone}
+                    onChange={e => updateNewClientForm({ phone: e.target.value })}
+                    placeholder="050-1234567"
+                  />
+                </div>
+                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="btn-icon text-slate-400"
+                    onClick={() => setDraft(d => ({ ...d, newClient: null }))}
+                    aria-label="ביטול יצירת לקוח"
+                    title="ביטול"
+                  >
+                    <XCircle size={18} />
+                  </button>
+                </div>
+              </div>
+              <span style={{ fontSize: '0.78rem', color: '#047857' }}>
+                נוצר תיק לקוח עם מרחב אישי מוכן — בלי שליחת פרטי כניסה (הלקוח עדיין פוטנציאלי).
+              </span>
+            </div>
+          )}
+
+          {!clientLinked && (
+            <div className="form-row">
+              <div className="form-group">
+                <label>שם הלקוח הפוטנציאלי *</label>
+                <input
+                  className="form-control"
+                  value={draft.leadName}
+                  onChange={e => setDraft(d => ({ ...d, leadName: e.target.value }))}
+                  placeholder="למשל: דניאל כהן"
+                />
+              </div>
+              <div className="form-group">
+                <label>טלפון (וואטסאפ) *</label>
+                <input
+                  className="form-control"
+                  dir="ltr"
+                  value={draft.leadPhone}
+                  onChange={e => setDraft(d => ({ ...d, leadPhone: e.target.value }))}
+                  placeholder="050-1234567"
+                />
+              </div>
+            </div>
+          )}
+
+          {clientLinked && (
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '14px', padding: '10px 14px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '12px', color: '#1d4ed8', fontSize: '0.85rem' }}>
+              <Link2 size={15} />
+              <span>
+                מקושר לתיק לקוח: <strong>{draft.leadName}</strong> · <span dir="ltr">{draft.leadPhone}</span>
+              </span>
+            </div>
+          )}
+
+          <div className="form-group">
+            <label>כותרת ההצעה</label>
+            <input
+              className="form-control"
+              value={draft.title}
+              onChange={e => setDraft(d => ({ ...d, title: e.target.value }))}
+              placeholder="למשל: טיפול CBT — מפגשי היכרות"
+            />
           </div>
 
           <div className="form-group">
@@ -417,15 +637,56 @@ export default function QuotesManager() {
         </div>
         <div className="stat-card">
           <div className="stat-icon"><Send size={20} /></div>
-          <div className="stat-info"><strong>{stats.sent}</strong><span>ממתינות לתשובה</span></div>
+          <div className="stat-info"><strong>{stats.sent}</strong><span>נשלח</span></div>
         </div>
         <div className="stat-card">
           <div className="stat-icon"><CheckCircle2 size={20} /></div>
-          <div className="stat-info"><strong>{stats.confirmed}</strong><span>אושרו</span></div>
+          <div className="stat-info"><strong>{stats.confirmed}</strong><span>אושר</span></div>
         </div>
         <div className="stat-card">
           <div className="stat-icon"><XCircle size={20} /></div>
-          <div className="stat-info"><strong>{stats.declined}</strong><span>נדחו</span></div>
+          <div className="stat-info"><strong>{stats.declined}</strong><span>לא אושר</span></div>
+        </div>
+      </div>
+
+      {/* Filters + search */}
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
+        {STATUS_FILTERS.map(filter => {
+          const active = statusFilter === filter.key;
+          const count = filter.key === 'all' ? stats.total : stats[filter.key];
+          return (
+            <button
+              key={filter.key}
+              type="button"
+              onClick={() => setStatusFilter(filter.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '7px 14px', borderRadius: '999px', cursor: 'pointer',
+                fontSize: '0.85rem', fontWeight: 700,
+                border: `1px solid ${active ? filter.border : '#e2e8f0'}`,
+                background: active ? filter.bg : '#ffffff',
+                color: active ? filter.color : '#64748b'
+              }}
+            >
+              {filter.label}
+              <span style={{
+                background: active ? '#ffffff' : '#f1f5f9', borderRadius: '10px',
+                padding: '1px 7px', fontSize: '0.72rem', fontWeight: 700
+              }}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+        <div style={{ marginRight: 'auto', position: 'relative', minWidth: '220px' }}>
+          <Search size={16} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '12px', color: '#94a3b8', pointerEvents: 'none' }} />
+          <input
+            className="form-control"
+            style={{ paddingRight: '36px' }}
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="חיפוש לקוח, טלפון או הצעה..."
+          />
         </div>
       </div>
 
@@ -444,24 +705,31 @@ export default function QuotesManager() {
               <Plus size={16} /> הצעת מחיר חדשה
             </button>
           </div>
+        ) : filteredQuotes.length === 0 ? (
+          <div className="content-empty">
+            <div className="content-empty-icon"><Search size={28} /></div>
+            <h3>אין תוצאות</h3>
+            <p>נסה/י סינון או חיפוש אחר.</p>
+          </div>
         ) : (
           <div className="content-table-shell">
             <div className="table-responsive">
               <table>
                 <thead>
                   <tr>
-                    <th>לקוח פוטנציאלי</th>
+                    <th>לקוח</th>
                     <th>הצעה</th>
                     <th>סטטוס</th>
-                    <th>נשלחה</th>
+                    <th>נשלח / נענה</th>
                     <th>פעולות</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {quotes.map(quote => {
-                    const status = STATUS_LABELS[quote.status] || STATUS_LABELS.draft;
+                  {filteredQuotes.map(quote => {
+                    const status = quoteStatusMeta(quote.status);
                     const canSend = quote.status === 'draft' || quote.status === 'sent';
                     const canEdit = quote.status === 'draft' || quote.status === 'sent';
+                    const decided = quote.status === 'confirmed' || quote.status === 'declined';
                     return (
                       <tr key={quote.id}>
                         <td>
@@ -469,6 +737,11 @@ export default function QuotesManager() {
                             <div className="content-table-copy">
                               <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <User size={14} /> {quote.leadName}
+                                {quote.clientId && (
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#eef2ff', color: '#4338ca', border: '1px solid #e0e7ff', borderRadius: '8px', padding: '1px 7px', fontSize: '0.68rem', fontWeight: 700 }}>
+                                    <Link2 size={10} /> מקושר לתיק
+                                  </span>
+                                )}
                               </strong>
                               <span dir="ltr" style={{ color: '#64748b' }}>{quote.leadPhone}</span>
                             </div>
@@ -477,30 +750,30 @@ export default function QuotesManager() {
                         <td>
                           <div className="content-table-copy">
                             <strong>{quote.title || 'הצעת מחיר'}</strong>
-                            <span>
-                              {(quote.options || []).map(o =>
-                                o.pricingModel === 'package'
-                                  ? `${o.label} (${o.sessionsCount}×${formatILS(o.sessionPrice)})`
-                                  : `${o.label} (${formatILS(o.totalPrice)})`
-                              ).join(' · ')}
-                            </span>
+                            <span>{quoteOptionsSummary(quote.options)}</span>
                           </div>
                         </td>
                         <td>
                           <span style={{
                             background: status.bg, color: status.color, border: `1px solid ${status.border}`,
                             borderRadius: '8px', padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700,
-                            whiteSpace: 'nowrap'
+                            whiteSpace: 'nowrap', display: 'inline-block'
                           }}>
                             {status.text}
                           </span>
+                          {decided && quoteChosenOptionLabel(quote) && (
+                            <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#334155', fontWeight: 600 }}>
+                              נבחר: {quoteChosenOptionLabel(quote)}
+                            </div>
+                          )}
                         </td>
                         <td>
-                          <span className="content-table-date">
-                            {quote.sentAt
-                              ? new Date(quote.sentAt).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' })
-                              : '—'}
-                          </span>
+                          <span className="content-table-date">{formatDate(quote.sentAt)}</span>
+                          {decided && (
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
+                              החלטה: {formatDate(quote.decidedAt)}
+                            </div>
+                          )}
                         </td>
                         <td>
                           <div className="content-table-actions" style={{ gap: '6px' }}>
@@ -522,6 +795,9 @@ export default function QuotesManager() {
                                 <Pencil size={16} />
                               </button>
                             )}
+                            <button type="button" className="btn-icon" onClick={() => duplicateQuote(quote)} aria-label="שכפול" title="שכפול להצעה חדשה">
+                              <CopyPlus size={16} />
+                            </button>
                             <button type="button" className="btn-icon" onClick={() => setDeleteModal(quote)} aria-label="מחיקה" title="מחיקה">
                               <Trash2 size={16} />
                             </button>

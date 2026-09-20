@@ -67,12 +67,32 @@ export async function PUT(request: NextRequest, props: RouteProps) {
 
     const update: Record<string, any> = {};
 
-    if (body.leadName !== undefined) {
+    // Re-link the quote to a (different) client record — refreshes the lead details
+    if (body.clientId !== undefined) {
+      if (!body.clientId) {
+        update.clientId = null;
+      } else {
+        const client = db.collection('clients').findById(String(body.clientId));
+        if (!client) {
+          return NextResponse.json({ error: 'הלקוח לא נמצא במערכת' }, { status: 404 });
+        }
+        if (auth.role === 'therapist' && client.therapistId !== auth.userId) {
+          return NextResponse.json({ error: 'אין הרשאה לשייך הצעה ללקוח זה' }, { status: 403 });
+        }
+        update.clientId = client.id;
+        update.leadName = `${client.firstName} ${client.lastName || ''}`.trim();
+        update.leadPhone = String(client.phone || '').trim();
+      }
+    }
+
+    const manualFieldsLocked = update.clientId !== undefined && update.clientId !== null;
+
+    if (!manualFieldsLocked && body.leadName !== undefined) {
       const leadName = String(body.leadName || '').trim().slice(0, 80);
       if (!leadName) return NextResponse.json({ error: 'נא להזין את שם הלקוח הפוטנציאלי' }, { status: 400 });
       update.leadName = leadName;
     }
-    if (body.leadPhone !== undefined) {
+    if (!manualFieldsLocked && body.leadPhone !== undefined) {
       const leadPhone = String(body.leadPhone || '').trim().slice(0, 20);
       if (leadPhone.replace(/\D/g, '').length < 9) {
         return NextResponse.json({ error: 'נא להזין מספר טלפון תקין של הלקוח' }, { status: 400 });

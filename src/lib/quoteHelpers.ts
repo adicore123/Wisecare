@@ -99,6 +99,35 @@ export function formatILS(amount: number): string {
   return `${str} ₪`;
 }
 
+/** Status pill meta for the quotes table. */
+export const QUOTE_STATUS_META: Record<string, { text: string; bg: string; color: string; border: string }> = {
+  draft: { text: 'טיוטה (לא נשלח)', bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' },
+  sent: { text: 'נשלח', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
+  confirmed: { text: 'אושר ✅', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  declined: { text: 'לא אושר', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' }
+};
+
+export function quoteStatusMeta(status: string) {
+  return QUOTE_STATUS_META[status] || QUOTE_STATUS_META.draft;
+}
+
+/** One-line summary of a quote's options, for table rows. */
+export function quoteOptionsSummary(options: Array<{ label: string; pricingModel: string; sessionPrice: number; sessionsCount: number; totalPrice: number }> | undefined): string {
+  return (options || [])
+    .map(o => o.pricingModel === 'package'
+      ? `${o.label} (${o.sessionsCount}×${formatILS(o.sessionPrice)})`
+      : `${o.label} (${formatILS(o.totalPrice)})`)
+    .join(' · ');
+}
+
+/** Short label of the option a lead picked, e.g. "תהליך (12 מפגשים)". */
+export function quoteChosenOptionLabel(quote: { options?: Array<{ id: string; label: string; pricingModel: string; sessionsCount: number }> | undefined; selectedOptionId?: string | null } | null | undefined): string {
+  if (!quote?.selectedOptionId) return '';
+  const chosen = (quote.options || []).find(o => o.id === quote.selectedOptionId);
+  if (!chosen) return '';
+  return chosen.pricingModel === 'package' ? `${chosen.label} (${chosen.sessionsCount} מפגשים)` : chosen.label;
+}
+
 /** The WhatsApp message the potential client receives with the quote link. */
 export function buildQuoteMessageForLead(quote: QuoteRecord, quoteUrl: string): string {
   const lines: string[] = [
