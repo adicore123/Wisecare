@@ -35,12 +35,12 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: { isOpen: boolea
               width: '42px',
               height: '42px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-              color: '#059669',
+              background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+              color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.15)'
+              boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 15%, transparent)'
             }}>
               <ShieldCheck size={24} />
             </div>
@@ -68,18 +68,18 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: { isOpen: boolea
           
           {/* Important Highlight Box: Self-Care Independent Users */}
           <div style={{
-            background: 'linear-gradient(135deg, #f0fdf4 0%, #e6fcf5 100%)',
-            border: '1px solid #86efac',
+            background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+            border: '1px solid color-mix(in srgb, var(--primary) 40%, white)',
             borderRadius: '14px',
             padding: '16px 18px',
             marginBottom: '20px',
-            boxShadow: '0 2px 8px rgba(34, 197, 94, 0.08)'
+            boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 8%, transparent)'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#166534' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: 'var(--primary-hover)' }}>
               <Sparkles size={18} />
               <strong style={{ fontSize: '0.98rem' }}>הגנה מוחלטת על לקוחות עצמאיים (Self-Care – ללא מטפל)</strong>
             </div>
-            <p style={{ margin: 0, fontSize: '0.86rem', color: '#15803d' }}>
+            <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--primary-hover)' }}>
               אם נרשמת למערכת באופן עצמאי לצורך תרגול, יומן אישי ונשימות – <strong>המרחב שלך מוגן, אישי וסודי ב-100%</strong>.
               היומן האישי, התובנות, מעקב מצב הרוח והמשימות שלך <strong>אינם גלויים, אינם משותפים ואינם נגישים לאף מטפל חיצוני במערכת</strong>.
             </p>
@@ -144,7 +144,7 @@ export default function PrivacyPolicyModal({ isOpen, onClose }: { isOpen: boolea
           {/* Section 5: User Rights and Deletion */}
           <div style={{ marginBottom: '20px' }}>
             <h4 style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.02rem', fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>
-              <Trash2 size={18} color="#059669" />
+              <Trash2 size={18} color="var(--primary)" />
               <span>5. זכויותיך על המידע והזכות להישכח</span>
             </h4>
             <p style={{ margin: 0 }}>

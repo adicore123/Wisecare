@@ -18,7 +18,7 @@ import Link from 'next/link';
 
 // Detect platform and type from URL
 function detectPlatform(urlStr: string) {
-  if (!urlStr) return { type: 'link', name: 'קישור כללי', color: '#0d9488' };
+  if (!urlStr) return { type: 'link', name: 'קישור כללי', color: 'var(--primary)' };
   try {
     const parsed = new URL(urlStr);
     const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
@@ -45,9 +45,9 @@ function detectPlatform(urlStr: string) {
     if (host.includes('vimeo.com')) {
       return { type: 'video', name: 'Vimeo', color: '#1ab7ea' };
     }
-    return { type: 'link', name: host, color: '#0d9488' };
+    return { type: 'link', name: host, color: 'var(--primary)' };
   } catch {
-    return { type: 'link', name: 'קישור', color: '#0d9488' };
+    return { type: 'link', name: 'קישור', color: 'var(--primary)' };
   }
 }
 
@@ -66,7 +66,7 @@ function ShareTargetContent() {
     url: '',
     title: '',
     description: '',
-    platform: { type: 'link', name: 'קישור', color: '#0d9488' }
+    platform: { type: 'link', name: 'קישור', color: 'var(--primary)' }
   });
 
   const [portalCodeInput, setPortalCodeInput] = useState('');
@@ -193,10 +193,10 @@ function ShareTargetContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-teal-50/70 via-white to-emerald-50/50" dir="rtl">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-teal-100/80 p-6 md:p-8 text-center transition-all animate-fadeIn">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary-light/50 via-white to-primary-light/30" dir="rtl">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-xl border border-primary-100/80 p-6 md:p-8 text-center transition-all animate-fadeIn">
         {/* WiseCare Branding */}
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-600 text-white shadow-lg shadow-teal-600/25 mb-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-600 text-white shadow-lg shadow-primary-600/25 mb-4">
           <Share2 size={28} className="animate-pulse" />
         </div>
 
@@ -210,7 +210,7 @@ function ShareTargetContent() {
         {/* Loading / Redirecting State */}
         {loading && (
           <div className="py-8 flex flex-col items-center justify-center gap-3">
-            <Loader2 size={32} className="text-teal-600 animate-spin" />
+            <Loader2 size={32} className="text-primary-600 animate-spin" />
             <p className="text-slate-700 font-medium text-sm">
               {redirectingMessage}
             </p>
@@ -249,7 +249,7 @@ function ShareTargetContent() {
                   href={shareData.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xs text-teal-600 hover:text-teal-700 flex items-center gap-1 truncate font-mono dir-ltr mt-1"
+                  className="text-xs text-primary-600 hover:text-primary-700 flex items-center gap-1 truncate font-mono dir-ltr mt-1"
                 >
                   <ExternalLink size={12} className="shrink-0" />
                   <span className="truncate">{shareData.url}</span>
@@ -271,14 +271,14 @@ function ShareTargetContent() {
             <button
               type="button"
               onClick={handleTherapistClick}
-              className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-teal-500 bg-teal-50/50 hover:bg-teal-50 text-teal-900 transition-all font-medium group text-right shadow-sm"
+              className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-primary-500 bg-primary-50/50 hover:bg-primary-50 text-primary-900 transition-all font-medium group text-right shadow-sm"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-10 h-10 rounded-lg bg-primary-600 text-white flex items-center justify-center shrink-0 shadow-md">
                   <HeartHandshake size={20} />
                 </div>
                 <div>
-                  <div className="font-bold text-sm text-slate-900 group-hover:text-teal-700">
+                  <div className="font-bold text-sm text-slate-900 group-hover:text-primary-700">
                     שמור לספריית הקליניקה (מטפלים)
                   </div>
                   <div className="text-xs text-slate-500">
@@ -286,13 +286,13 @@ function ShareTargetContent() {
                   </div>
                 </div>
               </div>
-              <ArrowLeft size={16} className="text-teal-600 transform group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft size={16} className="text-primary-600 transform group-hover:-translate-x-1 transition-transform" />
             </button>
 
             {/* Option 2: Client Portal */}
             <form onSubmit={handlePortalSubmit} className="p-4 rounded-xl border border-slate-200 bg-white shadow-sm space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                <div className="w-10 h-10 rounded-lg bg-primary text-white flex items-center justify-center shrink-0 shadow-md">
                   <BookOpen size={20} />
                 </div>
                 <div>
@@ -311,13 +311,13 @@ function ShareTargetContent() {
                   placeholder="קוד מרחב (למשל: client-123456)"
                   value={portalCodeInput}
                   onChange={e => setPortalCodeInput(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-mono"
                   dir="ltr"
                 />
                 <button
                   type="submit"
                   disabled={!portalCodeInput.trim()}
-                  className="px-4 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                  className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-hover transition-colors disabled:opacity-50"
                 >
                   שמירה
                 </button>
@@ -344,7 +344,7 @@ export default function ShareTargetPage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center p-4 bg-[#f4f9f8]" dir="rtl">
         <div className="flex flex-col items-center gap-3 text-slate-600">
-          <Loader2 size={32} className="text-teal-600 animate-spin" />
+          <Loader2 size={32} className="text-primary-600 animate-spin" />
           <span className="text-sm font-medium">טוען WiseCare...</span>
         </div>
       </div>

@@ -371,8 +371,8 @@ export default function IntroManager() {
                   width: '64px',
                   height: '64px',
                   borderRadius: '50%',
-                  background: '#dcfce7',
-                  color: '#16a34a',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary)',
                   display: 'grid',
                   placeItems: 'center',
                   margin: '0 auto 16px'

@@ -58,15 +58,15 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
         display: 'flex',
         alignItems: 'center',
         padding: 'clamp(10px, 2vw, 16px) clamp(14px, 3vw, 24px)',
-        borderBottom: '1px solid rgba(13, 148, 136, 0.25)'
+        borderBottom: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 600, letterSpacing: '0.02em' }}>
           <span style={{
             width: 34, height: 34, borderRadius: '10px', display: 'inline-flex',
             alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(13, 148, 136, 0.2)', border: '1px solid rgba(13, 148, 136, 0.4)'
+            background: 'color-mix(in srgb, var(--primary) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--primary) 40%, transparent)'
           }}>
-            <Leaf size={18} color="#2dd4bf" />
+            <Leaf size={18} color="color-mix(in srgb, var(--primary) 65%, white)" />
           </span>
           WiseCare · שיחת וידאו
         </div>
@@ -91,9 +91,9 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
                 <span style={{
                   width: 88, height: 88, borderRadius: '50%', display: 'inline-flex',
                   alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(13, 148, 136, 0.12)', border: '1.5px solid rgba(45, 212, 191, 0.5)'
+                  background: 'color-mix(in srgb, var(--primary) 12%, transparent)', border: '1.5px solid rgba(45, 212, 191, 0.5)'
                 }}>
-                  <Video size={36} color="#2dd4bf" />
+                  <Video size={36} color="color-mix(in srgb, var(--primary) 65%, white)" />
                 </span>
                 <div style={{ fontSize: '1.35rem', fontWeight: 700 }}>מוזמנ/ת להצטרף לשיחת וידאו</div>
                 <div style={{ color: 'rgba(232,245,243,0.7)', maxWidth: '420px', lineHeight: 1.7 }}>
@@ -103,9 +103,9 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
                 <button type="button" onClick={tryJoin} style={{
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
                   minHeight: 56, padding: '14px 40px', borderRadius: '100px', cursor: 'pointer',
-                  background: '#059669', color: '#ffffff', border: 'none',
+                  background: 'var(--primary)', color: '#ffffff', border: 'none',
                   fontSize: '1.08rem', fontWeight: 700,
-                  boxShadow: '0 10px 28px rgba(5, 150, 105, 0.35)'
+                  boxShadow: '0 10px 28px color-mix(in srgb, var(--primary) 35%, transparent)'
                 }}>
                   <Video size={22} />
                   הצטרפ/י לשיחה
@@ -117,7 +117,7 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
             )}
             {phase === 'checking' && (
               <>
-                <Loader2 size={36} className="animate-spin" color="#2dd4bf" />
+                <Loader2 size={36} className="animate-spin" color="color-mix(in srgb, var(--primary) 65%, white)" />
                 <div style={{ fontSize: '1.1rem' }}>מתחבר/ת לשיחה…</div>
               </>
             )}
@@ -126,9 +126,9 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
                 <span style={{
                   width: 74, height: 74, borderRadius: '50%', display: 'inline-flex',
                   alignItems: 'center', justifyContent: 'center',
-                  background: 'rgba(13, 148, 136, 0.12)', border: '1.5px dashed rgba(45, 212, 191, 0.5)'
+                  background: 'color-mix(in srgb, var(--primary) 12%, transparent)', border: '1.5px dashed rgba(45, 212, 191, 0.5)'
                 }}>
-                  <LinkIcon size={30} color="#2dd4bf" />
+                  <LinkIcon size={30} color="color-mix(in srgb, var(--primary) 65%, white)" />
                 </span>
                 <div style={{ fontSize: '1.25rem', fontWeight: 600 }}>הקישור אינו תקף או שפג תוקפו</div>
                 <div style={{ color: 'rgba(232,245,243,0.7)', maxWidth: '440px', lineHeight: 1.7 }}>
@@ -152,7 +152,7 @@ export default function JoinCallClient({ callId, token }: { callId: string; toke
                 <button type="button" onClick={tryJoin} style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
                   padding: '10px 22px', borderRadius: '100px', cursor: 'pointer',
-                  background: 'rgba(13, 148, 136, 0.25)', color: '#e8f5f3',
+                  background: 'color-mix(in srgb, var(--primary) 25%, transparent)', color: '#e8f5f3',
                   border: '1px solid rgba(45, 212, 191, 0.5)'
                 }}>
                   נסו שוב

@@ -46,7 +46,7 @@ export default function JoinCallError({
             fontWeight: 700,
             cursor: 'pointer',
             border: 'none',
-            background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
             color: '#ffffff',
           }}
         >

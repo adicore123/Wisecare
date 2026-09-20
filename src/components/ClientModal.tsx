@@ -138,8 +138,8 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
               width: '36px',
               height: '36px',
               borderRadius: '10px',
-              background: formData.portalEnabled ? '#ecfdf5' : '#f1f5f9',
-              color: formData.portalEnabled ? '#059669' : '#475569',
+              background: formData.portalEnabled ? 'var(--primary-faint)' : '#f1f5f9',
+              color: formData.portalEnabled ? 'var(--primary)' : '#475569',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -190,9 +190,9 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                 <div
                   onClick={() => setFormData(prev => ({ ...prev, portalEnabled: true }))}
                   style={{
-                    border: formData.portalEnabled ? '2px solid #0d9488' : '1px solid #e2e8f0',
-                    background: formData.portalEnabled ? '#f0fdfa' : '#ffffff',
-                    boxShadow: formData.portalEnabled ? '0 2px 8px rgba(13, 148, 136, 0.12)' : 'none',
+                    border: formData.portalEnabled ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                    background: formData.portalEnabled ? 'var(--primary-faint)' : '#ffffff',
+                    boxShadow: formData.portalEnabled ? '0 2px 8px color-mix(in srgb, var(--primary) 12%, transparent)' : 'none',
                     borderRadius: '12px',
                     padding: '12px 14px',
                     cursor: 'pointer',
@@ -204,12 +204,12 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                     <span style={{
                       fontWeight: 700,
                       fontSize: '0.92rem',
-                      color: formData.portalEnabled ? '#0f766e' : '#334155',
+                      color: formData.portalEnabled ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#334155',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      <Globe size={18} color={formData.portalEnabled ? '#0d9488' : '#64748b'} />
+                      <Globe size={18} color={formData.portalEnabled ? 'var(--primary)' : '#64748b'} />
                       מרחב אישי (פורטל)
                     </span>
                     <input
@@ -217,7 +217,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                       name="portalChoice"
                       checked={formData.portalEnabled}
                       onChange={() => setFormData(prev => ({ ...prev, portalEnabled: true }))}
-                      style={{ accentColor: '#0d9488', cursor: 'pointer' }}
+                      style={{ accentColor: 'var(--primary)', cursor: 'pointer' }}
                     />
                   </div>
                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
@@ -229,9 +229,9 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                 <div
                   onClick={() => setFormData(prev => ({ ...prev, portalEnabled: false, sendWhatsAppNow: false }))}
                   style={{
-                    border: !formData.portalEnabled ? '2px solid #0d9488' : '1px solid #e2e8f0',
-                    background: !formData.portalEnabled ? '#f0fdfa' : '#ffffff',
-                    boxShadow: !formData.portalEnabled ? '0 2px 8px rgba(13, 148, 136, 0.12)' : 'none',
+                    border: !formData.portalEnabled ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                    background: !formData.portalEnabled ? 'var(--primary-faint)' : '#ffffff',
+                    boxShadow: !formData.portalEnabled ? '0 2px 8px color-mix(in srgb, var(--primary) 12%, transparent)' : 'none',
                     borderRadius: '12px',
                     padding: '12px 14px',
                     cursor: 'pointer',
@@ -243,12 +243,12 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                     <span style={{
                       fontWeight: 700,
                       fontSize: '0.92rem',
-                      color: !formData.portalEnabled ? '#0f766e' : '#334155',
+                      color: !formData.portalEnabled ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#334155',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      <Building2 size={18} color={!formData.portalEnabled ? '#0d9488' : '#64748b'} />
+                      <Building2 size={18} color={!formData.portalEnabled ? 'var(--primary)' : '#64748b'} />
                       קליניקה בלבד (ללא פורטל)
                     </span>
                     <input
@@ -256,7 +256,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                       name="portalChoice"
                       checked={!formData.portalEnabled}
                       onChange={() => setFormData(prev => ({ ...prev, portalEnabled: false, sendWhatsAppNow: false }))}
-                      style={{ accentColor: '#0d9488', cursor: 'pointer' }}
+                      style={{ accentColor: 'var(--primary)', cursor: 'pointer' }}
                     />
                   </div>
                   <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
@@ -359,7 +359,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Lock size={15} color="var(--primary, #0d9488)" /> הגדרת פרטי גישה למרחב האישי
+                    <Lock size={15} color="var(--primary, var(--primary))" /> הגדרת פרטי גישה למרחב האישי
                   </span>
                 </div>
 
@@ -371,9 +371,9 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                     style={{
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: formData.clientSetsCredentials ? '2px solid #0d9488' : '1px solid #cbd5e1',
-                      background: formData.clientSetsCredentials ? '#f0fdf4' : '#ffffff',
-                      color: formData.clientSetsCredentials ? '#166534' : '#64748b',
+                      border: formData.clientSetsCredentials ? '2px solid var(--primary)' : '1px solid #cbd5e1',
+                      background: formData.clientSetsCredentials ? 'var(--primary-faint)' : '#ffffff',
+                      color: formData.clientSetsCredentials ? 'var(--primary-hover)' : '#64748b',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -395,9 +395,9 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                     style={{
                       padding: '8px 12px',
                       borderRadius: '8px',
-                      border: !formData.clientSetsCredentials ? '2px solid #0d9488' : '1px solid #cbd5e1',
-                      background: !formData.clientSetsCredentials ? '#f0fdf4' : '#ffffff',
-                      color: !formData.clientSetsCredentials ? '#166534' : '#64748b',
+                      border: !formData.clientSetsCredentials ? '2px solid var(--primary)' : '1px solid #cbd5e1',
+                      background: !formData.clientSetsCredentials ? 'var(--primary-faint)' : '#ffffff',
+                      color: !formData.clientSetsCredentials ? 'var(--primary-hover)' : '#64748b',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: 'pointer',
@@ -416,17 +416,17 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
 
                 {formData.clientSetsCredentials ? (
                   <div style={{
-                    background: '#ecfdf5',
-                    border: '1px solid #a7f3d0',
+                    background: 'var(--primary-faint)',
+                    border: '1px solid var(--primary-light)',
                     borderRadius: '8px',
                     padding: '10px 12px',
                     fontSize: '0.82rem',
-                    color: '#065f46',
+                    color: 'var(--primary-hover)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px'
                   }}>
-                    <Sparkles size={16} color="#059669" style={{ flexShrink: 0 }} />
+                    <Sparkles size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
                     <span>
                       הלקוח יקבל קישור כניסה ייחודי ב-WhatsApp, ובכניסתו הראשונה למרחב יקבע לעצמו שם משתמש וסיסמה אישית בקלות. תוכל תמיד לנהל או לאפס את הסיסמה מכרטיס הלקוח.
                     </span>
@@ -456,7 +456,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                           style={{
                             background: 'none',
                             border: 'none',
-                            color: 'var(--primary, #0d9488)',
+                            color: 'var(--primary, var(--primary))',
                             fontSize: '0.78rem',
                             fontWeight: 700,
                             cursor: 'pointer',
@@ -511,7 +511,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                 alignItems: 'flex-start',
                 gap: '12px'
               }}>
-                <Info size={20} color="#0d9488" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <Info size={20} color="var(--primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.88rem', color: '#1e293b', marginBottom: '2px' }}>
                     מטופל קליניקה רגיל (ללא מרחב אישי דיגיטלי)

@@ -238,7 +238,7 @@ export default function ClientsManager() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon" style={{ background: '#ecfdf5', color: '#16a34a' }}>
+          <div className="stat-icon" style={{ background: 'var(--primary-faint)', color: 'var(--primary)' }}>
             <WhatsAppIcon size={26} />
           </div>
           <div className="stat-info">
@@ -346,7 +346,7 @@ export default function ClientsManager() {
                           <div className="client-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                             <span>{client.firstName} {client.lastName}</span>
                             {client.isSelfCare && (
-                              <span style={{ fontSize: '0.72rem', background: '#ecfdf5', color: '#059669', padding: '1px 7px', borderRadius: '999px', fontWeight: 700, border: '1px solid #a7f3d0' }}>
+                              <span style={{ fontSize: '0.72rem', background: 'var(--primary-faint)', color: 'var(--primary)', padding: '1px 7px', borderRadius: '999px', fontWeight: 700, border: '1px solid var(--primary-light)' }}>
                                 🌱 עצמאי (/join)
                               </span>
                             )}
@@ -450,9 +450,9 @@ export default function ClientsManager() {
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '6px',
-                              color: '#166534',
-                              background: '#f0fdf4',
-                              borderColor: '#bbf7d0'
+                              color: 'var(--primary-hover)',
+                              background: 'var(--primary-faint)',
+                              borderColor: 'var(--primary-light)'
                             }}
                             onClick={(e) => handleQuickWhatsApp(client.id, e)}
                             title="שלח הזמנה או תזכורת למרחב הטיפולי ב-WhatsApp"

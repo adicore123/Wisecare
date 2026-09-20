@@ -29,7 +29,7 @@ function normalizeTemplate(body: any) {
     requiredFields,
     footerText: cleanStr(body.footerText, 2000),
     requiresSignature: body.requiresSignature !== false,
-    accentColor: /^#[0-9a-fA-F]{6}$/.test(String(body.accentColor || '')) ? body.accentColor : '#0d9488',
+    accentColor: /^#[0-9a-fA-F]{6}$/.test(String(body.accentColor || '')) ? body.accentColor : 'var(--primary)',
     active: body.active !== false
   };
 }

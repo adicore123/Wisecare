@@ -199,28 +199,50 @@ export const THEME_PALETTES: ThemePalette[] = [
   }
 ];
 
+/**
+ * Maps palette color keys to the CSS custom properties they drive.
+ * Shared by applyTheme() and the pre-paint boot script in layout.tsx so the
+ * two never drift apart. previewBadge has no CSS var (preview rendering only).
+ */
+export const THEME_CSS_VARS = {
+  primary: '--primary',
+  primaryHover: '--primary-hover',
+  primaryLight: '--primary-light',
+  primaryGlow: '--primary-glow',
+  accent: '--accent-purple',
+  accentLight: '--accent-purple-light',
+  sidebar: '--bg-sidebar',
+  sidebarGradient: '--bg-sidebar-gradient',
+  sidebarHover: '--bg-sidebar-hover',
+  sidebarActiveBg: '--bg-sidebar-active',
+  sidebarActiveColor: '--sidebar-active-color',
+  sidebarActiveBorder: '--sidebar-active-border',
+  brandGradient: '--brand-gradient',
+  sidebarBorder: '--sidebar-border',
+} as const satisfies Record<Exclude<keyof ThemePalette['colors'], 'previewBadge'>, string>;
+
+export function paletteToCssVars(palette: ThemePalette): Record<string, string> {
+  const vars: Record<string, string> = {};
+  for (const key of Object.keys(THEME_CSS_VARS) as (keyof typeof THEME_CSS_VARS)[]) {
+    vars[THEME_CSS_VARS[key]] = palette.colors[key];
+  }
+  return vars;
+}
+
 export function applyTheme(themeId: string): ThemePalette {
   if (typeof window === 'undefined') return THEME_PALETTES[0];
   const palette = THEME_PALETTES.find(p => p.id === themeId) || THEME_PALETTES[0];
   const root = document.documentElement;
 
-  // Primary & Accents
-  root.style.setProperty('--primary', palette.colors.primary);
-  root.style.setProperty('--primary-hover', palette.colors.primaryHover);
-  root.style.setProperty('--primary-light', palette.colors.primaryLight);
-  root.style.setProperty('--primary-glow', palette.colors.primaryGlow);
-  root.style.setProperty('--accent-purple', palette.colors.accent);
-  root.style.setProperty('--accent-purple-light', palette.colors.accentLight);
+  for (const [cssVar, value] of Object.entries(paletteToCssVars(palette))) {
+    root.style.setProperty(cssVar, value);
+  }
 
-  // Full Sidebar Integration
-  root.style.setProperty('--bg-sidebar', palette.colors.sidebar);
-  root.style.setProperty('--bg-sidebar-gradient', palette.colors.sidebarGradient);
-  root.style.setProperty('--bg-sidebar-hover', palette.colors.sidebarHover);
-  root.style.setProperty('--bg-sidebar-active', palette.colors.sidebarActiveBg);
-  root.style.setProperty('--sidebar-active-color', palette.colors.sidebarActiveColor);
-  root.style.setProperty('--sidebar-active-border', palette.colors.sidebarActiveBorder);
-  root.style.setProperty('--brand-gradient', palette.colors.brandGradient);
-  root.style.setProperty('--sidebar-border', palette.colors.sidebarBorder);
+  // Keep the mobile browser chrome (address bar) in sync with the palette.
+  // <meta name="theme-color"> cannot resolve var(), so it needs the raw value.
+  document
+    .querySelector('meta[name="theme-color"]')
+    ?.setAttribute('content', palette.colors.primary);
 
   localStorage.setItem('wisecare_theme', palette.id);
   return palette;

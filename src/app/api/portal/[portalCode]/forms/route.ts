@@ -48,7 +48,7 @@ export async function GET(
           requiredFields: template.requiredFields || [],
           footerText: template.footerText || '',
           requiresSignature: template.requiresSignature !== false,
-          accentColor: template.accentColor || '#0d9488'
+          accentColor: template.accentColor || 'var(--primary)'
         } : null
       };
     }).filter((s: any) => s.form || s.signedByMe);

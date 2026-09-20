@@ -30,9 +30,9 @@ import PrivacyPolicyModal from './PrivacyPolicyModal';
 const INTRO_FEATURES = [
   {
     icon: ListTodo,
-    color: '#0d9488',
-    bgColor: '#f0fdfa',
-    borderColor: '#ccfbf1',
+    color: 'var(--primary)',
+    bgColor: 'var(--primary-faint)',
+    borderColor: 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
     title: 'משימות ותרגולים אישיים',
     desc: 'הגדר/י לעצמך הרגלים יומיים, תרגילי נשימות ויעדים אישיים – בקצב שלך ועם סימון ביצוע מעצים.'
   },
@@ -54,9 +54,9 @@ const INTRO_FEATURES = [
   },
   {
     icon: ShieldCheck,
-    color: '#059669',
-    bgColor: '#ecfdf5',
-    borderColor: '#a7f3d0',
+    color: 'var(--primary)',
+    bgColor: 'var(--primary-faint)',
+    borderColor: 'var(--primary-light)',
     title: 'פרטיות וביטחון מלא',
     desc: 'מרחב מוגן אך ורק עבורך. מאובטח בשם משתמש וסיסמה מוצפנת, ללא תלות באף גורם חיצוני.'
   }
@@ -350,22 +350,22 @@ export default function JoinPage() {
         padding: '6px 16px',
         borderRadius: '999px',
         background: '#ffffff',
-        border: '1px solid #ccfbf1',
-        boxShadow: '0 2px 10px rgba(13, 148, 136, 0.08)',
+        border: '1px solid var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
+        boxShadow: '0 2px 10px color-mix(in srgb, var(--primary) 8%, transparent)',
         marginBottom: '20px'
       }}>
         <div style={{
           width: '24px',
           height: '24px',
           borderRadius: '50%',
-          background: 'linear-gradient(135deg, #0d9488, #14b8a6)',
+          background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 85%, white))',
           display: 'grid',
           placeItems: 'center',
           color: '#ffffff'
         }}>
           <Sparkles size={13} />
         </div>
-        <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#0f766e' }}>WiseCare Self-Care</span>
+        <span style={{ fontSize: '0.86rem', fontWeight: 700, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' }}>WiseCare Self-Care</span>
         <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>• מרחב אישי ומאובטח</span>
       </div>
 
@@ -373,8 +373,8 @@ export default function JoinPage() {
         <div style={{
           width: '100%',
           maxWidth: '480px',
-          background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)',
-          border: '1.5px solid #99f6e4',
+          background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-faint) 100%)',
+          border: '1.5px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
           borderRadius: '16px',
           padding: '14px 18px',
           marginBottom: '16px',
@@ -382,13 +382,13 @@ export default function JoinPage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: '12px',
-          boxShadow: '0 4px 12px rgba(13, 148, 136, 0.08)'
+          boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 8%, transparent)'
         }}>
           <div>
-            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f766e' }}>
+            <div style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' }}>
               זיהינו מרחב אישי קיים במכשיר זה 🌱
             </div>
-            <div style={{ fontSize: '0.78rem', color: '#134e4a', marginTop: '2px' }}>
+            <div style={{ fontSize: '0.78rem', color: 'color-mix(in srgb, var(--primary) 65%, black)', marginTop: '2px' }}>
               קוד מרחב: {existingPortal}
             </div>
           </div>
@@ -396,7 +396,7 @@ export default function JoinPage() {
             type="button"
             onClick={() => window.location.replace(`/portal/${encodeURIComponent(existingPortal)}`)}
             style={{
-              background: '#0d9488',
+              background: 'var(--primary)',
               color: '#ffffff',
               border: 'none',
               padding: '7px 14px',
@@ -405,7 +405,7 @@ export default function JoinPage() {
               fontWeight: 700,
               cursor: 'pointer',
               whiteSpace: 'nowrap',
-              boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)'
+              boxShadow: '0 2px 6px color-mix(in srgb, var(--primary) 30%, transparent)'
             }}
           >
             כניסה ישירה &larr;
@@ -432,7 +432,7 @@ export default function JoinPage() {
           left: 0,
           right: 0,
           height: '5px',
-          background: 'linear-gradient(90deg, #0d9488 0%, #10b981 50%, #14b8a6 100%)'
+          background: 'linear-gradient(90deg, var(--primary) 0%, var(--primary-hover) 50%, color-mix(in srgb, var(--primary) 85%, white) 100%)'
         }} />
 
         {/* Global Error Banner */}
@@ -465,7 +465,7 @@ export default function JoinPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#0d9488',
+                  color: 'var(--primary)',
                   fontSize: '0.86rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -709,16 +709,16 @@ export default function JoinPage() {
                             gap: '8px',
                             padding: '8px 12px',
                             borderRadius: '10px',
-                            border: isSelected ? '1.5px solid #0d9488' : '1px solid #e2e8f0',
-                            background: isSelected ? '#f0fdfa' : '#ffffff',
-                            color: isSelected ? '#0f766e' : '#475569',
+                            border: isSelected ? '1.5px solid var(--primary)' : '1px solid #e2e8f0',
+                            background: isSelected ? 'var(--primary-faint)' : '#ffffff',
+                            color: isSelected ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#475569',
                             fontWeight: isSelected ? 700 : 500,
                             fontSize: '0.84rem',
                             textAlign: 'right',
                             cursor: 'pointer'
                           }}
                         >
-                          <Icon size={15} color={isSelected ? '#0d9488' : '#94a3b8'} />
+                          <Icon size={15} color={isSelected ? 'var(--primary)' : '#94a3b8'} />
                           <span>{opt.label}</span>
                         </button>
                       );
@@ -733,11 +733,11 @@ export default function JoinPage() {
                   gap: '10px',
                   marginTop: '12px',
                   padding: '10px 14px',
-                  background: '#f0fdf4',
+                  background: 'var(--primary-faint)',
                   borderRadius: '12px',
-                  border: '1px solid #bbf7d0',
+                  border: '1px solid var(--primary-light)',
                   fontSize: '0.82rem',
-                  color: '#166534',
+                  color: 'var(--primary-hover)',
                   lineHeight: '1.45'
                 }}>
                   <input
@@ -745,7 +745,7 @@ export default function JoinPage() {
                     id="joinPrivacyCheck"
                     required
                     defaultChecked
-                    style={{ marginTop: '2px', cursor: 'pointer', accentColor: '#0d9488', width: '16px', height: '16px' }}
+                    style={{ marginTop: '2px', cursor: 'pointer', accentColor: 'var(--primary)', width: '16px', height: '16px' }}
                   />
                   <label htmlFor="joinPrivacyCheck" style={{ cursor: 'pointer' }}>
                     קראתי ואני מאשר/ת את{' '}
@@ -756,7 +756,7 @@ export default function JoinPage() {
                         background: 'none',
                         border: 'none',
                         padding: 0,
-                        color: '#0d9488',
+                        color: 'var(--primary)',
                         fontWeight: 700,
                         textDecoration: 'underline',
                         cursor: 'pointer',
@@ -778,7 +778,7 @@ export default function JoinPage() {
                   minHeight: '52px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
                   color: '#ffffff',
                   fontSize: '1.05rem',
                   fontWeight: 700,
@@ -787,7 +787,7 @@ export default function JoinPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '10px',
-                  boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)',
+                  boxShadow: '0 8px 20px -4px color-mix(in srgb, var(--primary) 40%, transparent)',
                   marginTop: '10px'
                 }}
               >
@@ -819,7 +819,7 @@ export default function JoinPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#0d9488',
+                  color: 'var(--primary)',
                   fontSize: '0.86rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -839,7 +839,7 @@ export default function JoinPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#0d9488',
+                  color: 'var(--primary)',
                   fontSize: '0.86rem',
                   fontWeight: 700,
                   cursor: 'pointer'
@@ -854,8 +854,8 @@ export default function JoinPage() {
                 width: '52px',
                 height: '52px',
                 borderRadius: '16px',
-                background: '#f0fdfa',
-                color: '#0d9488',
+                background: 'var(--primary-faint)',
+                color: 'var(--primary)',
                 display: 'grid',
                 placeItems: 'center',
                 margin: '0 auto 12px'
@@ -907,7 +907,7 @@ export default function JoinPage() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#0d9488',
+                        color: 'var(--primary)',
                         fontSize: '0.82rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -955,7 +955,7 @@ export default function JoinPage() {
                   minHeight: '52px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
                   color: '#ffffff',
                   fontSize: '1.05rem',
                   fontWeight: 700,
@@ -964,7 +964,7 @@ export default function JoinPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)'
+                  boxShadow: '0 8px 20px -4px color-mix(in srgb, var(--primary) 40%, transparent)'
                 }}
               >
                 {loading ? <Loader2 size={18} className="spin" /> : <Lock size={18} />}
@@ -986,7 +986,7 @@ export default function JoinPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#0d9488',
+                  color: 'var(--primary)',
                   fontSize: '0.86rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -1055,7 +1055,7 @@ export default function JoinPage() {
                   minHeight: '50px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
                   color: '#ffffff',
                   fontSize: '1rem',
                   fontWeight: 700,
@@ -1064,7 +1064,7 @@ export default function JoinPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)'
+                  boxShadow: '0 8px 20px -4px color-mix(in srgb, var(--primary) 40%, transparent)'
                 }}
               >
                 {loading ? <Loader2 size={18} className="spin" /> : <WhatsAppIcon size={18} />}
@@ -1086,7 +1086,7 @@ export default function JoinPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#0d9488',
+                  color: 'var(--primary)',
                   fontSize: '0.86rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -1106,8 +1106,8 @@ export default function JoinPage() {
                 width: '52px',
                 height: '52px',
                 borderRadius: '16px',
-                background: '#dcfce7',
-                color: '#16a34a',
+                background: 'var(--primary-light)',
+                color: 'var(--primary)',
                 display: 'grid',
                 placeItems: 'center',
                 margin: '0 auto 12px'
@@ -1142,7 +1142,7 @@ export default function JoinPage() {
                       minHeight: '48px',
                       padding: '10px 14px',
                       borderRadius: '12px',
-                      border: '2px solid #0d9488',
+                      border: '2px solid var(--primary)',
                       fontSize: '1.3rem',
                       letterSpacing: '6px',
                       textAlign: 'center',
@@ -1213,7 +1213,7 @@ export default function JoinPage() {
                   minHeight: '52px',
                   borderRadius: '14px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
                   color: '#ffffff',
                   fontSize: '1.05rem',
                   fontWeight: 700,
@@ -1222,7 +1222,7 @@ export default function JoinPage() {
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)'
+                  boxShadow: '0 8px 20px -4px color-mix(in srgb, var(--primary) 40%, transparent)'
                 }}
               >
                 {loading ? <Loader2 size={18} className="spin" /> : <Check size={18} />}
@@ -1241,8 +1241,8 @@ export default function JoinPage() {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: '#dcfce7',
-              color: '#15803d',
+              background: 'var(--primary-light)',
+              color: 'var(--primary-hover)',
               display: 'grid',
               placeItems: 'center',
               margin: '0 auto 16px'
@@ -1255,10 +1255,10 @@ export default function JoinPage() {
             </h2>
             <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.6, marginBottom: '22px' }}>
               שלום <strong>{createdResult?.client?.firstName}</strong>, יצרנו עבורך מרחב אישי שלם ומוגן.<br />
-              שם המשתמש שלך הוא: <strong style={{ color: '#0f766e', direction: 'ltr', display: 'inline-block' }}>{createdResult?.client?.username}</strong>
+              שם המשתמש שלך הוא: <strong style={{ color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', direction: 'ltr', display: 'inline-block' }}>{createdResult?.client?.username}</strong>
               <br />
               {createdResult?.whatsappSent ? (
-                <span style={{ color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
+                <span style={{ color: 'var(--primary)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '6px' }}>
                   <WhatsAppIcon size={16} /> קישור ופרטי התחברות נשלחו אליך ב-WhatsApp!
                 </span>
               ) : (
@@ -1267,17 +1267,17 @@ export default function JoinPage() {
             </p>
 
             <div style={{
-              background: '#f0fdfa',
-              border: '1px solid #ccfbf1',
+              background: 'var(--primary-faint)',
+              border: '1px solid var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               borderRadius: '16px',
               padding: '16px',
               marginBottom: '24px',
               textAlign: 'right'
             }}>
-              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f766e', marginBottom: '4px' }}>
+              <div style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', marginBottom: '4px' }}>
                 מה מחכה לך במרחב שלך:
               </div>
-              <ul style={{ margin: 0, paddingRight: '20px', color: '#134e4a', fontSize: '0.86rem', lineHeight: 1.7 }}>
+              <ul style={{ margin: 0, paddingRight: '20px', color: 'color-mix(in srgb, var(--primary) 65%, black)', fontSize: '0.86rem', lineHeight: 1.7 }}>
                 <li><strong>משימות ותרגולים:</strong> הוסף יעדים אישיים וסמן V כשביצעת.</li>
                 <li><strong>סרטונים ומאמרים:</strong> שמור לעצמך קישורים מיוטיוב, פייסבוק רילס, טיקטוק ורשתות.</li>
                 <li><strong>פגישות:</strong> תעד פגישות טיפוליות והוסף נקודות לשיחה.</li>
@@ -1293,7 +1293,7 @@ export default function JoinPage() {
                 minHeight: '52px',
                 borderRadius: '14px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
                 color: '#ffffff',
                 fontSize: '1.05rem',
                 fontWeight: 700,
@@ -1302,7 +1302,7 @@ export default function JoinPage() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '10px',
-                boxShadow: '0 8px 20px -4px rgba(13, 148, 136, 0.4)',
+                boxShadow: '0 8px 20px -4px color-mix(in srgb, var(--primary) 40%, transparent)',
                 marginBottom: '12px'
               }}
             >
@@ -1310,7 +1310,7 @@ export default function JoinPage() {
               <ArrowLeft size={18} />
             </button>
 
-            <div style={{ color: '#0d9488', fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+            <div style={{ color: 'var(--primary)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
               <Loader2 size={15} className="spin" />
               <span>מעביר אותך אוטומטית למרחב שלך בעוד מספר שניות...</span>
             </div>
@@ -1341,7 +1341,7 @@ export default function JoinPage() {
           style={{
             background: 'none',
             border: 'none',
-            color: '#0d9488',
+            color: 'var(--primary)',
             fontWeight: 700,
             cursor: 'pointer',
             textDecoration: 'underline',

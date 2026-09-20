@@ -295,8 +295,8 @@ export default function ZoomManager() {
     if (conn?.connected) {
       return (
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#16a34a',
-          background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '8px 14px', width: 'fit-content'
+          display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--primary)',
+          background: 'var(--primary-faint)', border: '1px solid var(--primary-light)', borderRadius: '10px', padding: '8px 14px', width: 'fit-content'
         }}>
           <CheckCircle2 size={16} />
           <span>Zoom מחובר{conn.connectedMode === 'personal' && conn.connectedEmail ? ` (${conn.connectedEmail})` : ''}</span>

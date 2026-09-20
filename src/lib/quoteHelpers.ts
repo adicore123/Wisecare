@@ -103,7 +103,7 @@ export function formatILS(amount: number): string {
 export const QUOTE_STATUS_META: Record<string, { text: string; bg: string; color: string; border: string }> = {
   draft: { text: 'טיוטה (לא נשלח)', bg: '#f1f5f9', color: '#475569', border: '#e2e8f0' },
   sent: { text: 'נשלח', bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' },
-  confirmed: { text: 'אושר ✅', bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' },
+  confirmed: { text: 'אושר ✅', bg: 'var(--primary-faint)', color: 'var(--primary-hover)', border: 'var(--primary-light)' },
   declined: { text: 'לא אושר', bg: '#fef2f2', color: '#b91c1c', border: '#fecaca' }
 };
 

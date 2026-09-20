@@ -286,7 +286,7 @@ export default function SettingsPage() {
               width: '8px',
               height: '8px',
               borderRadius: '50%',
-              backgroundColor: '#10b981',
+              backgroundColor: 'var(--primary)',
               display: 'inline-block'
             }} />
           )}
@@ -572,12 +572,12 @@ export default function SettingsPage() {
                 width: '42px',
                 height: '42px',
                 borderRadius: '10px',
-                background: videoEnabled ? '#ccfbf1' : '#f1f5f9',
+                background: videoEnabled ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : '#f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <Video size={22} color={videoEnabled ? '#0d9488' : '#94a3b8'} />
+                <Video size={22} color={videoEnabled ? 'var(--primary)' : '#94a3b8'} />
               </div>
               <div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>שיחות וידאו</h3>
@@ -595,7 +595,7 @@ export default function SettingsPage() {
               title={videoEnabled ? 'לחץ/י לכיבוי המודול' : 'לחץ/י להפעלת המודול'}
               style={{
                 width: '64px', height: '34px', borderRadius: '100px', position: 'relative',
-                background: videoEnabled ? '#10b981' : '#cbd5e1', border: 'none',
+                background: videoEnabled ? 'var(--primary)' : '#cbd5e1', border: 'none',
                 cursor: videoSaving ? 'wait' : 'pointer', transition: 'background 0.2s ease',
                 flexShrink: 0, direction: 'ltr'
               }}
@@ -620,10 +620,10 @@ export default function SettingsPage() {
             const isNotAuth = instanceStatus?.status === 'notAuthorized';
             const isConfigured = instanceStatus?.configured;
 
-            const bg = !isConfigured ? '#fffbeb' : isAuth ? '#f0fdf4' : isNotAuth ? '#fefce8' : '#fef2f2';
-            const border = !isConfigured ? '#fde68a' : isAuth ? '#bbf7d0' : isNotAuth ? '#fef08a' : '#fecaca';
-            const iconBg = !isConfigured ? '#fef3c7' : isAuth ? '#dcfce7' : isNotAuth ? '#fef9c3' : '#fee2e2';
-            const iconColor = !isConfigured ? '#b45309' : isAuth ? '#15803d' : isNotAuth ? '#a16207' : '#b91c1c';
+            const bg = !isConfigured ? '#fffbeb' : isAuth ? 'var(--primary-faint)' : isNotAuth ? '#fefce8' : '#fef2f2';
+            const border = !isConfigured ? '#fde68a' : isAuth ? 'var(--primary-light)' : isNotAuth ? '#fef08a' : '#fecaca';
+            const iconBg = !isConfigured ? '#fef3c7' : isAuth ? 'var(--primary-light)' : isNotAuth ? '#fef9c3' : '#fee2e2';
+            const iconColor = !isConfigured ? '#b45309' : isAuth ? 'var(--primary-hover)' : isNotAuth ? '#a16207' : '#b91c1c';
 
             return (
               <div style={{
@@ -804,7 +804,7 @@ export default function SettingsPage() {
                 width: '40px',
                 height: '40px',
                 borderRadius: '10px',
-                background: '#dcfce7',
+                background: 'var(--primary-light)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -844,17 +844,17 @@ export default function SettingsPage() {
                 marginTop: '16px',
                 padding: '14px',
                 borderRadius: '10px',
-                background: testResult.success ? '#f0fdf4' : '#fef2f2',
-                border: `1px solid ${testResult.success ? '#bbf7d0' : '#fecaca'}`,
+                background: testResult.success ? 'var(--primary-faint)' : '#fef2f2',
+                border: `1px solid ${testResult.success ? 'var(--primary-light)' : '#fecaca'}`,
                 fontSize: '0.88rem',
-                color: testResult.success ? '#166534' : '#991b1b',
+                color: testResult.success ? 'var(--primary-hover)' : '#991b1b',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px'
               }}>
                 {testResult.success ? (
                   <>
-                    <CheckCircle2 size={18} color="#16a34a" />
+                    <CheckCircle2 size={18} color="var(--primary)" />
                     <span>הודעת הבדיקה נשלחה בהצלחה! מזהה הודעה: {testResult.idMessage}</span>
                   </>
                 ) : (

@@ -94,7 +94,7 @@ const MOOD_OPTIONS = [
     id: 'calm', 
     label: 'שלווה ורוגע', 
     emoji: '🌿', 
-    color: '#0d9488', 
+    color: 'var(--primary)', 
     prompt: 'איזה יופי, שלווה היא עוגן נפלא. נצל/י את הרגע להעמקה בתרגולים האישיים ✨' 
   },
   { 
@@ -1378,22 +1378,22 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
   if (loading) {
     return (
-      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(circle at 50% 40%, #f0fdfa 0%, #f8fafc 100%)' }}>
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'radial-gradient(circle at 50% 40%, var(--primary-faint) 0%, #f8fafc 100%)' }}>
         <div style={{ textAlign: 'center', padding: '32px', maxWidth: '380px', width: '90%' }}>
           <div style={{
             width: '64px',
             height: '64px',
             borderRadius: '20px',
-            background: 'linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)',
+            background: 'linear-gradient(135deg, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)) 0%, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)) 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 18px',
-            boxShadow: '0 10px 25px -5px rgba(13, 148, 136, 0.2)'
+            boxShadow: '0 10px 25px -5px color-mix(in srgb, var(--primary) 20%, transparent)'
           }}>
-            <Sparkles size={30} color="#0d9488" style={{ animation: 'spin 2.5s linear infinite' }} />
+            <Sparkles size={30} color="var(--primary)" style={{ animation: 'spin 2.5s linear infinite' }} />
           </div>
-          <h3 style={{ margin: '0 0 6px 0', color: '#0f766e', fontWeight: 800, fontSize: '1.2rem' }}>
+          <h3 style={{ margin: '0 0 6px 0', color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', fontWeight: 800, fontSize: '1.2rem' }}>
             טוען את המרחב האישי...
           </h3>
           <p style={{ color: '#64748b', fontSize: '0.86rem', margin: '0 0 20px 0' }}>
@@ -1413,7 +1413,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               left: 0,
               height: '100%',
               width: '40%',
-              background: 'linear-gradient(90deg, #0d9488, #14b8a6)',
+              background: 'linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 85%, white))',
               borderRadius: '999px',
               animation: 'portalSpeedBar 0.9s ease-in-out infinite'
             }} />
@@ -1460,20 +1460,20 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   // Security Gate 0: Initial Account Activation / Credentials Setup (when client sets password themselves)
   if (data?.portalInfo?.needsCredentialsSetup) {
     return (
-      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)' }}>
-        <div className="modal-card" style={{ maxWidth: '460px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid #99f6e4' }}>
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, var(--primary-faint) 0%, #f8fafc 100%)' }}>
+        <div className="modal-card" style={{ maxWidth: '460px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '20px',
-              background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)'
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 25%, transparent)'
             }}>
               <Sparkles size={32} />
             </div>
@@ -1486,11 +1486,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <div style={{
               marginTop: '12px',
               padding: '10px 14px',
-              background: '#ecfdf5',
+              background: 'var(--primary-faint)',
               borderRadius: '12px',
-              border: '1px solid #a7f3d0',
+              border: '1px solid var(--primary-light)',
               fontSize: '0.84rem',
-              color: '#065f46',
+              color: 'var(--primary-hover)',
               lineHeight: 1.45
             }}>
               לשמירה על פרטיותך ואבטחת המידע הרפואי, אנא בחר/י לעצמך שם משתמש וסיסמה אישית לכניסה למערכת.
@@ -1609,13 +1609,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   className="btn"
                   onClick={handleRequestSetupOtp}
                   disabled={isRequestingOtp}
-                  style={{ whiteSpace: 'nowrap', borderRadius: '12px', padding: '12px 16px', border: '1px solid #99f6e4', background: '#f0fdfa', color: '#0f766e', fontWeight: 700, cursor: 'pointer' }}
+                  style={{ whiteSpace: 'nowrap', borderRadius: '12px', padding: '12px 16px', border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))', background: 'var(--primary-faint)', color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', fontWeight: 700, cursor: 'pointer' }}
                 >
                   {isRequestingOtp ? 'שולח...' : setupOtpSent ? 'שלח/י קוד שוב' : 'שלח/י קוד לטלפון'}
                 </button>
               </div>
               {setupOtpSent && (
-                <span style={{ fontSize: '0.78rem', color: '#047857', marginTop: '6px', display: 'block' }}>
+                <span style={{ fontSize: '0.78rem', color: 'var(--primary-hover)', marginTop: '6px', display: 'block' }}>
                   קוד האימות נשלח בהודעת WhatsApp{setupOtpPhone ? ` למספר ${setupOtpPhone}` : ''} והוא תקף ל-10 דקות.
                 </span>
               )}
@@ -1649,20 +1649,20 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   // Security Gate: If client has password and has no valid remembered session
   if (data?.portalInfo?.hasPassword && !isPortalAuthenticated) {
     return (
-      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)' }}>
-        <div className="modal-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid #ccfbf1' }}>
+      <div className="portal-layout" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '24px 16px', background: 'linear-gradient(145deg, var(--primary-faint) 0%, #f8fafc 100%)' }}>
+        <div className="modal-card" style={{ maxWidth: '440px', width: '100%', padding: '36px 28px', borderRadius: '24px', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)', border: '1px solid var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <div style={{
               width: '64px',
               height: '64px',
               borderRadius: '20px',
-              background: 'var(--primary-light, #ccfbf1)',
-              color: 'var(--primary-hover, #0f766e)',
+              background: 'var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)))',
+              color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              boxShadow: '0 8px 20px rgba(13, 148, 136, 0.15)'
+              boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 15%, transparent)'
             }}>
               <Lock size={30} />
             </div>
@@ -1676,17 +1676,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <div style={{
               marginTop: '12px',
               padding: '8px 12px',
-              background: '#f0fdf4',
+              background: 'var(--primary-faint)',
               borderRadius: '10px',
-              border: '1px solid #bbf7d0',
+              border: '1px solid var(--primary-light)',
               fontSize: '0.8rem',
-              color: '#166534',
+              color: 'var(--primary-hover)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '6px'
             }}>
-              <ShieldCheck size={15} color="#16a34a" />
+              <ShieldCheck size={15} color="var(--primary)" />
               <span>מרחב מאובטח ומוגן לשמירה על פרטיותך</span>
             </div>
           </div>
@@ -1768,7 +1768,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 id="rememberMeCheckbox"
                 checked={rememberMe} 
                 onChange={e => setRememberMe(e.target.checked)}
-                style={{ width: '18px', height: '18px', accentColor: '#0d9488', cursor: 'pointer' }} 
+                style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }} 
               />
               <label htmlFor="rememberMeCheckbox" style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 600, cursor: 'pointer', userSelect: 'none' }}>
                 זכור אותי במכשיר זה (כניסה אוטומטית בעתיד)
@@ -1816,7 +1816,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             height: '64px',
             borderRadius: '22px',
             background: 'rgba(45, 212, 191, 0.15)',
-            color: '#2dd4bf',
+            color: 'color-mix(in srgb, var(--primary) 65%, white)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -1833,7 +1833,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           <p style={{ fontSize: '0.88rem', color: '#94a3b8', margin: '0 0 4px 0' }}>
             {data.portalInfo.clientName} • {data.portalInfo.clinicName || 'WiseCare'}
           </p>
-          <div style={{ fontSize: '0.82rem', color: '#5eead4', marginTop: '6px' }}>
+          <div style={{ fontSize: '0.82rem', color: 'color-mix(in srgb, var(--primary) 50%, white)', marginTop: '6px' }}>
             הזינו קוד PIN בן 4 ספרות לפתיחה מהירה
           </div>
 
@@ -1911,7 +1911,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#5eead4',
+                color: 'color-mix(in srgb, var(--primary) 50%, white)',
                 fontSize: '0.84rem',
                 fontWeight: 600,
                 cursor: 'pointer',
@@ -1990,11 +1990,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       <aside className={`sidebar ${mobileMenuOpen ? 'mobile-open' : ''}`} style={{ background: 'var(--bg-sidebar-gradient, linear-gradient(180deg, #07191d 0%, #0b2226 100%))' }}>
         {/* Brand */}
         <div className="sidebar-header" style={{ borderBottom: '1px solid var(--sidebar-border, rgba(255, 255, 255, 0.12))' }}>
-          <div className="brand-icon" style={{ background: 'var(--brand-gradient, linear-gradient(135deg, #14b8a6 0%, #0d9488 100%))' }}>
+          <div className="brand-icon" style={{ background: 'var(--brand-gradient, linear-gradient(135deg, color-mix(in srgb, var(--primary) 85%, white) 0%, var(--primary) 100%))' }}>
             <HeartHandshake size={24} />
           </div>
           <div className="brand-info">
-            <h2>WiseCare <Sparkles size={15} color="#5eead4" /></h2>
+            <h2>WiseCare <Sparkles size={15} color="color-mix(in srgb, var(--primary) 50%, white)" /></h2>
             <span>המרחב הטיפולי האישי שלי</span>
           </div>
           <button 
@@ -2009,7 +2009,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          <div className="nav-section-title" style={{ color: 'var(--sidebar-active-color, #99f6e4)' }}>תפריט המרחב</div>
+          <div className="nav-section-title" style={{ color: 'var(--sidebar-active-color, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)))' }}>תפריט המרחב</div>
 
           <button 
             className={`nav-item ${activeTab === 'tasks' ? 'active' : ''}`}
@@ -2018,7 +2018,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               setMobileMenuOpen(false);
             }}
             style={{ 
-              color: activeTab === 'tasks' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+              color: activeTab === 'tasks' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'tasks' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
           >
@@ -2039,7 +2039,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               setMobileMenuOpen(false);
             }}
             style={{
-              color: activeTab === 'content' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+              color: activeTab === 'content' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'content' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
             aria-current={activeTab === 'content' ? 'page' : undefined}
@@ -2060,14 +2060,14 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               setMobileMenuOpen(false);
             }}
             style={{ 
-              color: activeTab === 'appointments' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+              color: activeTab === 'appointments' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'appointments' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
           >
             <CalendarCheck size={19} />
             <span>התורים שלי</span>
             {portalAppointments.filter(a => a.status === 'confirmed' && a.date >= new Date().toISOString().split('T')[0]).length > 0 && (
-              <span className="nav-badge" style={{ background: '#10b981', color: '#ffffff' }}>
+              <span className="nav-badge" style={{ background: 'var(--primary)', color: '#ffffff' }}>
                 {portalAppointments.filter(a => a.status === 'confirmed' && a.date >= new Date().toISOString().split('T')[0]).length}
               </span>
             )}
@@ -2080,7 +2080,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               setMobileMenuOpen(false);
             }}
             style={{ 
-              color: activeTab === 'insights' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+              color: activeTab === 'insights' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'insights' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
           >
@@ -2100,7 +2100,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               setMobileMenuOpen(false);
             }}
             style={{ 
-              color: activeTab === 'breathing' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+              color: activeTab === 'breathing' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'breathing' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
           >
@@ -2116,7 +2116,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 setMobileMenuOpen(false);
               }}
               style={{ 
-                color: activeTab === 'forms' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+                color: activeTab === 'forms' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
                 background: activeTab === 'forms' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
               }}
               aria-current={activeTab === 'forms' ? 'page' : undefined}
@@ -2139,7 +2139,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 setMobileMenuOpen(false);
               }}
               style={{ 
-                color: activeTab === 'clinic' ? 'var(--sidebar-active-color, #2dd4bf)' : '#ccfbf1',
+                color: activeTab === 'clinic' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
                 background: activeTab === 'clinic' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
               }}
             >
@@ -2159,7 +2159,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             border: '1px solid rgba(255, 255, 255, 0.14)',
             color: 'white'
           }}>
-            <div style={{ fontSize: '0.74rem', color: 'var(--sidebar-active-color, #99f6e4)', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '0.74rem', color: 'var(--sidebar-active-color, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)))', fontWeight: 700, marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               מטפל/ת מלווה
             </div>
             <div style={{ fontWeight: 800, fontSize: '1rem', color: '#ffffff' }}>{portalInfo.therapist.name}</div>
@@ -2215,7 +2215,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     background: 'rgba(255, 255, 255, 0.06)'
                   }}
                 >
-                  <Phone size={13} color="var(--sidebar-active-color, #2dd4bf)" />
+                  <Phone size={13} color="var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))" />
                   <span dir="ltr">{portalInfo.therapist.phone}</span>
                 </a>
               )}
@@ -2227,12 +2227,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         <div className="sidebar-footer" style={{ borderTop: '1px solid var(--sidebar-border, rgba(255, 255, 255, 0.12))' }}>
           <div className="user-profile-badge" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div className="user-avatar" style={{ background: 'var(--primary, #0d9488)', border: '2px solid #5eead4' }}>
+              <div className="user-avatar" style={{ background: 'var(--primary, var(--primary))', border: '2px solid color-mix(in srgb, var(--primary) 50%, white)' }}>
                 {portalInfo.firstName.charAt(0)}
               </div>
               <div className="user-meta">
                 <div className="user-name">{portalInfo.clientName}</div>
-                <div className="user-role" style={{ color: 'var(--sidebar-active-color, #99f6e4)' }}>
+                <div className="user-role" style={{ color: 'var(--sidebar-active-color, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)))' }}>
                   {portalInfo.isSelfCare ? 'מרחב אישי עצמאי' : 'מרחב אישי ומאובטח'}
                 </div>
               </div>
@@ -2510,8 +2510,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           {/* LiveKit: active video call — join now (visible on every tab) */}
           {activeVideoCall && (
             <div dir="rtl" style={{
-              background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)',
-              border: '1.5px solid #34d399',
+              background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+              border: '1.5px solid var(--primary)',
               borderRadius: 'var(--radius-xl)',
               padding: '20px 24px',
               marginBottom: '28px',
@@ -2520,23 +2520,23 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               justifyContent: 'space-between',
               gap: '16px',
               flexWrap: 'wrap',
-              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.15)'
+              boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 15%, transparent)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
                 <div style={{
                   width: '48px', height: '48px', borderRadius: '13px', flexShrink: 0,
-                  background: '#059669', color: '#ffffff',
+                  background: 'var(--primary)', color: '#ffffff',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)'
+                  boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 30%, transparent)'
                 }}>
                   <Video size={24} />
                 </div>
                 <div>
-                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <div style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--primary-hover)', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', boxShadow: '0 0 8px rgba(239,68,68,0.8)', display: 'inline-block' }} />
                     שיחת וידאו פעילה עכשיו
                   </div>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#065f46', marginTop: '2px' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--primary-hover)', marginTop: '2px' }}>
                     {activeVideoCall.therapistName ? `${activeVideoCall.therapistName} ממתין/ה לך בשיחה` : 'המטפל/ת שלך ממתין/ה לך בשיחה'}
                   </div>
                 </div>
@@ -2546,7 +2546,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 onClick={joinActiveVideoCall}
                 disabled={isJoiningVideo}
                 className="btn btn-primary"
-                style={{ background: '#059669', borderColor: '#059669', fontSize: '0.95rem', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+                style={{ background: 'var(--primary)', borderColor: 'var(--primary)', fontSize: '0.95rem', padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
                 <Video size={17} />
                 <span>{isJoiningVideo ? 'מתחבר/ת…' : 'הצטרף/י לשיחה'}</span>
@@ -2635,8 +2635,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     width: '64px',
                     height: '64px',
                     borderRadius: '50%',
-                    background: '#f0fdfa',
-                    color: 'var(--primary, #0d9488)',
+                    background: 'var(--primary-faint)',
+                    color: 'var(--primary, var(--primary))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -2667,8 +2667,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           disabled={submittingTaskId === task.id}
                           title={task.completed ? 'סמן כטרם הושלם' : 'סמן כהושלם בהצלחה!'}
                           style={{
-                            background: task.completed ? 'var(--primary, #0d9488)' : '#ffffff',
-                            borderColor: task.completed ? 'var(--primary, #0d9488)' : '#cbd5e1'
+                            background: task.completed ? 'var(--primary, var(--primary))' : '#ffffff',
+                            borderColor: task.completed ? 'var(--primary, var(--primary))' : '#cbd5e1'
                           }}
                         >
                           {task.completed && <CheckCircle2 size={20} color="#ffffff" />}
@@ -2685,13 +2685,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               </span>
                             )}
                             {task.completed && (
-                              <span className="badge badge-success" style={{ fontSize: '0.78rem', background: '#dcfce7', color: '#15803d' }}>
+                              <span className="badge badge-success" style={{ fontSize: '0.78rem', background: 'var(--primary-light)', color: 'var(--primary-hover)' }}>
                                 ✨ הושלם על ידך!
                               </span>
                             )}
                             {task.isSelfCreated || portalInfo.isSelfCare ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
-                                <span style={{ fontSize: '0.75rem', color: '#0d9488', fontWeight: 700, background: '#f0fdfa', padding: '2px 8px', borderRadius: '6px' }}>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700, background: 'var(--primary-faint)', padding: '2px 8px', borderRadius: '6px' }}>
                                   🌱 תרגול אישי
                                 </span>
                                 <button
@@ -2729,7 +2729,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               gap: '6px',
                               fontSize: '0.86rem',
                               fontWeight: 700,
-                              color: 'var(--primary-hover, #0f766e)',
+                              color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))',
                               marginBottom: '8px'
                             }}>
                               <FileText size={15} />
@@ -2753,7 +2753,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                 onClick={() => handleSaveReflection(task.id)}
                                 disabled={submittingTaskId === task.id}
                                 className="btn btn-secondary"
-                                style={{ padding: '8px 18px', fontSize: '0.85rem', whiteSpace: 'nowrap', borderColor: 'var(--primary, #0d9488)', color: 'var(--primary-hover, #0f766e)' }}
+                                style={{ padding: '8px 18px', fontSize: '0.85rem', whiteSpace: 'nowrap', borderColor: 'var(--primary, var(--primary))', color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))' }}
                               >
                                 <Send size={14} />
                                 <span>עדכן משוב</span>
@@ -2813,9 +2813,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
-                      background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)',
-                      borderColor: '#0d9488',
-                      boxShadow: '0 2px 8px rgba(13, 148, 136, 0.25)'
+                      background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
+                      borderColor: 'var(--primary)',
+                      boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 25%, transparent)'
                     }}
                   >
                     <BookOpen size={16} />
@@ -2856,7 +2856,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       boxShadow: contentSubTab === 'all' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
-                    <Sparkles size={16} color={contentSubTab === 'all' ? '#0d9488' : '#94a3b8'} />
+                    <Sparkles size={16} color={contentSubTab === 'all' ? 'var(--primary)' : '#94a3b8'} />
                     <span>כל התכנים</span>
                     <span style={{
                       background: contentSubTab === 'all' ? '#e2e8f0' : '#e2e8f0',
@@ -2955,11 +2955,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       boxShadow: contentSubTab === 'articles' ? '0 2px 8px rgba(0,0,0,0.08)' : 'none'
                     }}
                   >
-                    <FileText size={16} color={contentSubTab === 'articles' ? '#0d9488' : '#94a3b8'} />
+                    <FileText size={16} color={contentSubTab === 'articles' ? 'var(--primary)' : '#94a3b8'} />
                     <span>מאמרים והדרכות</span>
                     <span style={{
-                      background: contentSubTab === 'articles' ? '#ccfbf1' : '#e2e8f0',
-                      color: contentSubTab === 'articles' ? '#0f766e' : '#475569',
+                      background: contentSubTab === 'articles' ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : '#e2e8f0',
+                      color: contentSubTab === 'articles' ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#475569',
                       fontSize: '0.74rem',
                       padding: '2px 7px',
                       borderRadius: '20px',
@@ -2994,7 +2994,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       type="button"
                       onClick={handleOpenAddArticle}
                       className="btn btn-primary"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)', borderColor: '#0d9488' }}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)', borderColor: 'var(--primary)' }}
                     >
                       <BookOpen size={16} />
                       <span>הוסף מאמר אישי 📖</span>
@@ -3003,7 +3003,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 </div>
               ) : displayedContent.length === 0 ? (
                 <div className="content-empty" style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', padding: '36px 20px', borderRadius: '16px', textAlign: 'center' }}>
-                  <div style={{ color: '#0d9488', marginBottom: '12px' }}>
+                  <div style={{ color: 'var(--primary)', marginBottom: '12px' }}>
                     {contentSubTab === 'articles' ? <FileText size={36} /> : contentSubTab === 'posts' ? <MessageCircle size={36} /> : <Video size={36} />}
                   </div>
                   <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: '#0f172a', margin: '0 0 6px' }}>
@@ -3022,7 +3022,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         type="button"
                         onClick={handleOpenAddArticle}
                         className="btn btn-primary"
-                        style={{ fontSize: '0.85rem', background: '#0d9488', borderColor: '#0d9488', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                        style={{ fontSize: '0.85rem', background: 'var(--primary)', borderColor: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                       >
                         <BookOpen size={15} />
                         <span>כתוב מאמר אישי 📖</span>
@@ -3065,9 +3065,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         className={`portal-content-card ${!item.url && !item.imageData && !item.imageUrl ? 'is-text-only' : ''} ${isFeatured ? 'is-featured' : ''} ${isExpanded ? 'is-expanded' : ''} ${isArticle ? 'is-article-card' : ''}`}
                         key={item.assignmentId || item.id}
                         tabIndex={isFeatured ? -1 : undefined}
-                        style={isArticle ? { borderTop: '4px solid #0d9488' } : {}}
+                        style={isArticle ? { borderTop: '4px solid var(--primary)' } : {}}
                       >
-                        <div className="portal-content-card-media" style={{ position: 'relative', ...(isArticle ? { background: 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)', color: '#0d9488' } : {}) }}>
+                        <div className="portal-content-card-media" style={{ position: 'relative', ...(isArticle ? { background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)) 100%)', color: 'var(--primary)' } : {}) }}>
                           {/* Icon always rendered underneath — if the thumbnail
                               fails to load (expired CDN link), it shows instead
                               of a broken-image glyph */}
@@ -3091,8 +3091,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           )}
                           <div className="portal-content-card-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                             <span style={{
-                              background: isArticle ? '#ccfbf1' : '#f1f5f9',
-                              color: isArticle ? '#0f766e' : '#475569',
+                              background: isArticle ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : '#f1f5f9',
+                              color: isArticle ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#475569',
                               padding: '2px 8px',
                               borderRadius: '6px',
                               fontWeight: 700,
@@ -3139,7 +3139,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               type="button"
                               className="btn btn-primary"
                               onClick={() => setReadingArticle(item)}
-                              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0d9488', borderColor: '#0d9488' }}
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'var(--primary)', borderColor: 'var(--primary)' }}
                             >
                               <BookOpen size={16} aria-hidden="true" />
                               <span>קרא את המאמר המלא</span>
@@ -3180,7 +3180,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                 type="button"
                                 className="btn btn-secondary"
                                 onClick={() => handleOpenEditSelfContent(item)}
-                                style={{ color: 'var(--primary, #0d9488)', borderColor: 'var(--primary-light, #ccfbf1)', padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                style={{ color: 'var(--primary, var(--primary))', borderColor: 'var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)))', padding: '6px 12px', fontSize: '0.8rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
                                 title="ערוך פריט תוכן זה"
                               >
                                 <Edit size={14} />
@@ -3268,7 +3268,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         {filteredInsights.length === 0 ? (
                           <tr>
                             <td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
-                              <BookOpen size={36} color="var(--primary, #0d9488)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
+                              <BookOpen size={36} color="var(--primary, var(--primary))" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
                               <div style={{ fontWeight: 700, fontSize: '1rem', color: '#475569' }}>
                                 עדיין לא תיעדת תובנות השבוע
                               </div>
@@ -3283,7 +3283,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               <td>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                   <span style={{ fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}>
-                                    <Calendar size={13} color="var(--primary, #0d9488)" /> {item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}
+                                    <Calendar size={13} color="var(--primary, var(--primary))" /> {item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}
                                   </span>
                                   <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                     <Clock size={12} /> שעה: {item.recordedTime || new Date(item.createdAt).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
@@ -3320,7 +3320,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                     <div style={{
                                       width: `${item.intensity * 10}%`,
                                       height: '100%',
-                                      background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, #0d9488)' : '#3b82f6'
+                                      background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, var(--primary))' : '#3b82f6'
                                     }} />
                                   </div>
                                   <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>
@@ -3335,7 +3335,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                     onClick={() => handleOpenEditInsight(item)}
                                     className="btn-icon" 
                                     title="ערוך תובנה זו"
-                                    style={{ color: 'var(--primary, #0d9488)', padding: '6px' }}
+                                    style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
                                   >
                                     <Edit size={16} />
                                   </button>
@@ -3361,7 +3361,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 <div className="portal-insights-cards-container">
                   {filteredInsights.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8', background: '#f8fafc', borderRadius: '16px' }}>
-                      <BookOpen size={36} color="var(--primary, #0d9488)" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
+                      <BookOpen size={36} color="var(--primary, var(--primary))" style={{ margin: '0 auto 10px', opacity: 0.7 }} />
                       <div style={{ fontWeight: 700, fontSize: '1rem', color: '#475569' }}>
                         עדיין לא תיעדת תובנות השבוע
                       </div>
@@ -3374,7 +3374,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       <div key={item.id} className="insight-mobile-card">
                         <div className="insight-card-header">
                           <div className="insight-card-datetime">
-                            <Calendar size={14} color="var(--primary, #0d9488)" />
+                            <Calendar size={14} color="var(--primary, var(--primary))" />
                             <span>{item.recordedDate || new Date(item.createdAt).toLocaleDateString('he-IL')}</span>
                             <span>•</span>
                             <Clock size={13} />
@@ -3409,7 +3409,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               <div style={{
                                 width: `${item.intensity * 10}%`,
                                 height: '100%',
-                                background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, #0d9488)' : '#3b82f6'
+                                background: item.intensity > 7 ? '#ef4444' : item.intensity > 4 ? 'var(--primary, var(--primary))' : '#3b82f6'
                               }} />
                             </div>
                             <span style={{ fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
@@ -3422,7 +3422,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               onClick={() => handleOpenEditInsight(item)}
                               className="btn-icon" 
                               title="ערוך תובנה זו"
-                              style={{ color: 'var(--primary, #0d9488)', padding: '6px' }}
+                              style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
                             >
                               <Edit size={16} />
                             </button>
@@ -3452,8 +3452,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           width: '40px',
                           height: '40px',
                           borderRadius: '12px',
-                          background: 'var(--primary-light, #ccfbf1)',
-                          color: 'var(--primary-hover, #0f766e)',
+                          background: 'var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)))',
+                          color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
@@ -3522,7 +3522,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         <div className="form-group">
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                             <label style={{ margin: 0 }}>מה עבר עליך? פרט/י מה קרה ומה התובנה שלך *</label>
-                            <span style={{ fontSize: '0.8rem', color: 'var(--primary, #0d9488)', fontWeight: 600 }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--primary, var(--primary))', fontWeight: 600 }}>
                               מרחב כתיבה מרווח ✍️
                             </span>
                           </div>
@@ -3536,17 +3536,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                         </div>
 
                         <div style={{
-                          background: '#f0fdf4',
-                          border: '1px solid #bbf7d0',
+                          background: 'var(--primary-faint)',
+                          border: '1px solid var(--primary-light)',
                           borderRadius: '12px',
                           padding: '12px 16px',
                           fontSize: '0.84rem',
-                          color: '#166534',
+                          color: 'var(--primary-hover)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '8px'
                         }}>
-                          <ShieldCheck size={18} color="#16a34a" />
+                          <ShieldCheck size={18} color="var(--primary)" />
                           <span>התיעוד יישמר באופן פרטי ומאובטח, ויהיה זמין גם למטפל/ת שלך כהכנה למפגש הבא.</span>
                         </div>
                       </div>
@@ -3588,23 +3588,23 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   width: '230px',
                   height: '230px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--primary-light, #ccfbf1) 0%, #99f6e4 100%)',
-                  border: '8px solid var(--primary, #0d9488)',
+                  background: 'linear-gradient(135deg, var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))) 0%, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)) 100%)',
+                  border: '8px solid var(--primary, var(--primary))',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: breathingRunning ? '0 0 45px var(--primary-glow, rgba(13, 148, 136, 0.45))' : 'var(--shadow-md)',
+                  boxShadow: breathingRunning ? '0 0 45px var(--primary-glow, color-mix(in srgb, var(--primary) 45%, transparent))' : 'var(--shadow-md)',
                   transform: breathingRunning && breathingPhase.startsWith('שאף') ? 'scale(1.18)' : 'scale(1)',
                   transition: 'all 3.5s ease-in-out',
                   marginBottom: '32px'
                 }}>
-                  <Wind size={40} color="var(--primary-hover, #0f766e)" />
-                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary-hover, #0f766e)', marginTop: '8px' }}>
+                  <Wind size={40} color="var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))" />
+                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))', marginTop: '8px' }}>
                     {breathingRunning ? breathingPhase : 'מוכן לתרגול'}
                   </div>
                   {breathingRunning && (
-                    <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary, #0d9488)', marginTop: '4px' }}>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary, var(--primary))', marginTop: '4px' }}>
                       {breathingCountdown}
                     </div>
                   )}
@@ -3672,8 +3672,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       width: '44px',
                       height: '44px',
                       borderRadius: '12px',
-                      background: 'var(--primary-light, #ccfbf1)',
-                      color: 'var(--primary-hover, #0f766e)',
+                      background: 'var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)))',
+                      color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center'
@@ -3690,7 +3690,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
                   <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.92rem', color: '#1e293b' }}>
-                      <Navigation size={16} color="var(--primary, #0d9488)" />
+                      <Navigation size={16} color="var(--primary, var(--primary))" />
                       <span>{portalInfo.clinicAddress || 'לא צוינה כתובת'} {portalInfo.clinicCity ? `• ${portalInfo.clinicCity}` : ''}</span>
                     </div>
 
@@ -3849,12 +3849,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
                 return (
                   <div style={{
-                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                    border: '1px solid #bbf7d0',
+                    background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+                    border: '1px solid var(--primary-light)',
                     borderRadius: 'var(--radius-xl)',
                     padding: '24px',
                     marginBottom: '28px',
-                    boxShadow: '0 8px 24px rgba(22, 163, 74, 0.08)'
+                    boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 8%, transparent)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                       <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
@@ -3862,24 +3862,24 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           width: '52px',
                           height: '52px',
                           borderRadius: '14px',
-                          background: '#16a34a',
+                          background: 'var(--primary)',
                           color: '#ffffff',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          boxShadow: '0 4px 12px rgba(22, 163, 74, 0.25)',
+                          boxShadow: '0 4px 12px color-mix(in srgb, var(--primary) 25%, transparent)',
                           flexShrink: 0
                         }}>
                           <CalendarCheck size={28} />
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary-hover)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                             הפגישה הקרובה שלך ✨
                           </div>
                           <h3 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#14532d', margin: '4px 0 8px 0' }}>
                             {getHebrewDateString(nextApt.date)} בשעה {nextApt.time}
                           </h3>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '0.88rem', color: '#166534' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '0.88rem', color: 'var(--primary-hover)' }}>
                             <span><strong>משך:</strong> {nextApt.durationMinutes || 50} דקות</span>
                             <span>•</span>
                             <span><strong>סוג:</strong> {nextApt.typeName || (nextApt.type === 'zoom' || nextApt.type === 'video' ? 'וידאו' : 'בקליניקה')}</span>
@@ -3910,7 +3910,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       flexWrap: 'wrap'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: '#1f2937', flexWrap: 'wrap' }}>
-                        <MapPin size={16} color="#16a34a" />
+                        <MapPin size={16} color="var(--primary)" />
                         <span><strong>מיקום / פרטים:</strong> {nextApt.type === 'zoom' || nextApt.type === 'video' ? (nextApt.joinUrl ? 'פגישת וידאו' : 'שיחת וידאו — פרטים בקרוב') : (nextApt.location || portalInfo.clinicAddress || 'קליניקה')}</span>
                       </div>
 
@@ -4001,7 +4001,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               <strong style={{ fontSize: '1.05rem', color: '#0f172a' }}>
                                 {getHebrewDateString(apt.date)}
                               </strong>
-                              <span style={{ fontSize: '0.9rem', color: 'var(--primary, #0d9488)', fontWeight: 700 }}>
+                              <span style={{ fontSize: '0.9rem', color: 'var(--primary, var(--primary))', fontWeight: 700 }}>
                                 בשעה {apt.time}
                               </span>
                               <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
@@ -4015,7 +4015,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                   <Video size={14} /> פגישת וידאו
                                 </span>
                               ) : (
-                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0d9488' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)' }}>
                                   <MapPin size={14} /> {apt.location || 'בקליניקה'}
                                 </span>
                               )}
@@ -4071,7 +4071,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               <div className="page-header portal-content-header">
                 <div className="page-title-group">
                   <h2 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <FileSignature size={24} color="var(--primary, #0d9488)" />
+                    <FileSignature size={24} color="var(--primary, var(--primary))" />
                     <span>טפסים וחתימות דיגיטליות</span>
                     {portalForms.filter((f: any) => f.status !== 'signed').length > 0 && (
                       <span style={{ fontSize: '0.8rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '2px 9px', borderRadius: '12px', fontWeight: 700 }}>
@@ -4098,7 +4098,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
               {loadingForms && portalForms.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '50px 20px', color: '#64748b' }}>
-                  <Loader2 size={28} className="spin" style={{ margin: '0 auto 10px', color: '#0d9488' }} />
+                  <Loader2 size={28} className="spin" style={{ margin: '0 auto 10px', color: 'var(--primary)' }} />
                   <div>טוען טפסים...</div>
                 </div>
               ) : portalForms.length === 0 ? (
@@ -4130,7 +4130,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
                         {portalForms.filter((f: any) => f.status !== 'signed').map((item: any) => {
                           const t = item.form || {};
-                          const accent = t.accentColor || '#0d9488';
+                          const accent = t.accentColor || 'var(--primary)';
                           return (
                             <div
                               key={item.id}
@@ -4227,7 +4227,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   {/* Section 2: Signed forms */}
                   {portalForms.filter((f: any) => f.status === 'signed').length > 0 && (
                     <div>
-                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#166534', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--primary-hover)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <CheckCircle2 size={18} />
                         <span>טפסים שנחתמו בהצלחה ({portalForms.filter((f: any) => f.status === 'signed').length})</span>
                       </div>
@@ -4240,7 +4240,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               style={{
                                 background: '#ffffff',
                                 borderRadius: '14px',
-                                border: '1px solid #bbf7d0',
+                                border: '1px solid var(--primary-light)',
                                 boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
                                 padding: '16px 18px',
                                 display: 'flex',
@@ -4255,8 +4255,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                   width: '40px',
                                   height: '40px',
                                   borderRadius: '12px',
-                                  background: '#dcfce7',
-                                  color: '#15803d',
+                                  background: 'var(--primary-light)',
+                                  color: 'var(--primary-hover)',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -4268,7 +4268,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                   <div style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
                                     {t.title || 'טופס חתום'}
                                   </div>
-                                  <div style={{ fontSize: '0.78rem', color: '#15803d', marginTop: '2px' }}>
+                                  <div style={{ fontSize: '0.78rem', color: 'var(--primary-hover)', marginTop: '2px' }}>
                                     ✓ נחתם בהצלחה {item.signedAt ? `ב-${new Date(item.signedAt).toLocaleDateString('he-IL')}` : ''}
                                   </div>
                                 </div>
@@ -4316,8 +4316,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               width: '34px',
               height: '34px',
               borderRadius: '50%',
-              background: '#ecfdf5',
-              color: '#0d9488',
+              background: 'var(--primary-faint)',
+              color: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
@@ -4342,11 +4342,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               alignItems: 'center',
               gap: '6px',
               fontSize: '0.78rem',
-              color: '#15803d',
-              background: '#f0fdf4',
+              color: 'var(--primary-hover)',
+              background: 'var(--primary-faint)',
               padding: '4px 10px',
               borderRadius: '20px',
-              border: '1px solid #bbf7d0'
+              border: '1px solid var(--primary-light)'
             }}>
               <ShieldCheck size={14} />
               <span>הצפנת נתונים 256-bit</span>
@@ -4358,7 +4358,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#0f766e',
+                color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))',
                 fontWeight: 700,
                 fontSize: '0.84rem',
                 cursor: 'pointer',
@@ -4592,7 +4592,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 <h2 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {contentModalMode === 'article' ? (
                     <>
-                      <BookOpen size={20} color="#0d9488" />
+                      <BookOpen size={20} color="var(--primary)" />
                       <span>{editingContentId ? 'עריכת מאמר אישי 📖' : 'הוספת מאמר או מדריך אישי 📖'}</span>
                     </>
                   ) : (
@@ -4774,7 +4774,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   type="submit"
                   className="btn btn-primary"
                   disabled={isSubmittingSelfContent}
-                  style={contentModalMode === 'article' ? { background: '#0d9488', borderColor: '#0d9488' } : { background: '#7c3aed', borderColor: '#7c3aed' }}
+                  style={contentModalMode === 'article' ? { background: 'var(--primary)', borderColor: 'var(--primary)' } : { background: '#7c3aed', borderColor: '#7c3aed' }}
                 >
                   {isSubmittingSelfContent 
                     ? 'שומר תוכן...' 
@@ -4867,8 +4867,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   width: '44px',
                   height: '44px',
                   borderRadius: '14px',
-                  background: 'rgba(13, 148, 136, 0.12)',
-                  color: '#0d9488',
+                  background: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+                  color: 'var(--primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -4916,11 +4916,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: settingsMsg.type === 'success' ? '#f0fdf4' : '#fef2f2',
-                border: `1px solid ${settingsMsg.type === 'success' ? '#bbf7d0' : '#fecaca'}`,
-                color: settingsMsg.type === 'success' ? '#166534' : '#dc2626'
+                background: settingsMsg.type === 'success' ? 'var(--primary-faint)' : '#fef2f2',
+                border: `1px solid ${settingsMsg.type === 'success' ? 'var(--primary-light)' : '#fecaca'}`,
+                color: settingsMsg.type === 'success' ? 'var(--primary-hover)' : '#dc2626'
               }}>
-                {settingsMsg.type === 'success' ? <CheckCircle2 size={18} color="#16a34a" /> : <AlertCircle size={18} color="#dc2626" />}
+                {settingsMsg.type === 'success' ? <CheckCircle2 size={18} color="var(--primary)" /> : <AlertCircle size={18} color="#dc2626" />}
                 <span>{settingsMsg.text}</span>
               </div>
             )}
@@ -4929,7 +4929,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <div className="portal-settings-section">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <KeyRound size={18} color="#0d9488" />
+                  <KeyRound size={18} color="var(--primary)" />
                   <span style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
                     נעילת PIN מהירה (4 ספרות)
                   </span>
@@ -4957,9 +4957,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 fontSize: '0.8rem',
                 fontWeight: 700,
                 marginBottom: '16px',
-                background: isPinEnabled ? '#ecfdf5' : '#fef3c7',
-                color: isPinEnabled ? '#047857' : '#b45309',
-                border: `1px solid ${isPinEnabled ? '#a7f3d0' : '#fde68a'}`
+                background: isPinEnabled ? 'var(--primary-faint)' : '#fef3c7',
+                color: isPinEnabled ? 'var(--primary-hover)' : '#b45309',
+                border: `1px solid ${isPinEnabled ? 'var(--primary-light)' : '#fde68a'}`
               }}>
                 {isPinEnabled ? <ShieldCheck size={14} /> : <AlertCircle size={14} />}
                 <span>{isPinEnabled ? 'נעילת PIN פעילה במכשיר זה 🔒' : 'נעילת PIN אינה פעילה כרגע'}</span>
@@ -5035,7 +5035,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             {/* Section 2: Device Remember Me Status */}
             <div className="portal-settings-section">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <Smartphone size={18} color="#0d9488" />
+                <Smartphone size={18} color="var(--primary)" />
                 <span style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
                   שמירת כניסה במכשיר זה
                 </span>
@@ -5091,9 +5091,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   type="button"
                   onClick={handleLockPortalNow}
                   style={{
-                    background: 'rgba(13, 148, 136, 0.1)',
-                    color: '#0d9488',
-                    border: '1px solid rgba(13, 148, 136, 0.3)',
+                    background: 'color-mix(in srgb, var(--primary) 10%, transparent)',
+                    color: 'var(--primary)',
+                    border: '1px solid color-mix(in srgb, var(--primary) 30%, transparent)',
                     borderRadius: '12px',
                     padding: '11px',
                     fontWeight: 700,
@@ -5168,15 +5168,15 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '14px',
-              background: 'linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%)'
+              background: 'linear-gradient(135deg, var(--primary-faint) 0%, #ffffff 100%)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  background: '#ccfbf1',
-                  color: '#0d9488',
+                  background: 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
+                  color: 'var(--primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -5186,7 +5186,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{
-                      background: '#0d9488',
+                      background: 'var(--primary)',
                       color: 'white',
                       fontSize: '0.72rem',
                       fontWeight: 700,
@@ -5228,11 +5228,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                   <span style={{
                     fontSize: '0.82rem',
                     fontWeight: 600,
-                    color: '#0d9488',
-                    background: '#f0fdfa',
+                    color: 'var(--primary)',
+                    background: 'var(--primary-faint)',
                     padding: '4px 10px',
                     borderRadius: '8px',
-                    border: '1px solid #ccfbf1'
+                    border: '1px solid var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))'
                   }}>
                     נושא: {readingArticle.category}
                   </span>
@@ -5343,15 +5343,15 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               alignItems: 'center',
               justifyContent: 'space-between',
               gap: '12px',
-              background: `linear-gradient(135deg, ${activeSigningForm.form?.accentColor || '#0d9488'}12 0%, #ffffff 100%)`
+              background: `linear-gradient(135deg, ${activeSigningForm.form?.accentColor || 'var(--primary)'}12 0%, #ffffff 100%)`
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{
                   width: '38px',
                   height: '38px',
                   borderRadius: '10px',
-                  background: `${activeSigningForm.form?.accentColor || '#0d9488'}20`,
-                  color: activeSigningForm.form?.accentColor || '#0d9488',
+                  background: `${activeSigningForm.form?.accentColor || 'var(--primary)'}20`,
+                  color: activeSigningForm.form?.accentColor || 'var(--primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -5442,13 +5442,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 {/* Required Fields / Acknowledgments */}
                 {(activeSigningForm.form?.requiredFields || []).length > 0 && (
                   <div style={{
-                    background: '#f0fdfa',
-                    border: '1px solid #ccfbf1',
+                    background: 'var(--primary-faint)',
+                    border: '1px solid var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
                     borderRadius: '14px',
                     padding: '16px',
                     marginBottom: '22px'
                   }}>
-                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: '#0f766e', marginBottom: '12px' }}>
+                    <div style={{ fontWeight: 800, fontSize: '0.92rem', color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', marginBottom: '12px' }}>
                       הצהרות ואישורים נדרשים (חובה לסמן/למלא):
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -5464,7 +5464,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                   width: '18px',
                                   height: '18px',
                                   marginTop: '3px',
-                                  accentColor: activeSigningForm.form.accentColor || '#0d9488',
+                                  accentColor: activeSigningForm.form.accentColor || 'var(--primary)',
                                   cursor: 'pointer'
                                 }}
                               />
@@ -5520,7 +5520,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     </label>
                     <SignatureCanvas
                       onSignatureChange={setSignatureData}
-                      accentColor={activeSigningForm.form?.accentColor || '#0d9488'}
+                      accentColor={activeSigningForm.form?.accentColor || 'var(--primary)'}
                       disabled={submittingSignature}
                     />
                   </div>
@@ -5590,8 +5590,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     fontWeight: 800,
                     padding: '10px 22px',
                     borderRadius: '10px',
-                    background: activeSigningForm.form?.accentColor || '#0d9488',
-                    borderColor: activeSigningForm.form?.accentColor || '#0d9488',
+                    background: activeSigningForm.form?.accentColor || 'var(--primary)',
+                    borderColor: activeSigningForm.form?.accentColor || 'var(--primary)',
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '8px'

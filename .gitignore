@@ -47,3 +47,7 @@ videos/
 wiseenergy/
 .backups/
 server/data/wisecare_db.json
+
+# local QA / testing artifacts
+.playwright-mcp/
+.test-admin-token.txt

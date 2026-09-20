@@ -370,9 +370,9 @@ function CallStage({ clientName }: { clientName?: string }) {
           gap: '10px',
           color: 'rgba(244, 249, 248, 0.75)',
           fontSize: '1.05rem',
-          background: 'rgba(13, 148, 136, 0.06)'
+          background: 'color-mix(in srgb, var(--primary) 6%, transparent)'
         }}>
-          <Loader2 size={26} className="animate-spin" color="#2dd4bf" />
+          <Loader2 size={26} className="animate-spin" color="color-mix(in srgb, var(--primary) 65%, white)" />
           <span>{clientName ? `${clientName} עוד לא הצטרף/ה לשיחה…` : 'ממתין לצד השני…'}</span>
         </div>
       )}
@@ -463,7 +463,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         gap: '10px',
         padding: '12px 18px',
         background: 'rgba(4, 38, 35, 0.85)',
-        borderBottom: '1px solid rgba(13, 148, 136, 0.25)'
+        borderBottom: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
           <span className="lk-live-dot" style={{
@@ -478,7 +478,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-          <span style={{ color: '#2dd4bf', fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.05em' }}>
+          <span style={{ color: 'color-mix(in srgb, var(--primary) 65%, white)', fontFamily: 'monospace', fontSize: '0.95rem', letterSpacing: '0.05em' }}>
             {formatDuration(elapsed)}
           </span>
           <span title="שיחה מוצפנת ופרטית" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'rgba(244,249,248,0.55)', fontSize: '0.78rem' }}>
@@ -505,7 +505,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         <BackgroundAudioKeeper />
         {!connected ? (
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', color: 'rgba(244,249,248,0.8)' }}>
-            <Loader2 size={30} className="animate-spin" color="#2dd4bf" />
+            <Loader2 size={30} className="animate-spin" color="color-mix(in srgb, var(--primary) 65%, white)" />
             <span>מתחבר לשיחה…</span>
           </div>
         ) : (
@@ -521,7 +521,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
             gap: '14px',
             padding: '14px',
             background: 'rgba(4, 38, 35, 0.85)',
-            borderTop: '1px solid rgba(13, 148, 136, 0.25)'
+            borderTop: '1px solid color-mix(in srgb, var(--primary) 25%, transparent)'
           }}>
             <TrackToggle source={Track.Source.Microphone} showIcon={false} className="lk-ctrl">
               <Mic size={19} className="lk-icon-on" />
@@ -543,7 +543,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
       </LiveKitRoom>
 
       <style>{`
-        .lk-call-view .lk-tile { background: #0a2e2a; border-radius: 10px; overflow: hidden; border: 1px solid rgba(13,148,136,0.2); }
+        .lk-call-view .lk-tile { background: #0a2e2a; border-radius: 10px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent); }
         /* Stage layout lives in CSS (not inline) so mobile media queries can override it */
         .lk-call-view .lk-stage {
           position: relative; flex: 1; min-height: 0;
@@ -557,8 +557,8 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         .lk-call-view .lk-novideo-avatar {
           width: 64px; height: 64px; border-radius: 50%;
           display: inline-flex; align-items: center; justify-content: center;
-          background: rgba(13, 148, 136, 0.18); border: 1.5px solid rgba(45, 212, 191, 0.5);
-          color: #2dd4bf; font-size: 1.5rem; font-weight: 700;
+          background: color-mix(in srgb, var(--primary) 18%, transparent); border: 1.5px solid rgba(45, 212, 191, 0.5);
+          color: color-mix(in srgb, var(--primary) 65%, white); font-size: 1.5rem; font-weight: 700;
         }
         .lk-call-view .lk-novideo-name { font-weight: 600; font-size: 1rem; }
         .lk-call-view .lk-novideo-hint {
@@ -574,7 +574,7 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
         }
         .lk-call-view .lk-cell-main {
           inset: 12px; width: auto; height: auto; z-index: 1;
-          border: 1px solid rgba(13,148,136,0.2);
+          border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
         }
         .lk-call-view .lk-cell-pip {
           top: 18px; width: 112px; height: 152px; z-index: 3;
@@ -593,22 +593,22 @@ export default function LiveKitCallView({ session, role, title, subtitle, onExit
           position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
           background: rgba(4, 38, 35, 0.85); color: #e8f5f3;
           padding: 7px 14px; border-radius: 999px; font-size: 0.82rem; font-weight: 500;
-          border: 1px solid rgba(13,148,136,0.4); white-space: nowrap;
+          border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent); white-space: nowrap;
           pointer-events: none; animation: lkHintIn 0.3s ease;
         }
         @keyframes lkHintIn { from { opacity: 0; transform: translate(-50%, 8px); } to { opacity: 1; transform: translate(-50%, 0); } }
         /* Waiting notice: centered overlay above the (self-view) main tile */
         .lk-call-view .lk-waiting {
-          position: absolute; inset: 12px; z-index: 2; border: 1.5px dashed rgba(13,148,136,0.45);
+          position: absolute; inset: 12px; z-index: 2; border: 1.5px dashed color-mix(in srgb, var(--primary) 45%, transparent);
         }
 
         .lk-call-view .lk-ctrl {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 10px 20px; border-radius: 100px; border: 1px solid rgba(13,148,136,0.4);
-          background: rgba(13,148,136,0.12); color: #e8f5f3; font-size: 0.92rem; font-weight: 500;
+          padding: 10px 20px; border-radius: 100px; border: 1px solid color-mix(in srgb, var(--primary) 40%, transparent);
+          background: color-mix(in srgb, var(--primary) 12%, transparent); color: #e8f5f3; font-size: 0.92rem; font-weight: 500;
           cursor: pointer; transition: background 0.15s ease;
         }
-        .lk-call-view .lk-ctrl:hover { background: rgba(13,148,136,0.25); }
+        .lk-call-view .lk-ctrl:hover { background: color-mix(in srgb, var(--primary) 25%, transparent); }
         .lk-call-view .lk-ctrl[aria-pressed="false"] .lk-icon-on { display: none; }
         .lk-call-view .lk-ctrl[aria-pressed="true"] .lk-icon-off { display: none; }
         .lk-call-view .lk-ctrl[aria-pressed="false"] { background: rgba(255,255,255,0.92); color: #053f3b; }

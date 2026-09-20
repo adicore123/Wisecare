@@ -61,7 +61,7 @@ export default function CRMFormPrintPage() {
   if (loading) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#64748b', direction: 'rtl' }}>
-        <Loader2 size={32} className="spin" style={{ margin: '0 auto 12px', color: '#0d9488' }} />
+        <Loader2 size={32} className="spin" style={{ margin: '0 auto 12px', color: 'var(--primary)' }} />
         <div>טוען מסמך חתום להדפסה...</div>
       </div>
     );
@@ -91,7 +91,7 @@ export default function CRMFormPrintPage() {
   }
 
   const t = data.template || {};
-  const accent = t.accentColor || '#0d9488';
+  const accent = t.accentColor || 'var(--primary)';
 
   return (
     <div style={{ direction: 'rtl', fontFamily: 'inherit', background: '#f8fafc', minHeight: '100vh' }}>
@@ -135,8 +135,8 @@ export default function CRMFormPrintPage() {
             onClick={() => window.print()}
             className="btn btn-primary"
             style={{
-              background: '#0d9488',
-              borderColor: '#0d9488',
+              background: 'var(--primary)',
+              borderColor: 'var(--primary)',
               padding: '8px 20px',
               fontSize: '0.9rem',
               fontWeight: 800,

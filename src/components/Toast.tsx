@@ -42,7 +42,7 @@ export default function Toast({ message, type = 'success', duration = undefined,
       }}
     >
       {isSuccess ? (
-        <Sparkles size={16} color="#2dd4bf" style={{ flexShrink: 0 }} />
+        <Sparkles size={16} color="color-mix(in srgb, var(--primary) 65%, white)" style={{ flexShrink: 0 }} />
       ) : (
         <AlertCircle size={16} color="#fca5a5" style={{ flexShrink: 0 }} />
       )}

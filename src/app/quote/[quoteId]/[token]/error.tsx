@@ -10,7 +10,7 @@ export default function QuoteError({ reset }: { error: Error & { digest?: string
         justifyContent: 'center',
         minHeight: '100vh',
         padding: '24px 16px',
-        background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)',
+        background: 'linear-gradient(145deg, var(--primary-faint) 0%, #f8fafc 100%)',
       }}
       dir="rtl"
     >
@@ -20,7 +20,7 @@ export default function QuoteError({ reset }: { error: Error & { digest?: string
           width: '100%',
           padding: '36px 28px',
           borderRadius: '24px',
-          border: '1px solid #99f6e4',
+          border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
           background: '#ffffff',
           boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)',
           textAlign: 'center',
@@ -41,7 +41,7 @@ export default function QuoteError({ reset }: { error: Error & { digest?: string
             fontWeight: 700,
             cursor: 'pointer',
             border: 'none',
-            background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+            background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
             color: '#ffffff',
           }}
         >

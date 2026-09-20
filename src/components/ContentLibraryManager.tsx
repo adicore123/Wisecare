@@ -190,6 +190,7 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
   const previewTimerRef = useRef<any>(null);
   const [assigningItem, setAssigningItem] = useState<any>(null);
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
+  const [assignmentClientSearch, setAssignmentClientSearch] = useState('');
   const [sendWhatsApp, setSendWhatsApp] = useState(true);
   const [assigning, setAssigning] = useState(false);
   const [confirmState, setConfirmState] = useState<any>(null);
@@ -411,8 +412,19 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
   const openAssignment = (item) => {
     setAssigningItem(item);
     setSelectedClientIds([]);
+    setAssignmentClientSearch('');
     setSendWhatsApp(true);
   };
+
+  const filteredAssignmentClients = useMemo(() => {
+    const q = assignmentClientSearch.trim().toLowerCase().replace(/[-–—\s]/g, '');
+    if (!q) return clients;
+    return clients.filter(c => {
+      const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+      const phone = (c.phone || '').replace(/[-–—\s]/g, '');
+      return fullName.includes(assignmentClientSearch.trim().toLowerCase()) || phone.includes(q);
+    });
+  }, [clients, assignmentClientSearch]);
 
   const toggleClient = (clientId) => {
     setSelectedClientIds(current => current.includes(clientId)
@@ -921,8 +933,31 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
             <div className="modal-header"><div><span className="eyebrow"><Users size={14} /> בחירת נמענים</span><h2 id="assignment-title">למי לשייך או לשלוח שוב את “{assigningItem.title}”?</h2></div><button type="button" className="close-btn" onClick={() => setAssigningItem(null)} aria-label="סגור"><X size={20} /></button></div>
             <form onSubmit={handleAssign}>
               <div className="modal-body">
+                {/* Search Client */}
+                <div style={{ position: 'relative', marginBottom: '12px' }}>
+                  <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
+                  <input
+                    type="text"
+                    className="form-control"
+                    style={{ paddingRight: '36px', paddingLeft: assignmentClientSearch ? '32px' : '12px', fontSize: '0.88rem' }}
+                    placeholder="חיפוש מטופל לפי שם או טלפון..."
+                    value={assignmentClientSearch}
+                    onChange={e => setAssignmentClientSearch(e.target.value)}
+                  />
+                  {assignmentClientSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setAssignmentClientSearch('')}
+                      style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                      aria-label="נקה חיפוש"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
                 <div className="client-select-list">
-                  {clients.map(client => {
+                  {filteredAssignmentClients.map(client => {
                     const currentAssignment = assigningItem.assignments?.find(a => a.clientId === client.id);
                     const alreadyAssigned = Boolean(currentAssignment);
                     const checked = selectedClientIds.includes(client.id);
@@ -944,7 +979,11 @@ export default function ContentLibraryPage({ currentTherapist: initialTherapist,
                     );
                   })}
                 </div>
-                {clients.length === 0 && <div className="content-inline-empty">אין עדיין מטופלים שניתן לבחור.</div>}
+                {filteredAssignmentClients.length === 0 && (
+                  <div className="content-inline-empty">
+                    {clients.length === 0 ? 'אין עדיין מטופלים שניתן לבחור.' : `לא נמצאו מטופלים התואמים לחיפוש "${assignmentClientSearch}".`}
+                  </div>
+                )}
                 <p className="assignment-help">בחירה במטופל שכבר קיבל את התוכן לא תיצור כפילות. אם התראת WhatsApp מסומנת, תישלח אליו הודעה חדשה עם אותו קישור ישיר.</p>
                 <label className="notification-choice">
                   <input type="checkbox" checked={sendWhatsApp} onChange={e => setSendWhatsApp(e.target.checked)} />

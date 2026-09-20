@@ -280,7 +280,7 @@ const getPasswordStrength = (pwd = '') => {
   let color = '#ef4444';
   if (score >= 80 && hasMinLength && (hasUpper || hasLower) && hasDigit) {
     label = 'חזקה ומאובטחת 🔒';
-    color = '#10b981';
+    color = 'var(--primary)';
   } else if (score >= 50 && hasMinLength) {
     label = 'בינונית';
     color = '#f59e0b';
@@ -578,7 +578,7 @@ export default function SuperAdminPage({
             }}>
               <div style={{
                 width: '34px', height: '34px', borderRadius: '50%', flexShrink: 0,
-                background: 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)',
+                background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
                 color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontWeight: 700, fontSize: '0.9rem'
               }}>
@@ -589,8 +589,8 @@ export default function SuperAdminPage({
                   <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</span>
                   <span style={{
                     fontSize: '0.66rem', fontWeight: 700, padding: '1px 8px', borderRadius: '100px',
-                    background: c.portalEnabled !== false ? '#f0fdfa' : '#f8fafc',
-                    color: c.portalEnabled !== false ? '#0f766e' : '#64748b'
+                    background: c.portalEnabled !== false ? 'var(--primary-faint)' : '#f8fafc',
+                    color: c.portalEnabled !== false ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#64748b'
                   }}>
                     {c.portalEnabled !== false ? 'מרחב אישי' : 'קליניקה בלבד'}
                   </span>
@@ -1238,7 +1238,7 @@ export default function SuperAdminPage({
 
           <button
             className="btn btn-primary"
-            style={{ background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)' }}
+            style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)' }}
             onClick={handleOpenAddSelfCareModal}
           >
             <UserPlus size={18} />
@@ -1304,8 +1304,8 @@ export default function SuperAdminPage({
             border: 'none',
             background: 'none',
             cursor: 'pointer',
-            borderBottom: activeTab === 'clients' ? '3px solid #0d9488' : '3px solid transparent',
-            color: activeTab === 'clients' ? '#0f766e' : '#64748b',
+            borderBottom: activeTab === 'clients' ? '3px solid var(--primary)' : '3px solid transparent',
+            color: activeTab === 'clients' ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#64748b',
             marginBottom: '-2px',
             transition: 'all 0.2s ease'
           }}
@@ -1313,8 +1313,8 @@ export default function SuperAdminPage({
           <UserCheck size={18} />
           <span>מרחבים עצמאיים</span>
           <span style={{
-            background: activeTab === 'clients' ? '#ccfbf1' : '#f1f5f9',
-            color: activeTab === 'clients' ? '#0f766e' : '#64748b',
+            background: activeTab === 'clients' ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : '#f1f5f9',
+            color: activeTab === 'clients' ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#64748b',
             fontSize: '0.75rem',
             padding: '2px 8px',
             borderRadius: '12px',
@@ -1346,8 +1346,8 @@ export default function SuperAdminPage({
           <WhatsAppIcon size={18} />
           <span>הגדרות מערכת ואוטומציית WhatsApp</span>
           <span style={{
-            background: superadminSettings.autoSendTherapistInviteWhatsApp ? '#dcfce7' : '#f1f5f9',
-            color: superadminSettings.autoSendTherapistInviteWhatsApp ? '#15803d' : '#64748b',
+            background: superadminSettings.autoSendTherapistInviteWhatsApp ? 'var(--primary-light)' : '#f1f5f9',
+            color: superadminSettings.autoSendTherapistInviteWhatsApp ? 'var(--primary-hover)' : '#64748b',
             fontSize: '0.72rem',
             padding: '2px 8px',
             borderRadius: '12px',
@@ -1559,7 +1559,7 @@ export default function SuperAdminPage({
                             }}
                             title="העתק קישור מלא ללוח"
                           >
-                            {copiedId === therapist.id ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                            {copiedId === therapist.id ? <Check size={13} color="var(--primary)" /> : <Copy size={13} />}
                             <span>{copiedId === therapist.id ? 'הועתק' : 'העתק'}</span>
                           </button>
 
@@ -1592,9 +1592,9 @@ export default function SuperAdminPage({
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '3px',
-                              color: '#15803d',
-                              borderColor: '#bbf7d0',
-                              background: '#f0fdf4'
+                              color: 'var(--primary-hover)',
+                              borderColor: 'var(--primary-light)',
+                              background: 'var(--primary-faint)'
                             }}
                             title="שלח פרטי התחברות וקישור בוואטסאפ של המטפל/ת"
                           >
@@ -1638,7 +1638,7 @@ export default function SuperAdminPage({
                             style={{
                               padding: '6px 14px',
                               fontSize: '0.82rem',
-                              background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+                              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '6px',
@@ -1769,7 +1769,7 @@ export default function SuperAdminPage({
                           target="_blank"
                           rel="noreferrer"
                           className="btn btn-secondary"
-                          style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                          style={{ padding: '4px 10px', fontSize: '0.78rem', color: 'var(--primary-hover)', borderColor: 'var(--primary-light)', background: 'var(--primary-faint)' }}
                         >
                           <WhatsAppIcon size={14} />
                           <span>וואטסאפ</span>
@@ -1785,7 +1785,7 @@ export default function SuperAdminPage({
                         className="btn btn-secondary"
                         style={{ fontSize: '0.8rem', padding: '8px', justifyContent: 'center' }}
                       >
-                        {copiedId === therapist.id ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
+                        {copiedId === therapist.id ? <Check size={14} color="var(--primary)" /> : <Copy size={14} />}
                         <span>{copiedId === therapist.id ? 'הועתק' : 'העתק קישור'}</span>
                       </button>
                       <button
@@ -1793,7 +1793,7 @@ export default function SuperAdminPage({
                         onClick={() => handleSendWhatsAppInvite(therapist)}
                         disabled={sendingWhatsAppId === therapist.id}
                         className="btn btn-secondary"
-                        style={{ fontSize: '0.8rem', padding: '8px', justifyContent: 'center', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                        style={{ fontSize: '0.8rem', padding: '8px', justifyContent: 'center', color: 'var(--primary-hover)', borderColor: 'var(--primary-light)', background: 'var(--primary-faint)' }}
                       >
                         <WhatsAppIcon size={14} />
                         <span>{sendingWhatsAppId === therapist.id ? 'שולח...' : 'שלח פרטים'}</span>
@@ -1904,9 +1904,9 @@ export default function SuperAdminPage({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                background: greenApiStatus?.stateInstance === 'authorized' ? '#dcfce7' : '#fef3c7',
-                border: `1px solid ${greenApiStatus?.stateInstance === 'authorized' ? '#86efac' : '#fde68a'}`,
-                color: greenApiStatus?.stateInstance === 'authorized' ? '#15803d' : '#b45309',
+                background: greenApiStatus?.stateInstance === 'authorized' ? 'var(--primary-light)' : '#fef3c7',
+                border: `1px solid ${greenApiStatus?.stateInstance === 'authorized' ? 'color-mix(in srgb, var(--primary) 40%, white)' : '#fde68a'}`,
+                color: greenApiStatus?.stateInstance === 'authorized' ? 'var(--primary-hover)' : '#b45309',
                 padding: '6px 12px',
                 borderRadius: '20px',
                 fontSize: '0.82rem',
@@ -1916,7 +1916,7 @@ export default function SuperAdminPage({
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  background: greenApiStatus?.stateInstance === 'authorized' ? '#16a34a' : '#f59e0b',
+                  background: greenApiStatus?.stateInstance === 'authorized' ? 'var(--primary)' : '#f59e0b',
                   display: 'inline-block'
                 }}></span>
                 <span>Green API: {greenApiStatus?.stateInstance === 'authorized' ? 'מחובר (Authorized)' : (greenApiStatus?.stateInstance || 'נבדק')}</span>
@@ -1989,7 +1989,7 @@ export default function SuperAdminPage({
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      backgroundColor: superadminSettings.autoSendTherapistInviteWhatsApp ? '#10b981' : '#cbd5e1',
+                      backgroundColor: superadminSettings.autoSendTherapistInviteWhatsApp ? 'var(--primary)' : '#cbd5e1',
                       transition: '.3s',
                       borderRadius: '34px'
                     }}>
@@ -2062,7 +2062,7 @@ export default function SuperAdminPage({
                       cursor: 'pointer',
                       fontSize: '0.86rem',
                       fontWeight: 700,
-                      background: activeTemplateKey === 'article' ? '#0d9488' : '#f1f5f9',
+                      background: activeTemplateKey === 'article' ? 'var(--primary)' : '#f1f5f9',
                       color: activeTemplateKey === 'article' ? '#ffffff' : '#475569',
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -2139,7 +2139,7 @@ export default function SuperAdminPage({
                       }}
                       title={`הוסף את ${p.label} למיקום הסמן`}
                     >
-                      <span style={{ color: activeTemplateKey === 'article' ? '#0d9488' : activeTemplateKey === 'media' ? '#7c3aed' : '#4f46e5', fontWeight: 700, direction: 'ltr' }}>{p.tag}</span>
+                      <span style={{ color: activeTemplateKey === 'article' ? 'var(--primary)' : activeTemplateKey === 'media' ? '#7c3aed' : '#4f46e5', fontWeight: 700, direction: 'ltr' }}>{p.tag}</span>
                       <span style={{ color: '#64748b', fontSize: '0.72rem' }}>({p.label})</span>
                     </button>
                   ))}
@@ -2323,8 +2323,8 @@ export default function SuperAdminPage({
                   <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
                     {superadminSettings.clinicName || 'WiseCare'} מערכת
                   </div>
-                  <div style={{ fontSize: '0.72rem', color: '#bbf7d0', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', display: 'inline-block' }}></span>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--primary-light)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--primary)', display: 'inline-block' }}></span>
                     <span>מחובר כעת (בוט אוטומטי)</span>
                   </div>
                 </div>
@@ -2337,8 +2337,8 @@ export default function SuperAdminPage({
                   marginBottom: '16px'
                 }}>
                   <span style={{
-                    background: activeTemplateKey === 'article' ? '#ccfbf1' : activeTemplateKey === 'media' ? '#ede9fe' : '#e1f3fb',
-                    color: activeTemplateKey === 'article' ? '#0f766e' : activeTemplateKey === 'media' ? '#6d28d9' : '#0284c7',
+                    background: activeTemplateKey === 'article' ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : activeTemplateKey === 'media' ? '#ede9fe' : '#e1f3fb',
+                    color: activeTemplateKey === 'article' ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : activeTemplateKey === 'media' ? '#6d28d9' : '#0284c7',
                     fontSize: '0.7rem',
                     fontWeight: 700,
                     padding: '3px 10px',
@@ -2443,7 +2443,7 @@ export default function SuperAdminPage({
               </div>
 
               <div className="stat-card">
-                <div className="stat-icon green" style={{ background: '#dcfce7', color: '#15803d' }}>
+                <div className="stat-icon green" style={{ background: 'var(--primary-light)', color: 'var(--primary-hover)' }}>
                   <Sparkles size={26} />
                 </div>
                 <div className="stat-info">
@@ -2465,8 +2465,8 @@ export default function SuperAdminPage({
 
             {/* Quick Informational Notice on SuperAdmin Direct Access */}
             <div style={{
-              background: 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)',
-              border: '1px solid #bbf7d0',
+              background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-faint) 100%)',
+              border: '1px solid var(--primary-light)',
               borderRadius: '16px',
               padding: '16px 20px',
               display: 'flex',
@@ -2480,12 +2480,12 @@ export default function SuperAdminPage({
                   width: '40px',
                   height: '40px',
                   borderRadius: '10px',
-                  background: '#10b981',
+                  background: 'var(--primary)',
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(16, 185, 129, 0.3)'
+                  boxShadow: '0 2px 6px color-mix(in srgb, var(--primary) 30%, transparent)'
                 }}>
                   <Key size={20} />
                 </div>
@@ -2493,7 +2493,7 @@ export default function SuperAdminPage({
                   <div style={{ fontWeight: 800, fontSize: '0.96rem', color: '#064e3b' }}>
                     כניסת מנהל ראשי (SuperAdmin) ישירה לכל מרחב ללא צורך בסיסמה
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: '#047857', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--primary-hover)', marginTop: '2px' }}>
                     כמנהל מערכת, באפשרותך להיכנס ישירות למרחב של כל מטופל או משתמש עצמאי בלחיצה אחת לצורך מתן תמיכה, בדיקת תקינות או סיוע.
                   </div>
                 </div>
@@ -2506,15 +2506,15 @@ export default function SuperAdminPage({
                 style={{
                   padding: '6px 14px',
                   fontSize: '0.82rem',
-                  borderColor: '#86efac',
+                  borderColor: 'color-mix(in srgb, var(--primary) 40%, white)',
                   background: '#ffffff',
-                  color: '#047857',
+                  color: 'var(--primary-hover)',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px'
                 }}
               >
-                <ShieldCheck size={14} color="#10b981" />
+                <ShieldCheck size={14} color="var(--primary)" />
                 <span>מדיניות פרטיות ואבטחה</span>
               </button>
             </div>
@@ -2545,9 +2545,9 @@ export default function SuperAdminPage({
 
                   <div style={{
                     display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    background: '#f0fdfa', border: '1px solid #99f6e4',
+                    background: 'var(--primary-faint)', border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
                     padding: '6px 14px', borderRadius: '100px',
-                    fontSize: '0.82rem', fontWeight: 600, color: '#0f766e'
+                    fontSize: '0.82rem', fontWeight: 600, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))'
                   }} title="מטופלים המשויכים למטפלים מוצגים בטאב 'ניהול מטפלים' — בתוך השורה של המטפל שלהם">
                     🌿 מרחבים עצמאיים בלבד ({selfCareClientsOnly.length})
                   </div>
@@ -2616,7 +2616,7 @@ export default function SuperAdminPage({
                                   height: '38px',
                                   borderRadius: '50%',
                                   background: isSelf
-                                    ? 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)'
+                                    ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)'
                                     : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)',
                                   color: 'white',
                                   display: 'flex',
@@ -2653,9 +2653,9 @@ export default function SuperAdminPage({
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: '5px',
-                                    background: '#f0fdf4',
-                                    color: '#15803d',
-                                    border: '1px solid #bbf7d0',
+                                    background: 'var(--primary-faint)',
+                                    color: 'var(--primary-hover)',
+                                    border: '1px solid var(--primary-light)',
                                     padding: '3px 8px',
                                     borderRadius: '8px',
                                     fontSize: '0.78rem',
@@ -2695,9 +2695,9 @@ export default function SuperAdminPage({
                             <td>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'nowrap' }}>
                                 <code style={{
-                                  background: isSelf ? 'rgba(13, 148, 136, 0.08)' : 'rgba(99, 102, 241, 0.08)',
-                                  color: isSelf ? '#0f766e' : '#4338ca',
-                                  border: `1px solid ${isSelf ? 'rgba(13, 148, 136, 0.25)' : 'rgba(99, 102, 241, 0.25)'}`,
+                                  background: isSelf ? 'color-mix(in srgb, var(--primary) 8%, transparent)' : 'rgba(99, 102, 241, 0.08)',
+                                  color: isSelf ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#4338ca',
+                                  border: `1px solid ${isSelf ? 'color-mix(in srgb, var(--primary) 25%, transparent)' : 'rgba(99, 102, 241, 0.25)'}`,
                                   padding: '3px 7px',
                                   borderRadius: '6px',
                                   fontSize: '0.78rem',
@@ -2722,7 +2722,7 @@ export default function SuperAdminPage({
                                   }}
                                   title="העתק קישור מלא למרחב"
                                 >
-                                  {copiedClientId === client.id ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                                  {copiedClientId === client.id ? <Check size={13} color="var(--primary)" /> : <Copy size={13} />}
                                   <span>{copiedClientId === client.id ? 'הועתק' : 'העתק'}</span>
                                 </button>
 
@@ -2778,7 +2778,7 @@ export default function SuperAdminPage({
                                   <div style={{
                                     width: client.tasksCount ? `${Math.min(100, Math.round(((client.completedTasksCount || 0) / client.tasksCount) * 100))}%` : '0%',
                                     height: '100%',
-                                    background: isSelf ? '#10b981' : '#6366f1'
+                                    background: isSelf ? 'var(--primary)' : '#6366f1'
                                   }} />
                                 </div>
                               </div>
@@ -2795,13 +2795,13 @@ export default function SuperAdminPage({
                                     padding: '7px 16px',
                                     fontSize: '0.84rem',
                                     background: isSelf
-                                      ? 'linear-gradient(135deg, #0d9488 0%, #059669 100%)'
+                                      ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)'
                                       : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
                                     display: 'inline-flex',
                                     alignItems: 'center',
                                     gap: '6px',
                                     boxShadow: isSelf
-                                      ? '0 2px 8px rgba(13, 148, 136, 0.3)'
+                                      ? '0 2px 8px color-mix(in srgb, var(--primary) 30%, transparent)'
                                       : '0 2px 8px rgba(79, 70, 229, 0.3)'
                                   }}
                                   title="התחבר ישירות למרחב הלקוח ללא סיסמה כמנהל ראשי"
@@ -2861,7 +2861,7 @@ export default function SuperAdminPage({
                               className="superadmin-mobile-card-avatar"
                               style={{
                                 background: isSelf
-                                  ? 'linear-gradient(135deg, #0d9488 0%, #10b981 100%)'
+                                  ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)'
                                   : 'linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)'
                               }}
                             >
@@ -2898,7 +2898,7 @@ export default function SuperAdminPage({
 
                         {/* Portal Link Row */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', padding: '8px 12px', borderRadius: '10px', fontSize: '0.82rem' }}>
-                          <code style={{ color: isSelf ? '#0f766e' : '#4338ca', direction: 'ltr', fontWeight: 600 }}>
+                          <code style={{ color: isSelf ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#4338ca', direction: 'ltr', fontWeight: 600 }}>
                             /portal/{client.portalCode}
                           </code>
                           <div style={{ display: 'flex', gap: '6px' }}>
@@ -2909,7 +2909,7 @@ export default function SuperAdminPage({
                               style={{ padding: '4px 8px', fontSize: '0.75rem' }}
                               title="העתק קישור"
                             >
-                              {copiedClientId === client.id ? <Check size={13} color="#16a34a" /> : <Copy size={13} />}
+                              {copiedClientId === client.id ? <Check size={13} color="var(--primary)" /> : <Copy size={13} />}
                             </button>
                             <a
                               href={`/portal/${client.portalCode}`}
@@ -2936,7 +2936,7 @@ export default function SuperAdminPage({
                               target="_blank"
                               rel="noreferrer"
                               className="btn btn-secondary"
-                              style={{ padding: '4px 10px', fontSize: '0.78rem', color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}
+                              style={{ padding: '4px 10px', fontSize: '0.78rem', color: 'var(--primary-hover)', borderColor: 'var(--primary-light)', background: 'var(--primary-faint)' }}
                             >
                               <WhatsAppIcon size={14} />
                               <span>וואטסאפ</span>
@@ -2955,7 +2955,7 @@ export default function SuperAdminPage({
                             padding: '10px',
                             fontSize: '0.86rem',
                             background: isSelf
-                              ? 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)'
+                              ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)'
                               : 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
                             display: 'flex',
                             alignItems: 'center',
@@ -2995,12 +2995,12 @@ export default function SuperAdminPage({
                   width: '42px',
                   height: '42px',
                   borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)',
-                  color: '#0d9488',
+                  background: 'linear-gradient(135deg, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white)) 0%, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)) 100%)',
+                  color: 'var(--primary)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 2px 8px rgba(13, 148, 136, 0.15)'
+                  boxShadow: '0 2px 8px color-mix(in srgb, var(--primary) 15%, transparent)'
                 }}>
                   <UserPlus size={22} />
                 </div>
@@ -3032,7 +3032,7 @@ export default function SuperAdminPage({
               <div className="modal-body" style={{ padding: '20px 24px', maxHeight: '72vh', overflowY: 'auto' }}>
                 <div className="form-group" style={{ marginBottom: '14px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.86rem', color: '#1e293b' }}>
-                    <User size={15} color="#0d9488" />
+                    <User size={15} color="var(--primary)" />
                     <span>שם מלא *</span>
                   </label>
                   <input 
@@ -3048,7 +3048,7 @@ export default function SuperAdminPage({
                 <div className="form-row" style={{ marginBottom: '14px' }}>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.86rem', color: '#1e293b' }}>
-                      <Phone size={15} color="#0d9488" />
+                      <Phone size={15} color="var(--primary)" />
                       <span>טלפון נייד *</span>
                     </label>
                     <input 
@@ -3064,7 +3064,7 @@ export default function SuperAdminPage({
 
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '0.86rem', color: '#1e293b' }}>
-                      <Mail size={15} color="#0d9488" />
+                      <Mail size={15} color="var(--primary)" />
                       <span>כתובת אימייל</span>
                     </label>
                     <input 
@@ -3094,8 +3094,8 @@ export default function SuperAdminPage({
 
                 {/* WhatsApp Opt-in Card */}
                 <div style={{
-                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                  border: '1px solid #86efac',
+                  background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+                  border: '1px solid color-mix(in srgb, var(--primary) 40%, white)',
                   borderRadius: '12px',
                   padding: '11px 16px',
                   marginBottom: '16px',
@@ -3103,14 +3103,14 @@ export default function SuperAdminPage({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   gap: '12px',
-                  boxShadow: '0 2px 6px rgba(34, 197, 94, 0.08)'
+                  boxShadow: '0 2px 6px color-mix(in srgb, var(--primary) 8%, transparent)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{
                       width: '32px',
                       height: '32px',
                       borderRadius: '8px',
-                      background: '#22c55e',
+                      background: 'var(--primary)',
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -3123,7 +3123,7 @@ export default function SuperAdminPage({
                       <label htmlFor="selfCareSendWhatsApp" style={{ cursor: 'pointer', margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#14532d', display: 'block' }}>
                         שליחת פרטי התחברות וקישור למרחב האישי בוואטסאפ
                       </label>
-                      <span style={{ fontSize: '0.73rem', color: '#15803d' }}>
+                      <span style={{ fontSize: '0.73rem', color: 'var(--primary-hover)' }}>
                         הודעה אישית ומעוצבת עם שם המשתמש, הסיסמה והקישור תישלח לנייד
                       </span>
                     </div>
@@ -3133,14 +3133,14 @@ export default function SuperAdminPage({
                     id="selfCareSendWhatsApp"
                     checked={selfCareFormData.sendWhatsApp !== false}
                     onChange={e => setSelfCareFormData({ ...selfCareFormData, sendWhatsApp: e.target.checked })}
-                    style={{ width: '20px', height: '20px', accentColor: '#16a34a', cursor: 'pointer', flexShrink: 0 }}
+                    style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer', flexShrink: 0 }}
                   />
                 </div>
 
                 <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginTop: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <KeyRound size={16} color="#0d9488" />
+                      <KeyRound size={16} color="var(--primary)" />
                       <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>פרטי גישה למרחב העצמאי</span>
                     </div>
                   </div>
@@ -3198,7 +3198,7 @@ export default function SuperAdminPage({
                       type="checkbox"
                       checked={selfCareFormData.privacyPolicy}
                       onChange={(e) => setSelfCareFormData({...selfCareFormData, privacyPolicy: e.target.checked})}
-                      style={{ marginTop: '4px', width: '18px', height: '18px', accentColor: '#059669', cursor: 'pointer' }}
+                      style={{ marginTop: '4px', width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                     />
                     <div>
                       <span style={{ fontSize: '0.9rem', color: '#1e293b', fontWeight: 600 }}>אני מאשר/ת את <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsPrivacyOpen(true); }} style={{ background: 'none', border: 'none', padding: 0, color: '#2563eb', textDecoration: 'underline', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>מדיניות הפרטיות ותנאי השימוש</button> של המערכת.</span>
@@ -3210,7 +3210,7 @@ export default function SuperAdminPage({
 
               <div className="modal-footer" style={{ padding: '16px 24px' }}>
                 <button type="button" className="btn btn-secondary" onClick={() => setIsAddSelfCareModalOpen(false)}>ביטול</button>
-                <button type="submit" className="btn btn-primary" disabled={saving} style={{ background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)' }}>
+                <button type="submit" className="btn btn-primary" disabled={saving} style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)' }}>
                   {saving ? 'יוצר משתמש...' : 'שמור יוזר חדש'}
                 </button>
               </div>
@@ -3500,10 +3500,10 @@ export default function SuperAdminPage({
                     <div className="form-group" style={{ marginBottom: 0, position: 'relative' }} ref={specialtyDropdownRef}>
                       <div style={{ height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
                         <label style={{ margin: 0, fontWeight: 700, fontSize: '0.86rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                          <Briefcase size={15} color="#059669" />
+                          <Briefcase size={15} color="var(--primary)" />
                           <span>תחומי התמחות</span>
                         </label>
-                        <span style={{ fontSize: '0.72rem', color: '#059669', fontWeight: 600 }}>רשימה או בחירה מרובה</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--primary)', fontWeight: 600 }}>רשימה או בחירה מרובה</span>
                       </div>
 
                       <div style={{ position: 'relative' }}>
@@ -3521,7 +3521,7 @@ export default function SuperAdminPage({
                           onFocus={() => setIsSpecialtyDropdownOpen(true)}
                           style={{
                             paddingLeft: '38px',
-                            borderColor: isSpecialtyDropdownOpen ? '#10b981' : undefined
+                            borderColor: isSpecialtyDropdownOpen ? 'var(--primary)' : undefined
                           }}
                         />
                         <button
@@ -3532,7 +3532,7 @@ export default function SuperAdminPage({
                             left: '6px',
                             top: '50%',
                             transform: 'translateY(-50%)',
-                            background: isSpecialtyDropdownOpen ? '#d1fae5' : 'transparent',
+                            background: isSpecialtyDropdownOpen ? 'var(--primary-light)' : 'transparent',
                             border: 'none',
                             borderRadius: '6px',
                             width: '30px',
@@ -3541,7 +3541,7 @@ export default function SuperAdminPage({
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
-                            color: isSpecialtyDropdownOpen ? '#059669' : '#64748b',
+                            color: isSpecialtyDropdownOpen ? 'var(--primary)' : '#64748b',
                             transition: 'all 0.2s'
                           }}
                           title="פתח / סגור רשימת תחומי התמחות"
@@ -3588,7 +3588,7 @@ export default function SuperAdminPage({
                           {totalFilteredSpecialties === 0 ? (
                             <div style={{ padding: '14px', textAlign: 'center', color: '#64748b', fontSize: '0.82rem' }}>
                               <div>לא נמצא תחום מוגדר מראש התואם לחיפוש.</div>
-                              <div style={{ color: '#059669', fontWeight: 600, marginTop: '4px' }}>
+                              <div style={{ color: 'var(--primary)', fontWeight: 600, marginTop: '4px' }}>
                                 הטקסט שהקלדת יישמר ישירות כתחום התמחות מותאם אישית ✨
                               </div>
                             </div>
@@ -3616,8 +3616,8 @@ export default function SuperAdminPage({
                                       style={{
                                         padding: '7px 14px',
                                         fontSize: '0.83rem',
-                                        color: isSelected ? '#065f46' : '#1e293b',
-                                        background: isSelected ? '#ecfdf5' : 'transparent',
+                                        color: isSelected ? 'var(--primary-hover)' : '#1e293b',
+                                        background: isSelected ? 'var(--primary-faint)' : 'transparent',
                                         fontWeight: isSelected ? 700 : 500,
                                         cursor: 'pointer',
                                         display: 'flex',
@@ -3633,7 +3633,7 @@ export default function SuperAdminPage({
                                       }}
                                     >
                                       <span>{specialtyOption}</span>
-                                      {isSelected && <Check size={15} color="#059669" />}
+                                      {isSelected && <Check size={15} color="var(--primary)" />}
                                     </div>
                                   );
                                 })}
@@ -3655,9 +3655,9 @@ export default function SuperAdminPage({
                               type="button"
                               onClick={() => toggleSpecialty(chip)}
                               style={{
-                                background: isChipSelected ? '#d1fae5' : '#f8fafc',
-                                border: `1px solid ${isChipSelected ? '#86efac' : '#e2e8f0'}`,
-                                color: isChipSelected ? '#065f46' : '#475569',
+                                background: isChipSelected ? 'var(--primary-light)' : '#f8fafc',
+                                border: `1px solid ${isChipSelected ? 'color-mix(in srgb, var(--primary) 40%, white)' : '#e2e8f0'}`,
+                                color: isChipSelected ? 'var(--primary-hover)' : '#475569',
                                 fontSize: '0.7rem',
                                 padding: '2px 8px',
                                 borderRadius: '10px',
@@ -3713,8 +3713,8 @@ export default function SuperAdminPage({
 
                   {/* WhatsApp Opt-in Card */}
                   <div style={{
-                    background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
-                    border: '1px solid #86efac',
+                    background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-light) 100%)',
+                    border: '1px solid color-mix(in srgb, var(--primary) 40%, white)',
                     borderRadius: '12px',
                     padding: '11px 16px',
                     marginBottom: '16px',
@@ -3722,14 +3722,14 @@ export default function SuperAdminPage({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '12px',
-                    boxShadow: '0 2px 6px rgba(34, 197, 94, 0.08)'
+                    boxShadow: '0 2px 6px color-mix(in srgb, var(--primary) 8%, transparent)'
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{
                         width: '32px',
                         height: '32px',
                         borderRadius: '8px',
-                        background: '#22c55e',
+                        background: 'var(--primary)',
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -3742,7 +3742,7 @@ export default function SuperAdminPage({
                         <label htmlFor="modalSendWhatsApp" style={{ cursor: 'pointer', margin: 0, fontSize: '0.88rem', fontWeight: 700, color: '#14532d', display: 'block' }}>
                           שליחת פרטי התחברות וקישור אישי בוואטסאפ
                         </label>
-                        <span style={{ fontSize: '0.73rem', color: '#15803d' }}>
+                        <span style={{ fontSize: '0.73rem', color: 'var(--primary-hover)' }}>
                           הודעה אישית ומעוצבת תישלח אוטומטית למספר הנייד שהוזן
                         </span>
                       </div>
@@ -3752,7 +3752,7 @@ export default function SuperAdminPage({
                       id="modalSendWhatsApp"
                       checked={formData.sendWhatsApp !== false}
                       onChange={e => setFormData({ ...formData, sendWhatsApp: e.target.checked })}
-                      style={{ width: '20px', height: '20px', accentColor: '#16a34a', cursor: 'pointer', flexShrink: 0 }}
+                      style={{ width: '20px', height: '20px', accentColor: 'var(--primary)', cursor: 'pointer', flexShrink: 0 }}
                     />
                   </div>
 
@@ -3940,8 +3940,8 @@ export default function SuperAdminPage({
                   width: '40px',
                   height: '40px',
                   borderRadius: '12px',
-                  background: '#dcfce7',
-                  color: '#15803d',
+                  background: 'var(--primary-light)',
+                  color: 'var(--primary-hover)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -3963,15 +3963,15 @@ export default function SuperAdminPage({
               {/* WhatsApp Status Alert */}
               {newTherapistSuccess.whatsappStatus?.sent ? (
                 <div style={{
-                  background: '#dcfce7',
-                  border: '1px solid #86efac',
+                  background: 'var(--primary-light)',
+                  border: '1px solid color-mix(in srgb, var(--primary) 40%, white)',
                   borderRadius: '10px',
                   padding: '12px 16px',
                   marginBottom: '16px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  color: '#166534',
+                  color: 'var(--primary-hover)',
                   fontSize: '0.88rem',
                   fontWeight: 600
                 }}>
@@ -4099,9 +4099,9 @@ export default function SuperAdminPage({
                     disabled={sendingWhatsAppId === newTherapistSuccess.id}
                     className="btn btn-secondary"
                     style={{
-                      background: '#ecfdf5',
-                      borderColor: '#a7f3d0',
-                      color: '#065f46',
+                      background: 'var(--primary-faint)',
+                      borderColor: 'var(--primary-light)',
+                      color: 'var(--primary-hover)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px'
@@ -4238,10 +4238,10 @@ export default function SuperAdminPage({
                               <div style={{ height: '100%', width: `${strength.score}%`, background: strength.color, transition: 'width 0.3s ease' }} />
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', fontSize: '0.7rem' }}>
-                              <span style={{ color: strength.hasMinLength ? '#16a34a' : '#94a3b8' }}>{strength.hasMinLength ? '✓' : '○'} 8+ תווים</span>
-                              <span style={{ color: (strength.hasUpper || strength.hasLower) ? '#16a34a' : '#94a3b8' }}>{(strength.hasUpper || strength.hasLower) ? '✓' : '○'} אותיות</span>
-                              <span style={{ color: strength.hasDigit ? '#16a34a' : '#94a3b8' }}>{strength.hasDigit ? '✓' : '○'} ספרות</span>
-                              <span style={{ color: strength.hasSpecial ? '#16a34a' : '#94a3b8' }}>{strength.hasSpecial ? '✓' : '○'} תווים מיוחדים</span>
+                              <span style={{ color: strength.hasMinLength ? 'var(--primary)' : '#94a3b8' }}>{strength.hasMinLength ? '✓' : '○'} 8+ תווים</span>
+                              <span style={{ color: (strength.hasUpper || strength.hasLower) ? 'var(--primary)' : '#94a3b8' }}>{(strength.hasUpper || strength.hasLower) ? '✓' : '○'} אותיות</span>
+                              <span style={{ color: strength.hasDigit ? 'var(--primary)' : '#94a3b8' }}>{strength.hasDigit ? '✓' : '○'} ספרות</span>
+                              <span style={{ color: strength.hasSpecial ? 'var(--primary)' : '#94a3b8' }}>{strength.hasSpecial ? '✓' : '○'} תווים מיוחדים</span>
                             </div>
                           </div>
                         );
@@ -4252,8 +4252,8 @@ export default function SuperAdminPage({
 
                 {resetModalTherapist.phone ? (
                   <div style={{
-                    background: '#f0fdf4',
-                    border: '1px solid #bbf7d0',
+                    background: 'var(--primary-faint)',
+                    border: '1px solid var(--primary-light)',
                     borderRadius: '10px',
                     padding: '10px 14px',
                     display: 'flex',
@@ -4266,9 +4266,9 @@ export default function SuperAdminPage({
                       id="resetSendWhatsApp"
                       checked={resetFormData.sendWhatsApp !== false}
                       onChange={e => setResetFormData({ ...resetFormData, sendWhatsApp: e.target.checked })}
-                      style={{ width: '18px', height: '18px', accentColor: '#16a34a', cursor: 'pointer' }}
+                      style={{ width: '18px', height: '18px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                     />
-                    <label htmlFor="resetSendWhatsApp" style={{ cursor: 'pointer', margin: 0, fontSize: '0.86rem', fontWeight: 600, color: '#166534', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label htmlFor="resetSendWhatsApp" style={{ cursor: 'pointer', margin: 0, fontSize: '0.86rem', fontWeight: 600, color: 'var(--primary-hover)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <WhatsAppIcon size={16} />
                       <span>שלח את הסיסמה החדשה אוטומטית לוואטסאפ של המטפל ({resetModalTherapist.phone})</span>
                     </label>

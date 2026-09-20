@@ -10,6 +10,7 @@ import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
+import SearchableClientSelect from './SearchableClientSelect';
 
 
 type Section = { heading: string; body: string };
@@ -31,7 +32,7 @@ type Template = {
   signedCount?: number;
 };
 
-const ACCENT_CHOICES = ['#0d9488', '#4f46e5', '#7c3aed', '#0369a1', '#b91c1c', '#0f172a'];
+const ACCENT_CHOICES = ['var(--primary)', '#4f46e5', '#7c3aed', '#0369a1', '#b91c1c', '#0f172a'];
 
 // Built-in starter templates the therapist can duplicate instead of writing from scratch
 const FORM_PRESETS: { key: string; label: string; description: string; build: (clinicName: string) => Omit<Template, 'id' | 'createdAt'> }[] = [
@@ -55,7 +56,7 @@ const FORM_PRESETS: { key: string; label: string; description: string; build: (c
       ],
       footerText: 'החתימה בעיגול בתיבה למטה מהווה אישור מחייב של הטופס.',
       requiresSignature: true,
-      accentColor: '#0d9488',
+      accentColor: 'var(--primary)',
       active: true
     })
   },
@@ -140,7 +141,7 @@ const emptyTemplate = (): Omit<Template, 'id' | 'createdAt'> => ({
   requiredFields: [],
   footerText: '',
   requiresSignature: true,
-  accentColor: '#0d9488',
+  accentColor: 'var(--primary)',
   active: true
 });
 
@@ -313,7 +314,7 @@ ${clinicName}`;
         requiredFields: editing.requiredFields || [],
         footerText: editing.footerText,
         requiresSignature: editing.requiresSignature !== false,
-        accentColor: editing.accentColor || '#0d9488',
+        accentColor: editing.accentColor || 'var(--primary)',
         active: editing.active !== false
       };
       if (isNew) {
@@ -412,8 +413,8 @@ ${clinicName}`;
       overflowY: forPrint ? 'visible' : 'auto',
       maxHeight: forPrint ? 'none' : '70vh'
     } as React.CSSProperties}>
-      <div style={{ textAlign: 'center', borderBottom: `3px double ${t.accentColor || '#0d9488'}`, paddingBottom: '14px', marginBottom: '18px' }}>
-        <div style={{ fontWeight: 800, fontSize: '1.25rem', color: t.accentColor || '#0d9488' }}>
+      <div style={{ textAlign: 'center', borderBottom: `3px double ${t.accentColor || 'var(--primary)'}`, paddingBottom: '14px', marginBottom: '18px' }}>
+        <div style={{ fontWeight: 800, fontSize: '1.25rem', color: t.accentColor || 'var(--primary)' }}>
           {t.title || 'כותרת המסמך'}
         </div>
         <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '4px' }}>{clinicName}</div>
@@ -426,7 +427,7 @@ ${clinicName}`;
       {(t.sections || []).filter(s => String(s.heading || '').trim() || String(s.body || '').trim()).map((s, i) => (
         <div key={i} style={{ marginBottom: '16px' }}>
           {String(s.heading || '').trim() && (
-            <div style={{ fontWeight: 800, fontSize: '1rem', color: t.accentColor || '#0d9488', marginBottom: '4px' }}>
+            <div style={{ fontWeight: 800, fontSize: '1rem', color: t.accentColor || 'var(--primary)', marginBottom: '4px' }}>
               {i + 1}. {s.heading}
             </div>
           )}
@@ -443,7 +444,7 @@ ${clinicName}`;
             <label key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '8px', fontSize: '0.88rem', cursor: 'default' }}>
               <span style={{
                 width: '17px', height: '17px', flexShrink: 0, marginTop: '3px',
-                border: `2px solid ${t.accentColor || '#0d9488'}`, borderRadius: '4px', background: '#fff'
+                border: `2px solid ${t.accentColor || 'var(--primary)'}`, borderRadius: '4px', background: '#fff'
               }} />
               <span>{f.label} {f.type !== 'checkbox' && <em style={{ color: '#94a3b8', fontSize: '0.8rem' }}>(שדה מילוי: {f.type === 'text' ? 'טקסט' : 'תאריך'})</em>}</span>
             </label>
@@ -461,7 +462,7 @@ ${clinicName}`;
             <div>
               <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '4px' }}>חתימה:</div>
               <div style={{
-                width: '220px', height: '90px', border: `2px dashed ${t.accentColor || '#0d9488'}`,
+                width: '220px', height: '90px', border: `2px dashed ${t.accentColor || 'var(--primary)'}`,
                 borderRadius: '10px', background: '#fafafa', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 color: '#94a3b8', fontSize: '0.8rem'
               }}>
@@ -559,7 +560,7 @@ ${clinicName}`;
                       onClick={() => updateEditing({ accentColor: c })}
                       style={{
                         width: '24px', height: '24px', borderRadius: '50%', background: c, cursor: 'pointer',
-                        border: (editing.accentColor || '#0d9488') === c ? '3px solid #0f172a' : '2px solid #e2e8f0'
+                        border: (editing.accentColor || 'var(--primary)') === c ? '3px solid #0f172a' : '2px solid #e2e8f0'
                       }}
                     />
                   ))}
@@ -714,7 +715,7 @@ ${clinicName}`;
                     showToast(`תבנית "${p.label}" נטענה — ערוך והתאם לפי הצורך`);
                   }}
                   style={{ textAlign: 'right', border: '1px solid #f1f5f9', borderRadius: '10px', padding: '10px 12px', cursor: 'pointer', background: '#fff', transition: 'border-color .15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#0d9488')}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--primary)')}
                   onMouseLeave={e => (e.currentTarget.style.borderColor = '#f1f5f9')}
                 >
                   <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{p.label}</div>
@@ -761,7 +762,7 @@ ${clinicName}`;
                           </span>
                         )}
                         {t.requiresSignature !== false && (
-                          <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700 }}>
+                          <span style={{ background: 'var(--primary-faint)', color: 'var(--primary-hover)', border: '1px solid var(--primary-light)', borderRadius: '8px', padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700 }}>
                             נדרשת חתימה
                           </span>
                         )}
@@ -777,8 +778,8 @@ ${clinicName}`;
                         style={{
                           padding: '6px 14px',
                           gap: '6px',
-                          background: '#16a34a',
-                          borderColor: '#16a34a',
+                          background: 'var(--primary)',
+                          borderColor: 'var(--primary)',
                           fontSize: '0.85rem'
                         }}
                         title="שייך ללקוח ושלח לחתימה בוואטסאפ"
@@ -805,19 +806,19 @@ ${clinicName}`;
                   {isExpanded && (
                     <div style={{ padding: '0 16px 16px' }}>
                       <div style={{
-                        marginBottom: '14px', padding: '12px 16px', background: '#f0fdf4',
-                        border: '1px solid #bbf7d0', borderRadius: '12px',
+                        marginBottom: '14px', padding: '12px 16px', background: 'var(--primary-faint)',
+                        border: '1px solid var(--primary-light)', borderRadius: '12px',
                         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                         flexWrap: 'wrap', gap: '10px'
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.88rem', color: '#166534' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.88rem', color: 'var(--primary-hover)' }}>
                           <WhatsAppIcon size={20} />
                           <span>טופס זה פעיל ומוכן לשליחה מהירה לכל לקוח במערכת דרך חיבור הוואטסאפ של המערכת.</span>
                         </div>
                         <button
                           type="button"
                           className="btn btn-primary"
-                          style={{ background: '#16a34a', borderColor: '#16a34a', padding: '6px 14px', gap: '6px', fontSize: '0.85rem' }}
+                          style={{ background: 'var(--primary)', borderColor: 'var(--primary)', padding: '6px 14px', gap: '6px', fontSize: '0.85rem' }}
                           onClick={() => openSendModal(t)}
                         >
                           <WhatsAppIcon size={16} />
@@ -866,7 +867,7 @@ ${clinicName}`;
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{
                   width: '42px', height: '42px', borderRadius: '12px',
-                  background: '#dcfce7', color: '#16a34a',
+                  background: 'var(--primary-light)', color: 'var(--primary)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
                   <WhatsAppIcon size={24} />
@@ -876,7 +877,7 @@ ${clinicName}`;
                     שיוך טופס ושליחה בוואטסאפ
                   </h3>
                   <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px' }}>
-                    טופס: <strong style={{ color: sendModal.accentColor || '#0d9488' }}>{sendModal.title || sendModal.name}</strong>
+                    טופס: <strong style={{ color: sendModal.accentColor || 'var(--primary)' }}>{sendModal.title || sendModal.name}</strong>
                   </div>
                 </div>
               </div>
@@ -895,27 +896,27 @@ ${clinicName}`;
               {sendResult ? (
                 /* Success state */
                 <div style={{
-                  background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px',
+                  background: 'var(--primary-faint)', border: '1px solid var(--primary-light)', borderRadius: '14px',
                   padding: '20px', textAlign: 'center', display: 'flex', flexDirection: 'column',
                   alignItems: 'center', gap: '12px'
                 }}>
                   <div style={{
-                    width: '56px', height: '56px', borderRadius: '50%', background: '#22c55e',
+                    width: '56px', height: '56px', borderRadius: '50%', background: 'var(--primary)',
                     color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
                     <CheckCircle2 size={32} />
                   </div>
-                  <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#15803d' }}>
+                  <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary-hover)' }}>
                     הטופס שויך בהצלחה!
                   </h4>
-                  <p style={{ margin: 0, color: '#166534', fontSize: '0.92rem', lineHeight: '1.6' }}>
+                  <p style={{ margin: 0, color: 'var(--primary-hover)', fontSize: '0.92rem', lineHeight: '1.6' }}>
                     {sendResult.notificationStatus === 'sent'
                       ? `הודעת WhatsApp עם קישור ישיר לחתימה נשלחה כעת ל-${sendResult.clientName} דרך חשבון הוואטסאפ של המערכת.`
                       : `הטופס שויך למרחב האישי של ${sendResult.clientName}. ניתן גם להעתיק את הקישור הישיר:`}
                   </p>
 
                   <div style={{
-                    width: '100%', background: '#fff', border: '1px solid #bbf7d0', borderRadius: '10px',
+                    width: '100%', background: '#fff', border: '1px solid var(--primary-light)', borderRadius: '10px',
                     padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px'
                   }}>
                     <input
@@ -933,7 +934,7 @@ ${clinicName}`;
                       style={{ padding: '6px 12px', fontSize: '0.82rem', flexShrink: 0 }}
                       onClick={() => handleCopyLink(sendResult.portalUrl)}
                     >
-                      {copiedLink ? <Check size={14} color="#16a34a" /> : <Copy size={14} />}
+                      {copiedLink ? <Check size={14} color="var(--primary)" /> : <Copy size={14} />}
                       <span>{copiedLink ? 'הועתק!' : 'העתק קישור'}</span>
                     </button>
                   </div>
@@ -953,8 +954,8 @@ ${clinicName}`;
                   {/* System WhatsApp status indicator */}
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: '10px',
-                    background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px',
-                    padding: '10px 14px', fontSize: '0.84rem', color: '#15803d'
+                    background: 'var(--primary-faint)', border: '1px solid var(--primary-light)', borderRadius: '10px',
+                    padding: '10px 14px', fontSize: '0.84rem', color: 'var(--primary-hover)'
                   }}>
                     <WhatsAppIcon size={18} />
                     <span>
@@ -965,47 +966,26 @@ ${clinicName}`;
                   {/* Client selection */}
                   <div>
                     <label style={{ display: 'block', fontWeight: 700, fontSize: '0.88rem', marginBottom: '6px', color: '#0f172a' }}>
-                      בחר/י לקוח לשיוך הטופס *
+                      בחר/י לקוח לשיוך הטופס * (חיפוש לפי שם או טלפון)
                     </label>
-
-                    {clients.length > 5 && (
-                      <div style={{ position: 'relative', marginBottom: '8px' }}>
-                        <Search size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                        <input
-                          type="text"
-                          className="form-control"
-                          style={{ paddingRight: '36px', fontSize: '0.88rem' }}
-                          placeholder="חיפוש לקוח לפי שם או טלפון..."
-                          value={clientSearch}
-                          onChange={e => setClientSearch(e.target.value)}
-                        />
-                      </div>
-                    )}
 
                     {clients.length === 0 ? (
                       <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '10px', textAlign: 'center', color: '#64748b', fontSize: '0.88rem' }}>
                         לא נמצאו לקוחות במערכת. יש להוסיף לקוח בכרטיס הלקוחות תחילה.
                       </div>
                     ) : (
-                      <select
-                        className="form-control"
-                        style={{ fontSize: '0.92rem', padding: '10px 12px' }}
+                      <SearchableClientSelect
+                        clients={clients}
                         value={selectedClientId}
-                        onChange={e => {
-                          setSelectedClientId(e.target.value);
-                          const selected = clients.find(c => c.id === e.target.value);
+                        onChange={(id, selected) => {
+                          setSelectedClientId(id);
                           if (selected && sendModal) {
                             setCustomMessage(getDefaultMessage(selected, sendModal));
                           }
                         }}
-                      >
-                        <option value="">-- בחר/י לקוח מתוך הרשימה --</option>
-                        {filteredClients.map((c: any) => (
-                          <option key={c.id} value={c.id}>
-                            {c.firstName} {c.lastName} {c.phone ? `(${c.phone})` : '(ללא טלפון)'}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="חיפוש לפי שם לקוח או טלפון..."
+                        required
+                      />
                     )}
                   </div>
 
@@ -1063,7 +1043,7 @@ ${clinicName}`;
                         </label>
                         <button
                           type="button"
-                          style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.78rem', cursor: 'pointer', textDecoration: 'underline' }}
+                          style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.78rem', cursor: 'pointer', textDecoration: 'underline' }}
                           onClick={() => {
                             if (selectedClient && sendModal) {
                               setCustomMessage(getDefaultMessage(selectedClient, sendModal));
@@ -1101,8 +1081,8 @@ ${clinicName}`;
                       type="button"
                       className="btn btn-primary"
                       style={{
-                        background: '#16a34a',
-                        borderColor: '#16a34a',
+                        background: 'var(--primary)',
+                        borderColor: 'var(--primary)',
                         padding: '9px 20px',
                         gap: '8px'
                       }}

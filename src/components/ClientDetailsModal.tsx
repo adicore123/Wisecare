@@ -511,7 +511,7 @@ export default function ClientDetailsModal({
               width: '46px',
               height: '46px',
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)',
               color: 'white',
               display: 'flex',
               alignItems: 'center',
@@ -537,11 +537,11 @@ export default function ClientDetailsModal({
           {/* Portal on/off toggle — the therapist decides who gets a personal portal */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
-            background: portalOn ? '#f0fdfa' : '#f8fafc',
-            border: portalOn ? '1px solid #99f6e4' : '1px solid #e2e8f0',
+            background: portalOn ? 'var(--primary-faint)' : '#f8fafc',
+            border: portalOn ? '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))' : '1px solid #e2e8f0',
             borderRadius: '14px', padding: '12px 16px', marginBottom: '16px'
           }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', color: portalOn ? '#0f766e' : '#64748b' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: 700, fontSize: '0.95rem', color: portalOn ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#64748b' }}>
               <input
                 type="checkbox"
                 checked={portalOn}
@@ -552,24 +552,24 @@ export default function ClientDetailsModal({
                 ? 'ללקוח זה יש מרחב אישי (פורטל) פעיל'
                 : 'לקוח רגיל — ללא מרחב אישי (הפורטל כבוי)'}
             </label>
-            {isTogglingPortal && <Loader2 size={16} className="animate-spin" color="#0d9488" />}
+            {isTogglingPortal && <Loader2 size={16} className="animate-spin" color="var(--primary)" />}
           </div>
 
           {/* Client Personal Portal Banner */}
           {portalOn && (
           <div style={{
-            background: 'linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%)',
-            border: '1px solid #99f6e4',
+            background: 'linear-gradient(135deg, var(--primary-faint) 0%, var(--primary-faint) 100%)',
+            border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
             borderRadius: '16px',
             padding: '20px',
             marginBottom: '24px'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
               <div>
-                <h4 style={{ color: '#0f766e', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h4 style={{ color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))', fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
                   מרחב טיפולי אישי למטופל (פורטל ייחודי)
                 </h4>
-                <p style={{ fontSize: '0.85rem', color: '#115e59', marginTop: '2px' }}>
+                <p style={{ fontSize: '0.85rem', color: 'color-mix(in srgb, var(--primary) 75%, black)', marginTop: '2px' }}>
                   קישור פרטי דרכו הלקוח צופה במשימות ובתרגילים שהקצית לו, ומסמן התקדמות מהבית.
                 </p>
               </div>
@@ -600,8 +600,8 @@ export default function ClientDetailsModal({
 
             {waNotice && (
               <div style={{
-                background: '#dcfce7',
-                color: '#15803d',
+                background: 'var(--primary-light)',
+                color: 'var(--primary-hover)',
                 padding: '8px 14px',
                 borderRadius: '8px',
                 fontSize: '0.85rem',
@@ -625,7 +625,7 @@ export default function ClientDetailsModal({
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '240px' }}>
                   <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>קישור ישיר:</span>
-                  <code style={{ direction: 'ltr', color: '#0d9488', fontWeight: 600, fontSize: '0.88rem', wordBreak: 'break-all' }}>
+                  <code style={{ direction: 'ltr', color: 'var(--primary)', fontWeight: 600, fontSize: '0.88rem', wordBreak: 'break-all' }}>
                     {portalUrl}
                   </code>
                 </div>
@@ -635,7 +635,7 @@ export default function ClientDetailsModal({
                     className="btn btn-secondary"
                     style={{ padding: '4px 10px', fontSize: '0.8rem' }}
                   >
-                    {copied ? <Check size={14} color="#059669" /> : <Copy size={14} />}
+                    {copied ? <Check size={14} color="var(--primary)" /> : <Copy size={14} />}
                     {copied ? 'הועתק!' : 'העתק קישור'}
                   </button>
                   <a
@@ -662,14 +662,14 @@ export default function ClientDetailsModal({
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.86rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <User size={14} color="var(--primary, #0d9488)" /> <strong>שם משתמש:</strong>
+                    <User size={14} color="var(--primary, var(--primary))" /> <strong>שם משתמש:</strong>
                     <code style={{ color: '#0f172a', fontWeight: 700, padding: '2px 8px', background: '#e2e8f0', borderRadius: '6px' }}>
                       {currentClient.username || currentClient.phone}
                     </code>
                   </span>
 
                   <span style={{ fontSize: '0.86rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                    <Lock size={14} color="var(--primary, #0d9488)" /> <strong>סיסמה:</strong>
+                    <Lock size={14} color="var(--primary, var(--primary))" /> <strong>סיסמה:</strong>
                     {currentClient.hasPassword === false ? (
                       <span style={{ color: '#b45309', background: '#fef3c7', padding: '2px 8px', borderRadius: '6px', fontSize: '0.78rem', fontWeight: 700 }}>
                         ממתין להגדרה ע״י הלקוח ⏳
@@ -741,8 +741,8 @@ export default function ClientDetailsModal({
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                color: modalTab === 'tasks' ? '#0d9488' : '#64748b',
-                borderBottom: modalTab === 'tasks' ? '3px solid #0d9488' : '3px solid transparent',
+                color: modalTab === 'tasks' ? 'var(--primary)' : '#64748b',
+                borderBottom: modalTab === 'tasks' ? '3px solid var(--primary)' : '3px solid transparent',
                 marginBottom: '-2px'
               }}
             >
@@ -759,8 +759,8 @@ export default function ClientDetailsModal({
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                color: modalTab === 'insights' ? '#0d9488' : '#64748b',
-                borderBottom: modalTab === 'insights' ? '3px solid #0d9488' : '3px solid transparent',
+                color: modalTab === 'insights' ? 'var(--primary)' : '#64748b',
+                borderBottom: modalTab === 'insights' ? '3px solid var(--primary)' : '3px solid transparent',
                 marginBottom: '-2px'
               }}
             >
@@ -777,8 +777,8 @@ export default function ClientDetailsModal({
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                color: modalTab === 'appointments' ? '#0d9488' : '#64748b',
-                borderBottom: modalTab === 'appointments' ? '3px solid #0d9488' : '3px solid transparent',
+                color: modalTab === 'appointments' ? 'var(--primary)' : '#64748b',
+                borderBottom: modalTab === 'appointments' ? '3px solid var(--primary)' : '3px solid transparent',
                 marginBottom: '-2px'
               }}
             >
@@ -795,8 +795,8 @@ export default function ClientDetailsModal({
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                color: modalTab === 'content' ? '#0d9488' : '#64748b',
-                borderBottom: modalTab === 'content' ? '3px solid #0d9488' : '3px solid transparent',
+                color: modalTab === 'content' ? 'var(--primary)' : '#64748b',
+                borderBottom: modalTab === 'content' ? '3px solid var(--primary)' : '3px solid transparent',
                 marginBottom: '-2px'
               }}
             >
@@ -813,8 +813,8 @@ export default function ClientDetailsModal({
                 fontSize: '0.95rem',
                 fontWeight: 700,
                 cursor: 'pointer',
-                color: modalTab === 'forms' ? '#0d9488' : '#64748b',
-                borderBottom: modalTab === 'forms' ? '3px solid #0d9488' : '3px solid transparent',
+                color: modalTab === 'forms' ? 'var(--primary)' : '#64748b',
+                borderBottom: modalTab === 'forms' ? '3px solid var(--primary)' : '3px solid transparent',
                 marginBottom: '-2px'
               }}
             >
@@ -931,8 +931,8 @@ export default function ClientDetailsModal({
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {tasks.map(task => (
                     <div key={task.id} style={{
-                      background: task.completed ? '#f0fdf4' : 'white',
-                      border: `1px solid ${task.completed ? '#bbf7d0' : '#e2e8f0'}`,
+                      background: task.completed ? 'var(--primary-faint)' : 'white',
+                      border: `1px solid ${task.completed ? 'var(--primary-light)' : '#e2e8f0'}`,
                       borderRadius: '12px',
                       padding: '16px 20px',
                       display: 'flex',
@@ -979,7 +979,7 @@ export default function ClientDetailsModal({
                             padding: '8px 12px',
                             fontSize: '0.84rem'
                           }}>
-                            <strong style={{ color: '#0f766e' }}>משוב מהמטופל מהבית: </strong>
+                            <strong style={{ color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' }}>משוב מהמטופל מהבית: </strong>
                             <span>"{task.clientNotes}"</span>
                           </div>
                         )}
@@ -1063,7 +1063,7 @@ export default function ClientDetailsModal({
                             </p>
                           </td>
                           <td>
-                            <span style={{ fontWeight: 700, color: item.intensity > 7 ? '#ef4444' : '#0d9488', fontSize: '0.85rem' }}>
+                            <span style={{ fontWeight: 700, color: item.intensity > 7 ? '#ef4444' : 'var(--primary)', fontSize: '0.85rem' }}>
                               {item.intensity}/10
                             </span>
                           </td>
@@ -1111,7 +1111,7 @@ export default function ClientDetailsModal({
                     marginBottom: '20px'
                   }}
                 >
-                  <h5 style={{ margin: '0 0 14px 0', fontSize: '0.98rem', fontWeight: 700, color: 'var(--primary-hover, #0f766e)' }}>
+                  <h5 style={{ margin: '0 0 14px 0', fontSize: '0.98rem', fontWeight: 700, color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))' }}>
                     קביעת תור חדש עבור {client.firstName} {client.lastName}
                   </h5>
 
@@ -1273,7 +1273,7 @@ export default function ClientDetailsModal({
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         {apt.reminderSent ? (
-                          <span style={{ fontSize: '0.78rem', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
                             <WhatsAppIcon size={13} /> תזכורת נמסרה
                           </span>
                         ) : (
@@ -1367,7 +1367,7 @@ export default function ClientDetailsModal({
                       cursor: 'pointer',
                       fontSize: '0.82rem',
                       fontWeight: 700,
-                      background: contentSubFilter === 'all' ? '#0d9488' : '#f1f5f9',
+                      background: contentSubFilter === 'all' ? 'var(--primary)' : '#f1f5f9',
                       color: contentSubFilter === 'all' ? '#ffffff' : '#475569'
                     }}
                   >
@@ -1383,7 +1383,7 @@ export default function ClientDetailsModal({
                       cursor: 'pointer',
                       fontSize: '0.82rem',
                       fontWeight: 700,
-                      background: contentSubFilter === 'articles' ? '#0d9488' : '#f1f5f9',
+                      background: contentSubFilter === 'articles' ? 'var(--primary)' : '#f1f5f9',
                       color: contentSubFilter === 'articles' ? '#ffffff' : '#475569'
                     }}
                   >
@@ -1399,7 +1399,7 @@ export default function ClientDetailsModal({
                       cursor: 'pointer',
                       fontSize: '0.82rem',
                       fontWeight: 700,
-                      background: contentSubFilter === 'media' ? '#0d9488' : '#f1f5f9',
+                      background: contentSubFilter === 'media' ? 'var(--primary)' : '#f1f5f9',
                       color: contentSubFilter === 'media' ? '#ffffff' : '#475569'
                     }}
                   >
@@ -1476,13 +1476,13 @@ export default function ClientDetailsModal({
                 {/* Subform: Quick create article or media */}
                 {showQuickCreateContent && (
                   <form onSubmit={handleQuickCreateAndAssignContent} style={{
-                    background: '#f0fdfa',
-                    border: '1px solid #99f6e4',
+                    background: 'var(--primary-faint)',
+                    border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
                     borderRadius: '12px',
                     padding: '18px',
                     marginBottom: '20px'
                   }}>
-                    <h5 style={{ margin: '0 0 12px 0', fontSize: '0.98rem', fontWeight: 700, color: '#0f766e' }}>
+                    <h5 style={{ margin: '0 0 12px 0', fontSize: '0.98rem', fontWeight: 700, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' }}>
                       יצירה מהירה של מאמר או תוכן חדש ושיוך מיידי
                     </h5>
 
@@ -1495,9 +1495,9 @@ export default function ClientDetailsModal({
                           flex: 1,
                           padding: '8px',
                           borderRadius: '8px',
-                          border: quickContentForm.type === 'article' ? '2px solid #0d9488' : '1px solid #cbd5e1',
+                          border: quickContentForm.type === 'article' ? '2px solid var(--primary)' : '1px solid #cbd5e1',
                           background: quickContentForm.type === 'article' ? '#ffffff' : '#f8fafc',
-                          color: quickContentForm.type === 'article' ? '#0d9488' : '#64748b',
+                          color: quickContentForm.type === 'article' ? 'var(--primary)' : '#64748b',
                           fontWeight: 700,
                           fontSize: '0.85rem',
                           cursor: 'pointer',
@@ -1680,8 +1680,8 @@ export default function ClientDetailsModal({
                           key={item.id}
                           style={{
                             background: '#ffffff',
-                            border: isArticle ? '1px solid #99f6e4' : '1px solid #e2e8f0',
-                            borderRight: isArticle ? '4px solid #0d9488' : '4px solid #7c3aed',
+                            border: isArticle ? '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))' : '1px solid #e2e8f0',
+                            borderRight: isArticle ? '4px solid var(--primary)' : '4px solid #7c3aed',
                             borderRadius: '10px',
                             padding: '14px 16px',
                             display: 'flex',
@@ -1695,8 +1695,8 @@ export default function ClientDetailsModal({
                           <div style={{ flex: 1, minWidth: '240px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                               <span style={{
-                                background: isArticle ? '#ccfbf1' : '#ede9fe',
-                                color: isArticle ? '#0f766e' : '#6d28d9',
+                                background: isArticle ? 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))' : '#ede9fe',
+                                color: isArticle ? 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))' : '#6d28d9',
                                 fontSize: '0.74rem',
                                 fontWeight: 700,
                                 padding: '2px 8px',
@@ -1732,7 +1732,7 @@ export default function ClientDetailsModal({
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {/* WhatsApp Notification Badge */}
                             {waStatus === 'sent' ? (
-                              <span style={{ fontSize: '0.76rem', color: '#16a34a', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, background: '#f0fdf4', padding: '4px 8px', borderRadius: '6px' }}>
+                              <span style={{ fontSize: '0.76rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 600, background: 'var(--primary-faint)', padding: '4px 8px', borderRadius: '6px' }}>
                                 <WhatsAppIcon size={12} /> התראה נמסרה
                               </span>
                             ) : waStatus === 'pending' ? (
@@ -1832,8 +1832,8 @@ export default function ClientDetailsModal({
                           key={t.id}
                           style={{
                             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
-                            border: sendFormChoice === t.id ? '2px solid #0d9488' : '1px solid #e2e8f0',
-                            background: sendFormChoice === t.id ? '#f0fdfa' : '#fff',
+                            border: sendFormChoice === t.id ? '2px solid var(--primary)' : '1px solid #e2e8f0',
+                            background: sendFormChoice === t.id ? 'var(--primary-faint)' : '#fff',
                             borderRadius: '10px', padding: '10px 12px', textAlign: 'right'
                           }}
                         >
@@ -1880,13 +1880,13 @@ export default function ClientDetailsModal({
                     return (
                       <div key={f.id} style={{
                         display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
-                        border: `1px solid ${isSigned ? '#bbf7d0' : '#fde68a'}`,
-                        background: isSigned ? '#f0fdf4' : '#fffbeb',
+                        border: `1px solid ${isSigned ? 'var(--primary-light)' : '#fde68a'}`,
+                        background: isSigned ? 'var(--primary-faint)' : '#fffbeb',
                         borderRadius: '12px', padding: '12px 14px'
                       }}>
                         <div style={{
                           width: '38px', height: '38px', borderRadius: '10px', flexShrink: 0,
-                          background: isSigned ? '#dcfce7' : '#fef3c7', color: isSigned ? '#15803d' : '#b45309',
+                          background: isSigned ? 'var(--primary-light)' : '#fef3c7', color: isSigned ? 'var(--primary-hover)' : '#b45309',
                           display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem'
                         }}>
                           {isSigned ? '✅' : '⏳'}
@@ -2053,7 +2053,7 @@ export default function ClientDetailsModal({
           <div className="modal-card" style={{ maxWidth: '440px' }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary-faint)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <KeyRound size={20} />
                 </div>
                 <div>
@@ -2097,7 +2097,7 @@ export default function ClientDetailsModal({
                         for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
                         setEditPassword(pass);
                       }}
-                      style={{ background: 'none', border: 'none', color: '#0d9488', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '3px' }}
                     >
                       <Sparkles size={12} /> חולל סיסמה 🎲
                     </button>
@@ -2123,14 +2123,14 @@ export default function ClientDetailsModal({
                   </div>
                 </div>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: '#166534', background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '10px 12px', borderRadius: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--primary-hover)', background: 'var(--primary-faint)', border: '1px solid var(--primary-light)', padding: '10px 12px', borderRadius: '10px' }}>
                   <input
                     type="checkbox"
                     checked={sendWaOnSave}
                     onChange={e => setSendWaOnSave(e.target.checked)}
-                    style={{ width: '16px', height: '16px', accentColor: '#16a34a', cursor: 'pointer' }}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
                   />
-                  <WhatsAppIcon size={16} color="#16a34a" />
+                  <WhatsAppIcon size={16} color="var(--primary)" />
                   <span>שלח מיד את הסיסמה והפרטים ב-WhatsApp ללקוח 📲</span>
                 </label>
               </div>

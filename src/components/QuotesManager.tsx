@@ -97,7 +97,7 @@ type StatusFilter = 'all' | 'sent' | 'confirmed' | 'declined';
 const STATUS_FILTERS: Array<{ key: StatusFilter; label: string; color: string; bg: string; border: string }> = [
   { key: 'all', label: 'הכל', color: '#334155', bg: '#f8fafc', border: '#e2e8f0' },
   { key: 'sent', label: 'נשלח', color: '#1d4ed8', bg: '#eff6ff', border: '#bfdbfe' },
-  { key: 'confirmed', label: 'אושר', color: '#15803d', bg: '#f0fdf4', border: '#bbf7d0' },
+  { key: 'confirmed', label: 'אושר', color: 'var(--primary-hover)', bg: 'var(--primary-faint)', border: 'var(--primary-light)' },
   { key: 'declined', label: 'לא אושר', color: '#b91c1c', bg: '#fef2f2', border: '#fecaca' }
 ];
 
@@ -533,8 +533,8 @@ export default function QuotesManager() {
           </div>
 
           {showNewClientForm && draft.newClient && (
-            <div style={{ border: '1px dashed #99f6e4', borderRadius: '14px', padding: '14px 16px', marginBottom: '14px', background: '#f0fdfa' }}>
-              <strong style={{ fontSize: '0.88rem', color: '#0f766e' }}>לקוח חדש — יירשם במערכת בשמירת ההצעה</strong>
+            <div style={{ border: '1px dashed var(--primary-light)', borderRadius: '14px', padding: '14px 16px', marginBottom: '14px', background: 'var(--primary-faint)' }}>
+              <strong style={{ fontSize: '0.88rem', color: 'var(--primary-hover)' }}>לקוח חדש — יירשם במערכת בשמירת ההצעה</strong>
               <div className="form-row" style={{ marginTop: '8px' }}>
                 <div className="form-group">
                   <label>שם פרטי *</label>
@@ -574,7 +574,7 @@ export default function QuotesManager() {
                   </button>
                 </div>
               </div>
-              <span style={{ fontSize: '0.78rem', color: '#047857' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--primary-hover)' }}>
                 נוצר תיק לקוח עם מרחב אישי מוכן — בלי שליחת פרטי כניסה (הלקוח עדיין פוטנציאלי).
               </span>
             </div>
@@ -704,8 +704,8 @@ export default function QuotesManager() {
                 )}
                 <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <div style={{
-                    padding: '10px 16px', borderRadius: '12px', background: '#ecfdf5', border: '1px solid #a7f3d0',
-                    color: '#047857', fontWeight: 800, whiteSpace: 'nowrap'
+                    padding: '10px 16px', borderRadius: '12px', background: 'var(--primary-faint)', border: '1px solid var(--primary-light)',
+                    color: 'var(--primary-hover)', fontWeight: 800, whiteSpace: 'nowrap'
                   }}>
                     {(() => {
                       const price = Number(option.sessionPrice) || 0;
@@ -822,7 +822,7 @@ export default function QuotesManager() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '6px',
                   padding: '7px 12px 7px 14px', cursor: 'pointer', border: 'none',
-                  background: 'transparent', fontSize: '0.85rem', fontWeight: 700, color: '#0f766e'
+                  background: 'transparent', fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-hover)'
                 }}
               >
                 {template.name}
@@ -979,7 +979,7 @@ export default function QuotesManager() {
                               <button
                                 type="button"
                                 className="btn btn-primary"
-                                style={{ background: '#16a34a', padding: '7px 12px', fontSize: '0.8rem' }}
+                                style={{ background: 'var(--primary)', padding: '7px 12px', fontSize: '0.8rem' }}
                                 onClick={() => handleSend(quote)}
                                 disabled={sendingId === quote.id}
                                 title="שליחה בוואטסאפ ללקוח"

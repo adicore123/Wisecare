@@ -33,6 +33,7 @@ import { api } from '@/lib/api';
 import WhatsAppIcon from './WhatsAppIcon';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
+import SearchableClientSelect from './SearchableClientSelect';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -283,7 +284,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
       <div className="page-header" style={{ marginBottom: '24px' }}>
         <div>
           <h1 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <CalendarCheck size={28} color="var(--primary, #0d9488)" />
+            <CalendarCheck size={28} color="var(--primary, var(--primary))" />
             <span>יומן וזימון תורים</span>
           </h1>
           <p style={{ color: 'var(--text-muted, #64748b)', margin: '4px 0 0 0', fontSize: '0.94rem' }}>
@@ -316,8 +317,8 @@ export default function AppointmentsPage({ clients: initialClients = [], current
 
       {/* Quick Stats Grid */}
       <div className="stats-grid" style={{ marginBottom: '24px' }}>
-        <div className="stat-card" style={{ borderTop: '4px solid var(--primary, #0d9488)' }}>
-          <div className="stat-val" style={{ color: 'var(--primary, #0d9488)' }}>{todayCount}</div>
+        <div className="stat-card" style={{ borderTop: '4px solid var(--primary, var(--primary))' }}>
+          <div className="stat-val" style={{ color: 'var(--primary, var(--primary))' }}>{todayCount}</div>
           <div className="stat-lbl">פגישות שנקבעו להיום</div>
         </div>
 
@@ -335,8 +336,8 @@ export default function AppointmentsPage({ clients: initialClients = [], current
           <div className="stat-lbl">פגישות עתידיות מאושרות</div>
         </div>
 
-        <div className="stat-card" style={{ borderTop: '4px solid #10b981' }}>
-          <div className="stat-val" style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <div className="stat-card" style={{ borderTop: '4px solid var(--primary)' }}>
+          <div className="stat-val" style={{ color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <WhatsAppIcon size={20} /> {remindersSentCount}
           </div>
           <div className="stat-lbl">תזכורות WhatsApp שנמסרו</div>
@@ -471,6 +472,29 @@ export default function AppointmentsPage({ clients: initialClients = [], current
             )}
           </div>
 
+          {/* Client / General Search */}
+          <div style={{ position: 'relative', minWidth: '220px' }}>
+            <Search size={15} style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', right: '10px', color: '#94a3b8', pointerEvents: 'none' }} />
+            <input 
+              type="text"
+              className="form-control"
+              style={{ paddingRight: '32px', paddingLeft: searchQuery ? '28px' : '10px', fontSize: '0.86rem' }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="חיפוש מטופל, טלפון, הערות..."
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', border: 'none', background: 'transparent', color: '#94a3b8', cursor: 'pointer', padding: '2px' }}
+                aria-label="נקה חיפוש"
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
           {/* Date Picker Filter */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Calendar size={16} color="#64748b" />
@@ -495,7 +519,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
           </div>
 
           {/* Status Filter Tabs */}
-          <div style={{ display: 'flex', gap: '6px', background: '#f1f5f9', padding: '4px', borderRadius: '8px', overflowX: 'auto' }}>
+          <div style={{ display: 'flex', gap: '6px', background: '#eef4f3', border: '1px solid #dbe7e6', padding: '4px', borderRadius: '8px', overflowX: 'auto' }}>
             {[
               { id: 'all', label: 'כל התורים' },
               { id: 'confirmed', label: 'מאושרים' },
@@ -508,16 +532,17 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                 type="button"
                 onClick={() => setStatusFilter(tab.id)}
                 style={{
-                  padding: '6px 12px',
+                  padding: '6px 14px',
                   borderRadius: '6px',
                   border: 'none',
                   fontSize: '0.82rem',
                   fontWeight: statusFilter === tab.id ? 700 : 500,
-                  background: statusFilter === tab.id ? '#ffffff' : 'transparent',
-                  color: statusFilter === tab.id ? 'var(--primary, #0d9488)' : '#64748b',
-                  boxShadow: statusFilter === tab.id ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                  background: statusFilter === tab.id ? 'var(--primary, var(--primary))' : 'transparent',
+                  color: statusFilter === tab.id ? '#ffffff' : '#51636b',
+                  boxShadow: statusFilter === tab.id ? '0 2px 6px color-mix(in srgb, var(--primary) 25%, transparent)' : 'none',
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 150ms ease, color 150ms ease'
                 }}
               >
                 {tab.label}
@@ -569,7 +594,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                     <tr 
                       key={apt.id}
                       style={{
-                        background: isToday ? 'rgba(13, 148, 136, 0.03)' : 'transparent'
+                        background: isToday ? 'color-mix(in srgb, var(--primary) 3%, transparent)' : 'transparent'
                       }}
                     >
                       {/* Date & Time */}
@@ -577,13 +602,13 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                         <div style={{ fontWeight: 700, color: '#1e293b' }}>
                           {getHebrewDateDisplay(apt.date)}
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', color: 'var(--primary-hover, #0f766e)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.84rem', color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))' }}>
                           <Clock size={13} />
                           <strong>{apt.time}</strong>
                           <span style={{ color: '#94a3b8' }}>({apt.durationMinutes || 50} דק')</span>
                           {isToday && (
                             <span style={{ 
-                              background: 'var(--primary, #0d9488)', 
+                              background: 'var(--primary, var(--primary))', 
                               color: '#fff', 
                               padding: '1px 6px', 
                               borderRadius: '4px', 
@@ -629,7 +654,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                               <Phone size={14} /> שיחת טלפון
                             </span>
                           ) : (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#0d9488', fontWeight: 600 }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--primary)', fontWeight: 600 }}>
                               <MapPin size={14} /> קליניקה
                             </span>
                           )}
@@ -663,7 +688,7 @@ export default function AppointmentsPage({ clients: initialClients = [], current
                       {/* WhatsApp Reminder status */}
                       <td>
                         {apt.reminderSent ? (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#16a34a', fontSize: '0.82rem', fontWeight: 600 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--primary)', fontSize: '0.82rem', fontWeight: 600 }}>
                             <WhatsAppIcon size={14} />
                             <span>נשלחה תזכורת</span>
                           </div>
@@ -749,21 +774,15 @@ export default function AppointmentsPage({ clients: initialClients = [], current
               <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {/* Select Client */}
                 <div className="form-group">
-                  <label>בחר מטופל/ת *</label>
-                  <select
-                    className="form-control"
+                  <label>בחר/י מטופל/ת * (חיפוש לפי שם או טלפון)</label>
+                  <SearchableClientSelect
+                    clients={clients}
                     value={formData.clientId}
-                    onChange={e => setFormData({ ...formData, clientId: e.target.value })}
+                    onChange={clientId => setFormData({ ...formData, clientId })}
                     required
                     disabled={!!editingAppointment}
-                  >
-                    <option value="">-- בחר מטופל מהרשימה --</option>
-                    {clients.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.firstName} {c.lastName} ({c.phone})
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="חיפוש לפי שם מטופל או טלפון..."
+                  />
                 </div>
 
                 {/* Date and Time Row */}

@@ -12,7 +12,7 @@ interface SignatureCanvasProps {
 export default function SignatureCanvas({
   onSignatureChange,
   disabled = false,
-  accentColor = '#0d9488'
+  accentColor = 'var(--primary)'
 }: SignatureCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -263,7 +263,7 @@ export default function SignatureCanvas({
           החתימה שלך נשמרת באופן מוצפן ומאובטח בתיק הרפואי.
         </span>
         {hasDrawn && (
-          <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 700 }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>
             ✓ חתימה נקלטה
           </span>
         )}

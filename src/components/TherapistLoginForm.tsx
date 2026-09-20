@@ -280,7 +280,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
               color: '#94a3b8',
               marginBottom: '24px'
             }}>
-              קוד הקישור שהוזן בדפדפן: <strong style={{ color: '#5eead4', fontFamily: 'monospace' }}>{loginCode}</strong>
+              קוד הקישור שהוזן בדפדפן: <strong style={{ color: 'color-mix(in srgb, var(--primary) 50%, white)', fontFamily: 'monospace' }}>{loginCode}</strong>
               <br />
               וודא/י שהעתקת את הקישור המלא שנשלח אליך ע"י מנהל המערכת.
             </div>
@@ -352,7 +352,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
           {loginCode && (
             <div className="therapist-code-indicator">
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#cbd5e1' }}>
-                <KeyRound size={16} color="#2dd4bf" />
+                <KeyRound size={16} color="color-mix(in srgb, var(--primary) 65%, white)" />
                 <span>מזהה מרחב מורשה:</span>
               </div>
               <span className="therapist-code-pill">
@@ -413,7 +413,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: '#2dd4bf',
+                    color: 'color-mix(in srgb, var(--primary) 65%, white)',
                     fontSize: '0.78rem',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -458,12 +458,12 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ accentColor: '#0d9488', width: '15px', height: '15px', cursor: 'pointer' }}
+                  style={{ accentColor: 'var(--primary)', width: '15px', height: '15px', cursor: 'pointer' }}
                 />
                 <span>שמור אותי מחובר במכשיר זה</span>
               </label>
 
-              <span style={{ color: '#2dd4bf', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
+              <span style={{ color: 'color-mix(in srgb, var(--primary) 65%, white)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem' }}>
                 <Sparkles size={13} />
                 כניסה למרחב אישי
               </span>
@@ -492,7 +492,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
           {/* Card Footer Security */}
           <div className="therapist-login-footer">
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ShieldCheck size={14} color="#10b981" />
+              <ShieldCheck size={14} color="var(--primary)" />
               <span>חיבור מוצפן TLS 256-bit</span>
             </div>
             <span>WiseCare Clinical & Patient Portal</span>
@@ -531,7 +531,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
             <div className="modal-card" style={{ maxWidth: '440px', background: '#0f172a', border: '1px solid rgba(45, 212, 191, 0.3)', color: '#ffffff' }} onClick={e => e.stopPropagation()}>
               <div className="modal-header" style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(45, 212, 191, 0.15)', color: '#2dd4bf', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'rgba(45, 212, 191, 0.15)', color: 'color-mix(in srgb, var(--primary) 65%, white)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <KeyRound size={20} />
                   </div>
                   <div>
@@ -581,7 +581,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                     <button type="button" className="btn btn-secondary" onClick={() => setIsForgotOpen(false)} style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', border: 'none' }}>
                       ביטול
                     </button>
-                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {forgotLoading ? <Loader2 size={16} className="spin" /> : <WhatsAppIcon size={16} color="#ffffff" />}
                       <span>{forgotLoading ? 'שולח קוד...' : 'שלח קוד אימות ב-WhatsApp 📲'}</span>
                     </button>
@@ -597,7 +597,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                       </div>
                     )}
                     {forgotSuccess && (
-                      <div style={{ background: 'rgba(16, 185, 129, 0.2)', border: '1px solid rgba(16, 185, 129, 0.4)', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', color: '#6ee7b7', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ background: 'color-mix(in srgb, var(--primary) 20%, transparent)', border: '1px solid color-mix(in srgb, var(--primary) 40%, transparent)', borderRadius: '10px', padding: '10px 14px', fontSize: '0.85rem', color: 'var(--primary-light)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <CheckCircle2 size={16} />
                         <span>{forgotSuccess}</span>
                       </div>
@@ -666,7 +666,7 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
                     <button type="button" className="btn btn-secondary" onClick={() => setForgotStep('request')} style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#cbd5e1', border: 'none' }}>
                       חזרה
                     </button>
-                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)' }}>
+                    <button type="submit" className="btn btn-primary" disabled={forgotLoading} style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)' }}>
                       {forgotLoading ? 'מאפס ונכנס...' : 'אפס סיסמה והיכנס למרחב ✨'}
                     </button>
                   </div>

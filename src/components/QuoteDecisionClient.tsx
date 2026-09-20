@@ -87,7 +87,7 @@ export default function QuoteDecisionClient({ quote, token }: { quote: QuoteView
     return (
       <div style={shellStyle} dir="rtl">
         <div style={cardStyle}>
-          <div style={{ ...iconTileStyle, background: confirmed ? 'linear-gradient(135deg, #0d9488 0%, #059669 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)' }}>
+          <div style={{ ...iconTileStyle, background: confirmed ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)' : 'linear-gradient(135deg, #64748b 0%, #475569 100%)' }}>
             {confirmed ? <CheckCircle2 size={30} color="#fff" /> : <XCircle size={30} color="#fff" />}
           </div>
           <h2 style={h2Style}>
@@ -158,7 +158,7 @@ export default function QuoteDecisionClient({ quote, token }: { quote: QuoteView
                     <span style={{
                       width: '22px', height: '22px', borderRadius: '50%', flexShrink: 0,
                       border: selected ? 'none' : '2px solid #cbd5e1',
-                      background: selected ? 'linear-gradient(135deg, #0d9488 0%, #059669 100%)' : 'transparent',
+                      background: selected ? 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%)' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {selected && <CheckCircle2 size={16} color="#fff" />}
@@ -176,7 +176,7 @@ export default function QuoteDecisionClient({ quote, token }: { quote: QuoteView
                   )}
                 </div>
                 <div style={{
-                  marginTop: '10px', fontSize: '1.25rem', fontWeight: 800, color: '#0f766e'
+                  marginTop: '10px', fontSize: '1.25rem', fontWeight: 800, color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))'
                 }}>
                   {option.pricingModel === 'package'
                     ? `סה"כ ${formatILS(option.totalPrice)}`
@@ -229,7 +229,7 @@ const shellStyle: React.CSSProperties = {
   justifyContent: 'center',
   minHeight: '100vh',
   padding: '24px 16px',
-  background: 'linear-gradient(145deg, #f0fdfa 0%, #f8fafc 100%)',
+  background: 'linear-gradient(145deg, var(--primary-faint) 0%, #f4f9f8 100%)',
   fontFamily: 'inherit'
 };
 
@@ -238,9 +238,9 @@ const cardStyle: React.CSSProperties = {
   width: '100%',
   padding: '36px 28px',
   borderRadius: '24px',
-  border: '1px solid #99f6e4',
+  border: '1px solid #dbe7e6',
   background: '#ffffff',
-  boxShadow: '0 20px 50px rgba(15, 23, 42, 0.08)',
+  boxShadow: '0 20px 50px color-mix(in srgb, var(--primary-hover) 8%, transparent)',
   textAlign: 'center'
 };
 
@@ -248,24 +248,24 @@ const iconTileStyle: React.CSSProperties = {
   width: '64px',
   height: '64px',
   borderRadius: '20px',
-  background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   margin: '0 auto 16px',
-  boxShadow: '0 8px 20px rgba(13, 148, 136, 0.25)'
+  boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 25%, transparent)'
 };
 
 const h2Style: React.CSSProperties = {
   fontSize: '1.3rem',
   fontWeight: 800,
-  color: '#0f172a',
+  color: '#101c24',
   margin: '0 0 8px'
 };
 
 const pStyle: React.CSSProperties = {
   fontSize: '0.92rem',
-  color: '#475569',
+  color: '#51636b',
   lineHeight: 1.6,
   margin: '0 0 8px'
 };
@@ -273,11 +273,11 @@ const pStyle: React.CSSProperties = {
 const summaryBoxStyle: React.CSSProperties = {
   marginTop: '14px',
   padding: '12px 16px',
-  background: '#ecfdf5',
+  background: 'var(--primary-faint)',
   borderRadius: '12px',
-  border: '1px solid #a7f3d0',
+  border: '1px solid var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white))',
   fontSize: '0.88rem',
-  color: '#065f46',
+  color: 'var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black))',
   lineHeight: 1.6
 };
 
@@ -286,16 +286,16 @@ const optionCardStyle: React.CSSProperties = {
   textAlign: 'right',
   padding: '16px 18px',
   borderRadius: '16px',
-  border: '2px solid #e2e8f0',
-  background: '#ffffff',
+  border: '2px solid #dbe7e6',
+  background: '#f4f9f8',
   cursor: 'pointer',
-  transition: 'border-color 0.15s, box-shadow 0.15s'
+  transition: 'border-color 0.15s, box-shadow 0.15s, background-color 0.15s'
 };
 
 const optionSelectedStyle: React.CSSProperties = {
-  borderColor: '#0d9488',
-  boxShadow: '0 8px 24px rgba(13, 148, 136, 0.18)',
-  background: '#f0fdfa'
+  borderColor: 'var(--primary)',
+  boxShadow: '0 8px 24px color-mix(in srgb, var(--primary) 18%, transparent)',
+  background: 'var(--primary-faint)'
 };
 
 const primaryButtonStyle: React.CSSProperties = {
@@ -307,12 +307,13 @@ const primaryButtonStyle: React.CSSProperties = {
   padding: '14px 24px',
   borderRadius: '14px',
   border: 'none',
-  background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+  background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)) 100%)',
   color: '#ffffff',
   fontWeight: 800,
   fontSize: '1rem',
   cursor: 'pointer',
-  minWidth: '200px'
+  minWidth: '200px',
+  boxShadow: '0 8px 20px color-mix(in srgb, var(--primary) 25%, transparent)'
 };
 
 const secondaryButtonStyle: React.CSSProperties = {
@@ -322,9 +323,10 @@ const secondaryButtonStyle: React.CSSProperties = {
   gap: '8px',
   padding: '14px 20px',
   borderRadius: '14px',
-  border: '1px solid #e2e8f0',
-  background: '#ffffff',
-  color: '#64748b',
+  border: '1.5px solid #dbe7e6',
+  background: '#f4f9f8',
+  color: '#101c24',
   fontWeight: 700,
-  cursor: 'pointer'
+  cursor: 'pointer',
+  transition: 'background-color 0.15s, border-color 0.15s'
 };
