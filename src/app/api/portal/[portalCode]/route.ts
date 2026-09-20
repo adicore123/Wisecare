@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 
-export async function getPortalPayload(portalCode: string) {
+export async function getPortalPayload(portalCode: string, options: { includePrivate?: boolean } = {}) {
+  const includePrivate = options.includePrivate !== false;
   await db.ensureLoaded();
   const clients = db.collection('clients');
   const tasks = db.collection('tasks');
@@ -27,6 +29,39 @@ export async function getPortalPayload(portalCode: string) {
   }
 
   const therapist = client.therapistId ? users.findById(client.therapistId) : null;
+
+  // portalInfo is the public "gate" surface: enough to render the login/setup
+  // screen (clinic branding, greeting) — it must never contain clinical data.
+  const portalInfo = {
+    clinicName: settings.clinicName || 'WiseCare מרחב טיפולי',
+    clinicAddress: settings.clinicAddress || '',
+    clinicCity: settings.clinicCity || '',
+    clinicFloor: settings.clinicFloor || '',
+    clinicPhone: settings.clinicPhone || therapist?.phone || '',
+    clinicArrivalInstructions: settings.clinicArrivalInstructions || '',
+    themeId: settings.themeId || 'sage',
+    portalCode: client.portalCode,
+    clientName: `${client.firstName} ${client.lastName}`.trim(),
+    firstName: client.firstName,
+    gender: client.gender,
+    therapist: therapist ? {
+      name: therapist.name,
+      title: therapist.title,
+      phone: therapist.phone,
+      email: therapist.email,
+      specialty: therapist.specialty
+    } : null,
+    isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
+    hasPassword: Boolean(client.hasPassword !== false && (client.password || client.initialPassword)),
+    needsCredentialsSetup: Boolean(client.hasPassword === false || (client.clientSetsCredentials && !client.credentialsSetAt)),
+    username: client.username || ''
+  };
+
+  if (!includePrivate) {
+    // Unauthenticated caller: gate data only
+    return { portalInfo, tasks: [], content: [], insights: [], appointments: [] };
+  }
+
   const clientTasks = tasks.find({ clientId: client.id });
   const clientContent = contentAssignments
     .find({ clientId: client.id })
@@ -60,30 +95,7 @@ export async function getPortalPayload(portalCode: string) {
     });
 
   return {
-    portalInfo: {
-      clinicName: settings.clinicName || 'WiseCare מרחב טיפולי',
-      clinicAddress: settings.clinicAddress || '',
-      clinicCity: settings.clinicCity || '',
-      clinicFloor: settings.clinicFloor || '',
-      clinicPhone: settings.clinicPhone || therapist?.phone || '',
-      clinicArrivalInstructions: settings.clinicArrivalInstructions || '',
-      themeId: settings.themeId || 'sage',
-      portalCode: client.portalCode,
-      clientName: `${client.firstName} ${client.lastName}`.trim(),
-      firstName: client.firstName,
-      gender: client.gender,
-      therapist: therapist ? {
-        name: therapist.name,
-        title: therapist.title,
-        phone: therapist.phone,
-        email: therapist.email,
-        specialty: therapist.specialty
-      } : null,
-      isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
-      hasPassword: Boolean(client.hasPassword !== false && (client.password || client.initialPassword)),
-      needsCredentialsSetup: Boolean(client.hasPassword === false || (client.clientSetsCredentials && !client.credentialsSetAt)),
-      username: client.username || ''
-    },
+    portalInfo,
     tasks: clientTasks.map((t: any) => ({
       id: t.id,
       title: t.title,
@@ -108,7 +120,13 @@ export async function GET(
 ) {
   try {
     const { portalCode } = await props.params;
-    const payload = await getPortalPayload(portalCode);
+
+    // Clinical data (journal, tasks, appointments) only for a verified patient
+    // session of THIS portal — the portal code alone is a link, not a credential.
+    const clientAuth = getClientAuthFromRequest(request);
+    const includePrivate = Boolean(clientAuth && clientAuth.portalCode === portalCode);
+
+    const payload = await getPortalPayload(portalCode, { includePrivate });
     if (!payload) {
       // Distinguish a disabled portal from a wrong link
       const client = db.collection('clients').findOne({ portalCode });

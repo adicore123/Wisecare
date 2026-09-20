@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
+import { sanitizeClient } from '@/lib/clientSanitize';
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,9 +38,9 @@ export async function GET(request: NextRequest) {
       const clientTasks = tasksCollection.find({ clientId: client.id });
       const completedTasks = clientTasks.filter((tsk: any) => tsk.completed).length;
 
-      const { password, ...safeClient } = client;
+      // Patient passwords/PINs are never returned, not even to the superadmin UI
       return {
-        ...safeClient,
+        ...sanitizeClient(client),
         isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
         therapist,
         tasksCount: clientTasks.length,

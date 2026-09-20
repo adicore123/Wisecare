@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -8,6 +9,12 @@ export async function GET(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const clients = db.collection('clients');
     const insights = db.collection('insights');
 
@@ -33,6 +40,12 @@ export async function POST(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const { title, content, mood, intensity } = body;
 

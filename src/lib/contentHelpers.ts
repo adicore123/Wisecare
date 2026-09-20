@@ -26,7 +26,38 @@ export function isPublicWebUrl(urlStr: string): boolean {
     const host = parsed.hostname.toLowerCase();
     if (['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(host)) return false;
     if (host.endsWith('.local') || host.endsWith('.internal')) return false;
-    if (/^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)) return false;
+
+    // Normalize the hostname into dotted IPv4 when possible so alternate encodings
+    // (hex/octal/integer IPs) can't smuggle an internal address through.
+    let ipParts: number[] | null = null;
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(host)) {
+      ipParts = host.split('.').map(Number);
+    } else {
+      const lastSegment = host.split('.').pop() || '';
+      if (/^(0x[0-9a-f]+|\d+)$/.test(lastSegment)) {
+        const asInt = lastSegment.startsWith('0x') ? parseInt(lastSegment, 16) : parseInt(lastSegment, 10);
+        if (Number.isInteger(asInt) && asInt >= 0 && asInt <= 0xffffffff) {
+          ipParts = [(asInt >>> 24) & 255, (asInt >>> 16) & 255, (asInt >>> 8) & 255, asInt & 255];
+        }
+      }
+    }
+
+    if (ipParts) {
+      const [a, b] = ipParts;
+      if (a === 10) return false;                                   // 10.0.0.0/8
+      if (a === 192 && b === 168) return false;                     // 192.168.0.0/16
+      if (a === 172 && b >= 16 && b <= 31) return false;            // 172.16.0.0/12
+      if (a === 127) return false;                                  // loopback
+      if (a === 169 && b === 254) return false;                     // link-local / cloud metadata
+      if (a === 0) return false;                                    // 0.0.0.0/8
+      if (a === 100 && b >= 64 && b <= 127) return false;           // CGNAT 100.64.0.0/10
+    }
+
+    // IPv6 literals: block loopback, link-local, unique-local and IPv4-mapped
+    if (host.includes(':') && /^(::1|fe80:|fc[0-9a-f]|fd[0-9a-f]|::ffff:)/.test(host)) {
+      return false;
+    }
+
     return ['http:', 'https:'].includes(parsed.protocol);
   } catch {
     return false;

@@ -5,8 +5,9 @@ import { getQrCode } from '@/services/greenApi';
 export async function GET(request: NextRequest) {
   try {
     const auth = getAuthFromRequest(request);
-    if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
-      return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
+    // The pairing QR links the clinic's WhatsApp to whoever scans it — superadmin only
+    if (!auth || auth.role !== 'superadmin') {
+      return NextResponse.json({ error: 'גישה מורשית למנהל המערכת בלבד' }, { status: 403 });
     }
 
     const qr = await getQrCode();

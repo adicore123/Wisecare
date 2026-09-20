@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const date = searchParams.get('date');
 
+    await db.ensureLoaded();
+
     // Strict Tenant Scope: Therapists only see their own appointments
     const effectiveTherapistId = auth.role === 'therapist' ? auth.userId : requestedTherapistId;
 
@@ -72,7 +74,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       clientId,
-      therapistId = auth.userId,
       date,
       time,
       durationMinutes = 50,
@@ -91,10 +92,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'חובה לציין תאריך ושעת פגישה' }, { status: 400 });
     }
 
+    await db.ensureLoaded();
+
     const client = db.collection('clients').findById(clientId);
     if (!client) {
       return NextResponse.json({ error: 'לקוח לא נמצא' }, { status: 404 });
     }
+
+    // Strict Tenant Scope: therapists may only book appointments for their own clients
+    if (auth.role === 'therapist' && client.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לקבוע תור עבור לקוח זה' }, { status: 403 });
+    }
+    const therapistId = auth.role === 'superadmin' ? (body.therapistId || auth.userId) : auth.userId;
 
     const settings = db.getSettings();
     const isVideo = type === 'zoom' || type === 'video';

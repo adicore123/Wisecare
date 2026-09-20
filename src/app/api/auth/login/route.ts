@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword } from '@/lib/security';
+import { verifyPassword, hashPassword } from '@/lib/security';
 import { signToken, signClientToken, createSessionCookie } from '@/lib/auth';
 import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 import { normalizePhone } from '@/lib/phoneHelpers';
@@ -163,6 +163,16 @@ export async function POST(request: Request) {
       }
 
       recordSuccessfulLogin(cleanLower);
+
+      // Migrate legacy plaintext credentials to a salted hash on first successful login
+      if (client.initialPassword && verifyPassword(password, client.initialPassword)) {
+        clients.updateById(client.id, {
+          password: hashPassword(password),
+          initialPassword: '',
+          hasPassword: true
+        });
+      }
+
       db.logAudit({
         actor: client.username || client.phone,
         actorRole: 'client',

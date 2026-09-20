@@ -14,10 +14,16 @@ export async function GET(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const appointment = db.collection('appointments').findById(id);
 
     if (!appointment) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope: therapists may only access their own appointments
+    if (auth.role === 'therapist' && appointment.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לצפות בתור זה' }, { status: 403 });
     }
 
     await db.flush();
@@ -36,9 +42,15 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const existing = db.collection('appointments').findById(id);
     if (!existing) {
       return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope: therapists may only update their own appointments
+    if (auth.role === 'therapist' && existing.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לעדכן תור זה' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -76,7 +88,13 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const existing = db.collection('appointments').findById(id);
+
+    // Strict Tenant Scope: therapists may only delete their own appointments
+    if (auth.role === 'therapist' && existing && existing.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה למחוק תור זה' }, { status: 403 });
+    }
 
     const success = db.collection('appointments').deleteById(id);
 

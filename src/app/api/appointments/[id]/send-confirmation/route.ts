@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendAppointmentConfirmation } from '@/services/reminderScheduler';
 
@@ -14,6 +15,17 @@ export async function POST(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
+
+    // Strict Tenant Scope: therapists may only send confirmations for their own appointments
+    const appointment = db.collection('appointments').findById(id);
+    if (!appointment) {
+      return NextResponse.json({ error: 'תור לא נמצא' }, { status: 404 });
+    }
+    if (auth.role === 'therapist' && appointment.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לשלוח אישור עבור תור זה' }, { status: 403 });
+    }
+
     const result = await sendAppointmentConfirmation(id);
 
     return NextResponse.json({

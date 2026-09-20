@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 import { materializeImageDataField } from '@/services/contentImage';
 
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,12 @@ export async function POST(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const { url, title, description, type = 'video', imageData, sourceName, category = 'אישי' } = body;
 

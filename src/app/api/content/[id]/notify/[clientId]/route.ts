@@ -26,6 +26,11 @@ export async function POST(
       return NextResponse.json({ error: 'פריט, מטופל או שיוך לא נמצאו' }, { status: 404 });
     }
 
+    // Strict Tenant Scope: therapists may only notify about their own content
+    if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לשלוח התראה עבור פריט זה' }, { status: 403 });
+    }
+
     const updated = await notifyClient(client, assignment, item);
     await db.flush();
     return NextResponse.json(updated);

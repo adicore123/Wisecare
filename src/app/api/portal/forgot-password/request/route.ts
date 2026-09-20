@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { maskPhone, maskEmail } from '@/lib/security';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +13,19 @@ export async function POST(request: NextRequest) {
     if (!identifier || !String(identifier).trim()) {
       return NextResponse.json({ error: 'נא להזין מספר טלפון, אימייל או שם משתמש' }, { status: 400 });
     }
+
+    // Rate-limit per IP and per identifier — this endpoint sends WhatsApp messages
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
+    const ipLimit = checkRateLimit(`forgotpw-ip:${ip}`, 5, 15 * 60);
+    if (!ipLimit.allowed) {
+      return NextResponse.json({ error: 'בוצעו יותר מדי בקשות איפוס. נסה/י שוב בעוד מספר דקות.' }, { status: 429 });
+    }
+    const idLimit = checkRateLimit(`forgotpw-id:${String(identifier).trim().toLowerCase()}`, 3, 15 * 60);
+    if (!idLimit.allowed) {
+      return NextResponse.json({ error: 'בוצעו יותר מדי בקשות איפוס לחשבון זה. נסה/י שוב בעוד מספר דקות.' }, { status: 429 });
+    }
+
+    await db.ensureLoaded();
 
     const cleanId = String(identifier).trim().toLowerCase();
     const clients = db.collection('clients');
@@ -32,7 +46,8 @@ export async function POST(request: NextRequest) {
     clients.updateById(client.id, {
       resetOtp: {
         code: otpCode,
-        expiresAt
+        expiresAt,
+        attempts: 0
       }
     });
 

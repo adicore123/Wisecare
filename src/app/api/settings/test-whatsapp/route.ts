@@ -5,8 +5,9 @@ import { sendWhatsAppMessage } from '@/services/greenApi';
 export async function POST(request: NextRequest) {
   try {
     const auth = getAuthFromRequest(request);
-    if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
-      return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
+    // Sends arbitrary messages from the clinic's WhatsApp number — superadmin only
+    if (!auth || auth.role !== 'superadmin') {
+      return NextResponse.json({ error: 'גישה מורשית למנהל המערכת בלבד' }, { status: 403 });
     }
 
     const body = await request.json().catch(() => ({}));

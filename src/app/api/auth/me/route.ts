@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     }
 
     const users = db.collection('users');
+    await db.ensureLoaded();
     const user = users.findById(auth.userId);
 
     if (!user || !user.active) {

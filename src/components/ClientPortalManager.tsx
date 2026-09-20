@@ -345,6 +345,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [showSetupPassword, setShowSetupPassword] = useState(false);
   const [setupError, setSetupError] = useState('');
   const [isSubmittingSetup, setIsSubmittingSetup] = useState(false);
+  // First-time setup is verified by a one-time code sent to the patient's phone
+  const [setupOtp, setSetupOtp] = useState('');
+  const [setupOtpSent, setSetupOtpSent] = useState(false);
+  const [setupOtpPhone, setSetupOtpPhone] = useState('');
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -387,6 +392,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           localStorage.setItem(authSessionKey, 'true');
           if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
           setIsPinLocked(hasPinConfig);
+          // Session confirmed server-side — pull the full (private) payload
+          loadPortalAll(true);
         })
         .catch(() => {})
         .finally(() => setIsAuthChecked(true));
@@ -506,10 +513,26 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       setIsPortalAuthenticated(true);
       setIsPinLocked(false);
       showToast('ברוך/ה הבא/ה למרחב האישי שלך! ✨');
+      // The server only returns clinical data to a verified session — fetch it now
+      loadPortalAll(true);
     } catch (err: any) {
       setLoginError(err.message || 'שגיאה בהתחברות');
     } finally {
       setIsLoggingIn(false);
+    }
+  };
+
+  const handleRequestSetupOtp = async () => {
+    setSetupError('');
+    setIsRequestingOtp(true);
+    try {
+      const res = await api.setPortalCredentials(portalCode, { requestOtp: true });
+      setSetupOtpSent(true);
+      setSetupOtpPhone(res?.maskedPhone || '');
+    } catch (err: any) {
+      setSetupError(err.message || 'שגיאה בשליחת קוד האימות');
+    } finally {
+      setIsRequestingOtp(false);
     }
   };
 
@@ -532,11 +555,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       return;
     }
 
+    if (!/^\d{6}$/.test(setupOtp.trim())) {
+      setSetupError('נא להזין את קוד האימות בן 6 הספרות שנשלח לטלפון שלך');
+      return;
+    }
+
     setIsSubmittingSetup(true);
     try {
       const res = await api.setPortalCredentials(portalCode, {
         username: setupUsername.trim(),
-        password: setupPassword.trim()
+        password: setupPassword.trim(),
+        otp: setupOtp.trim()
       });
 
       if (res?.token) {
@@ -575,6 +604,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       localStorage.removeItem(authSessionKey);
       localStorage.removeItem('wisecare_portal_token');
       localStorage.removeItem('wisecare_last_portal');
+      // The cached portal payload holds clinical data — it must not outlive the session
+      localStorage.removeItem(`wisecare_portal_cache_${portalCode}`);
     } catch {}
     setIsPortalAuthenticated(false);
     setIsPinLocked(false);
@@ -1544,7 +1575,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
                 אימות סיסמה
               </label>
-              <input 
+              <input
                 type={showSetupPassword ? 'text' : 'password'}
                 className="form-control"
                 placeholder="הקלד/י את הסיסמה שנית"
@@ -1554,6 +1585,40 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 value={setupPasswordConfirm}
                 onChange={e => setSetupPasswordConfirm(e.target.value)}
               />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '22px' }}>
+              <label style={{ fontSize: '0.88rem', fontWeight: 700, color: '#334155', marginBottom: '6px', display: 'block' }}>
+                אימות בעלות על הטלפון 🔐
+              </label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  className="form-control"
+                  placeholder="קוד בן 6 ספרות"
+                  dir="ltr"
+                  style={{ textAlign: 'right', fontSize: '0.98rem', padding: '12px 14px', borderRadius: '12px', flex: 1 }}
+                  required
+                  value={setupOtp}
+                  onChange={e => setSetupOtp(e.target.value.replace(/\D/g, ''))}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={handleRequestSetupOtp}
+                  disabled={isRequestingOtp}
+                  style={{ whiteSpace: 'nowrap', borderRadius: '12px', padding: '12px 16px', border: '1px solid #99f6e4', background: '#f0fdfa', color: '#0f766e', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  {isRequestingOtp ? 'שולח...' : setupOtpSent ? 'שלח/י קוד שוב' : 'שלח/י קוד לטלפון'}
+                </button>
+              </div>
+              {setupOtpSent && (
+                <span style={{ fontSize: '0.78rem', color: '#047857', marginTop: '6px', display: 'block' }}>
+                  קוד האימות נשלח בהודעת WhatsApp{setupOtpPhone ? ` למספר ${setupOtpPhone}` : ''} והוא תקף ל-10 דקות.
+                </span>
+              )}
             </div>
 
             <button 

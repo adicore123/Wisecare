@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 
 export async function GET(
   request: NextRequest,
@@ -8,6 +9,12 @@ export async function GET(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });
@@ -34,6 +41,12 @@ export async function POST(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const { preferredDate, preferredTime, type = 'in_person', notes, therapistName, location: customLocation } = body;
 

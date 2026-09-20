@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword } from '@/lib/security';
+import { verifyPassword, hashPassword } from '@/lib/security';
 import { createSessionCookie, getClientAuthFromRequest, signClientToken } from '@/lib/auth';
+import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 import { normalizePhone } from '@/lib/phoneHelpers';
 
 export async function GET(
@@ -53,12 +54,23 @@ export async function POST(
       );
     }
 
-    // If client has no password configured yet, allow login
+    // Brute-force protection on the portal gate
+    const bruteKey = `portal:${portalCode}:${String(username).trim().toLowerCase()}`;
+    const brute = checkLoginBruteForce(bruteKey);
+    if (brute.locked) {
+      return NextResponse.json(
+        { error: `נעילה זמנית עקב ריבוי ניסיונות שגויים. נסה/י שוב בעוד ${brute.remainingMinutes || 15} דקות.` },
+        { status: 429 }
+      );
+    }
+
+    // No credentials configured yet — the patient must complete the verified
+    // first-time setup (OTP to their phone) instead of entering with the link alone
     if (!client.password && !client.initialPassword) {
-      const token = signClientToken(client);
-      const response = NextResponse.json({ success: true, token });
-      response.headers.append('Set-Cookie', createSessionCookie(token, 'wisecare_client_token'));
-      return response;
+      return NextResponse.json(
+        { error: 'טרם הוגדרה סיסמה למרחב זה. אנא הגדר/י שם משתמש וסיסמה בכניסה הראשונה.' },
+        { status: 403 }
+      );
     }
 
     const cleanInput = String(username).trim().toLowerCase();
@@ -81,13 +93,31 @@ export async function POST(
     // Verify password
     const isPasswordValid =
       (client.password && verifyPassword(password, client.password)) ||
-      (client.initialPassword && client.initialPassword === password);
+      (client.initialPassword && verifyPassword(password, client.initialPassword));
 
     if (!isPasswordValid) {
+      const failure = recordFailedLogin(bruteKey);
+      if (failure.locked) {
+        return NextResponse.json(
+          { error: 'הוזנה סיסמה שגויה מספר פעמים. המרחב ננעל זמנית ל-15 דקות.' },
+          { status: 429 }
+        );
+      }
       return NextResponse.json(
         { error: 'שם משתמש או סיסמה שגויים.' },
         { status: 401 }
       );
+    }
+
+    recordSuccessfulLogin(bruteKey);
+
+    // Migrate legacy plaintext credentials to a salted hash on first successful login
+    if (client.initialPassword && verifyPassword(password, client.initialPassword)) {
+      clients.updateById(client.id, {
+        password: hashPassword(password),
+        initialPassword: '',
+        hasPassword: true
+      });
     }
 
     const token = signClientToken(client);

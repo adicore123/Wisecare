@@ -8,8 +8,13 @@ export async function GET(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     const cronSecret = process.env.CRON_SECRET;
 
-    // If CRON_SECRET is configured, require it in production
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    // Fail closed: without a configured secret the endpoint would be a public
+    // "mass-WhatsApp everyone" trigger. Refuse to run rather than guess.
+    if (!cronSecret) {
+      console.error('[Cron] CRON_SECRET is not configured — refusing to run reminders (public trigger risk).');
+      return NextResponse.json({ error: 'Cron secret not configured' }, { status: 500 });
+    }
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

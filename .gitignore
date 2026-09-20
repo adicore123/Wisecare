@@ -45,3 +45,5 @@ gui-test-screenshots/
 videos/
 .video_agent/
 wiseenergy/
+.backups/
+server/data/wisecare_db.json

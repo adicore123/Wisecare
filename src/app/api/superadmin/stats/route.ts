@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'גישה מורשית למנהל מערכת בלבד' }, { status: 403 });
     }
 
+    await db.ensureLoaded();
     const users = db.collection('users');
     const clients = db.collection('clients');
     const tasks = db.collection('tasks');

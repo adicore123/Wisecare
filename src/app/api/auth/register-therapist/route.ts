@@ -6,6 +6,7 @@ import { hashPassword, isUsernameValid } from '@/lib/security';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
 import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -29,6 +30,22 @@ export async function POST(request: NextRequest) {
     if (!name || !username || !password) {
       return NextResponse.json({ error: 'שם מלא, שם משתמש וסיסמה הינם שדות חובה' }, { status: 400 });
     }
+
+    // Abuse brake: cap registrations per IP.
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
+    const ipLimit = checkRateLimit(`register-therapist:${ip}`, 5, 60 * 60);
+    if (!ipLimit.allowed) {
+      return NextResponse.json({ error: 'בוצעו יותר מדי הרשמות מכתובת זו. נסה/י שוב מאוחר יותר.' }, { status: 429 });
+    }
+
+    // Optional invite gate: set THERAPIST_REGISTRATION_CODE in the environment to
+    // require it at sign-up (recommended in production; empty = open registration).
+    const inviteCode = process.env.THERAPIST_REGISTRATION_CODE;
+    if (inviteCode && body.inviteCode !== inviteCode) {
+      return NextResponse.json({ error: 'נדרש קוד הזמנה תקף לפתיחת קליניקה חדשה.' }, { status: 403 });
+    }
+
+    await db.ensureLoaded();
 
     const cleanUsername = String(username).trim();
     if (!isUsernameValid(cleanUsername)) {

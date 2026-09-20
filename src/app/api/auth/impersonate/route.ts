@@ -12,6 +12,8 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { targetTherapistId } = body;
 
+    await db.ensureLoaded();
+
     const users = db.collection('users');
     const admin = users.findById(auth.userId);
     const therapist = users.findById(targetTherapistId);

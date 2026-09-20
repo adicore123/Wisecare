@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
 import { processScheduledCallsTick } from '@/services/scheduledCallScheduler';
 
 /**
  * GET /api/livekit/portal/{portalCode}
  * Returns the client's currently active video call (if any) so the personal
- * space can show a "join now" banner. Follows the portal routes' portalCode
- * auth model (the unguessable code IS the credential). Also opportunistically
+ * space can show a "join now" banner. Requires the patient's portal session —
+ * the portal code alone is a link, not a credential. Also opportunistically
  * drives the scheduled-calls engine (throttled server-side, bounded) — a
  * client sitting in their space keeps due scheduled calls flowing on time.
  */
@@ -18,6 +19,11 @@ export async function GET(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
 
     // Opportunistic scheduled-calls tick (throttled + bounded, never blocks the poll)
     void Promise.race([

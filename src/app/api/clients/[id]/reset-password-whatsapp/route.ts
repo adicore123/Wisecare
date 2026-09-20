@@ -57,7 +57,8 @@ export async function POST(request: NextRequest, props: RouteProps) {
     clients.updateById(client.id, {
       username: currentUsername,
       password: hashedPassword,
-      initialPassword: rawPassword,
+      // Only the hash is persisted — the plaintext travels to the patient via WhatsApp alone
+      initialPassword: '',
       hasPassword: true,
       credentialsUpdatedAt: new Date().toISOString()
     });
@@ -99,7 +100,6 @@ export async function POST(request: NextRequest, props: RouteProps) {
       message: whatsappSent
         ? 'הסיסמה עודכנה ונשלחה בהצלחה בוואטסאפ ללקוח! 📲'
         : `הסיסמה עודכנה במערכת אך חלה שגיאה בשליחת הוואטסאפ: ${whatsappError}`,
-      newPassword: rawPassword,
       username: currentUsername,
       whatsappSent,
       whatsappError

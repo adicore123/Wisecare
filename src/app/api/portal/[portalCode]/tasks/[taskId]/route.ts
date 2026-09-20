@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 
 export async function DELETE(
   request: NextRequest,
   props: { params: Promise<{ portalCode: string; taskId: string }> }
 ) {
   try {
+    await db.ensureLoaded();
     const { portalCode, taskId } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });

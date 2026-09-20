@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -13,6 +14,12 @@ export async function DELETE(
   try {
     await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const client = db.collection('clients').findOne({ portalCode });
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });
@@ -48,6 +55,12 @@ export async function PUT(
   try {
     await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const { url, title, description, type, imageData, sourceName, category } = body;
 

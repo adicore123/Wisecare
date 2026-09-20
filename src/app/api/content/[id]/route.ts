@@ -32,6 +32,11 @@ export async function GET(
       return NextResponse.json({ error: 'פריט התוכן לא נמצא' }, { status: 404 });
     }
 
+    // Strict Tenant Scope: therapists may only view their own content
+    if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לצפות בפריט זה' }, { status: 403 });
+    }
+
     const enriched = enrichItems([item]);
     return NextResponse.json(enriched[0]);
   } catch (err: unknown) {
@@ -55,6 +60,11 @@ export async function PUT(
     const item = db.collection('contentItems').findById(id);
     if (!item) {
       return NextResponse.json({ error: 'פריט התוכן לא נמצא' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope: therapists may only edit their own content
+    if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לערוך פריט זה' }, { status: 403 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -114,6 +124,11 @@ export async function DELETE(
     const item = items.findById(id);
     if (!item) {
       return NextResponse.json({ error: 'פריט התוכן לא נמצא' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope: therapists may only delete their own content
+    if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה למחוק פריט זה' }, { status: 403 });
     }
 
     const assignments = db.collection('contentAssignments');

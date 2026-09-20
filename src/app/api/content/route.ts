@@ -24,7 +24,10 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const therapistId = cleanText(searchParams.get('therapistId'), 120);
+    const requestedTherapistId = cleanText(searchParams.get('therapistId'), 120);
+
+    // Strict Tenant Scope: therapists always see only their own library
+    const therapistId = auth.role === 'therapist' ? auth.userId : requestedTherapistId;
 
     if (!therapistId) {
       return NextResponse.json({ error: 'חסר מזהה מטפל' }, { status: 400 });
@@ -54,7 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const therapistId = cleanText(body.therapistId || auth.userId, 120);
+    // Strict Tenant Scope: content is always owned by the calling therapist (unless superadmin)
+    const therapistId = auth.role === 'therapist'
+      ? auth.userId
+      : cleanText(body.therapistId || auth.userId, 120);
     let title = cleanText(body.title, 160);
     const type = ALLOWED_TYPES.has(body.type) ? body.type : 'link';
     const url = cleanUrl(body.url);

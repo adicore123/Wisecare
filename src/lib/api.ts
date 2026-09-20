@@ -836,7 +836,10 @@ export const api = {
     return res.json();
   },
 
-  setPortalCredentials: async (portalCode: string, payload: { username: string; password: string }) => {
+  setPortalCredentials: async (
+    portalCode: string,
+    payload: { username?: string; password?: string; otp?: string; requestOtp?: boolean }
+  ) => {
     const res = await fetch(`${API_BASE}/portal/${encodeURIComponent(portalCode)}/set-credentials`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

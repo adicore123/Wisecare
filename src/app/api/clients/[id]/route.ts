@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
 import { hashPassword } from '@/lib/security';
+import { sanitizeClient } from '@/lib/clientSanitize';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest, props: RouteProps) {
     insights.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({
-      client,
+      client: sanitizeClient(client),
       therapist: therapist ? {
         name: therapist.name,
         title: therapist.title,
@@ -124,13 +125,14 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     if (body.password && String(body.password).trim()) {
       const rawPassword = String(body.password).trim();
       updateData.password = hashPassword(rawPassword);
-      updateData.initialPassword = rawPassword;
+      // Never persist the plaintext — the patient gets it via WhatsApp, not the DB
+      updateData.initialPassword = '';
       updateData.hasPassword = true;
     }
 
     const updated = clients.updateById(id, updateData);
     await db.flush();
-    return NextResponse.json(updated);
+    return NextResponse.json(sanitizeClient(updated));
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'שגיאת שרת פנימית';
     return NextResponse.json({ error: message }, { status: 500 });

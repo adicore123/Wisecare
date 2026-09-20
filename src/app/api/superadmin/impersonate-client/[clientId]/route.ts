@@ -13,6 +13,7 @@ export async function POST(
     }
 
     const { clientId } = await props.params;
+    await db.ensureLoaded();
     const clients = db.collection('clients');
 
     const client = clients.findOne((c: any) => c.id === clientId || c.portalCode === clientId);

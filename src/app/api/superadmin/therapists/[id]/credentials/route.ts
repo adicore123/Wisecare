@@ -19,6 +19,7 @@ export async function PUT(
     const body = await request.json().catch(() => ({}));
     const { password, username, sendWhatsApp } = body;
 
+    await db.ensureLoaded();
     const users = db.collection('users');
     const target = users.findById(id);
     if (!target || target.role !== 'therapist') {

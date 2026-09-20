@@ -11,12 +11,16 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const clientId = searchParams.get('clientId');
-    const therapistId = searchParams.get('therapistId');
+    const requestedTherapistId = searchParams.get('therapistId');
+
+    await db.ensureLoaded();
 
     const tasksCollection = db.collection('tasks');
     const filter: Record<string, string> = {};
     if (clientId) filter.clientId = clientId;
-    if (therapistId) filter.therapistId = therapistId;
+    // Strict Tenant Scope: therapists always see only their own tasks
+    filter.therapistId = auth.role === 'therapist' ? auth.userId : requestedTherapistId;
+    if (!filter.therapistId) delete filter.therapistId;
 
     const tasks = tasksCollection.find(filter);
     await db.flush();
@@ -35,16 +39,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { clientId, therapistId, title, description, category, dueDate } = body;
+    const { clientId, title, description, category, dueDate } = body;
 
     if (!clientId || !title) {
       return NextResponse.json({ error: 'מזהה לקוח וכותרת משימה הינם שדות חובה' }, { status: 400 });
     }
 
+    await db.ensureLoaded();
+
+    // Strict Tenant Scope: therapists may only create tasks for their own clients
+    const client = db.collection('clients').findById(clientId);
+    if (!client) {
+      return NextResponse.json({ error: 'לקוח לא נמצא' }, { status: 404 });
+    }
+    if (auth.role === 'therapist' && client.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה ליצור משימה עבור לקוח זה' }, { status: 403 });
+    }
+    const therapistId = auth.role === 'superadmin' ? (body.therapistId || client.therapistId || auth.userId) : auth.userId;
+
     const tasks = db.collection('tasks');
     const newTask = tasks.insertOne({
       clientId,
-      therapistId: therapistId || auth.userId,
+      therapistId,
       title: title.trim(),
       description: description ? description.trim() : '',
       category: category || 'תרגול ביתי',

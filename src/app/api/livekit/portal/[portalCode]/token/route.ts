@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getClientAuthFromRequest } from '@/lib/auth';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { getLiveKitConfig, clientRoom, mintLiveKitToken } from '@/services/livekit';
 
@@ -7,7 +8,8 @@ import { getLiveKitConfig, clientRoom, mintLiveKitToken } from '@/services/livek
  * POST /api/livekit/portal/{portalCode}/token
  * Issues a participant (client-side) LiveKit token for the client's currently
  * active call room — the client can only join while the therapist has an open call.
- * Used by the "join now" banner inside the personal space (portalCode = credential).
+ * Used by the "join now" banner inside the personal space; requires the patient's
+ * portal session, not just the link.
  */
 export async function POST(
   request: NextRequest,
@@ -16,6 +18,11 @@ export async function POST(
   try {
     await db.ensureLoaded();
     const { portalCode } = await props.params;
+
+    const clientAuth = getClientAuthFromRequest(request);
+    if (!clientAuth || clientAuth.portalCode !== portalCode) {
+      return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
+    }
 
     const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
     const rate = checkRateLimit(`livekit-portal-join:${ip}`, 10, 60);

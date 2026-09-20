@@ -16,6 +16,7 @@ export async function POST(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const body = await request.json().catch(() => ({}));
     const { customMessage } = body;
 
@@ -25,6 +26,11 @@ export async function POST(request: NextRequest, props: RouteProps) {
     const client = clients.findById(id);
     if (!client) {
       return NextResponse.json({ error: 'לקוח לא נמצא' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope Guard: a therapist cannot message another therapist's patient
+    if (auth.role === 'therapist' && client.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין לך הרשאה לשלוח הודעה למטופל זה' }, { status: 403 });
     }
 
     const therapist = users.findById(client.therapistId);
@@ -43,7 +49,7 @@ export async function POST(request: NextRequest, props: RouteProps) {
         .replace(/{{therapistName}}/g, therapist ? therapist.name : 'המטפל/ת שלך')
         .replace(/{{portalUrl}}/g, portalUrl)
         .replace(/{{username}}/g, client.username || client.phone)
-        .replace(/{{password}}/g, client.initialPassword || client.pin || '')
+        .replace(/{{password}}/g, client.initialPassword || client.pin || 'ניתן לאפס דרך "שכחתי סיסמה" במסך הכניסה')
         .replace(/{{pin}}/g, client.pin);
     }
 

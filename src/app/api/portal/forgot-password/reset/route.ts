@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { hashPassword } from '@/lib/security';
 import { signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
+import { checkRateLimit } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +13,15 @@ export async function POST(request: NextRequest) {
     if (!identifier || !code || !newPassword) {
       return NextResponse.json({ error: 'נא למלא את כל השדות' }, { status: 400 });
     }
+
+    // Rate-limit per IP — the OTP itself is brute-forceable without this
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
+    const ipLimit = checkRateLimit(`forgotpw-reset:${ip}`, 15, 15 * 60);
+    if (!ipLimit.allowed) {
+      return NextResponse.json({ error: 'בוצעו יותר מדי ניסיונות. נסה/י שוב בעוד מספר דקות.' }, { status: 429 });
+    }
+
+    await db.ensureLoaded();
 
     if (String(newPassword).length < 8) {
       return NextResponse.json({ error: 'סיסמה חדשה חייבת להכיל לפחות 8 תווים' }, { status: 400 });
@@ -36,12 +46,25 @@ export async function POST(request: NextRequest) {
     }
 
     if (client.resetOtp.code !== cleanCode) {
-      return NextResponse.json({ error: 'קוד האימות שהוזן אינו נכון.' }, { status: 400 });
+      // Bound brute-force attempts on the 6-digit code
+      const attempts = (client.resetOtp.attempts || 0) + 1;
+      clients.updateById(client.id, {
+        resetOtp: attempts >= 5 ? null : { ...client.resetOtp, attempts }
+      });
+      await db.flush();
+      return NextResponse.json(
+        { error: attempts >= 5 ? 'חרגת ממספר הניסיונות. אנא בקש/י קוד חדש.' : 'קוד האימות שהוזן אינו נכון.' },
+        { status: attempts >= 5 ? 429 : 400 }
+      );
     }
 
     const passwordHash = hashPassword(String(newPassword).trim());
     clients.updateById(client.id, {
       password: passwordHash,
+      // A reset must invalidate every previous credential path — including the
+      // legacy plaintext one — or a "compromised" account stays compromised.
+      initialPassword: '',
+      hasPassword: true,
       resetOtp: null
     });
 

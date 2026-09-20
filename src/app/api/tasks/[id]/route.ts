@@ -14,11 +14,17 @@ export async function PUT(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const tasks = db.collection('tasks');
 
     const existing = tasks.findById(id);
     if (!existing) {
       return NextResponse.json({ error: 'משימה לא נמצאה' }, { status: 404 });
+    }
+
+    // Strict Tenant Scope: therapists may only update their own tasks
+    if (auth.role === 'therapist' && existing.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לעדכן משימה זו' }, { status: 403 });
     }
 
     const body = await request.json();
@@ -52,12 +58,19 @@ export async function DELETE(request: NextRequest, props: RouteProps) {
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const tasks = db.collection('tasks');
 
-    const success = tasks.deleteById(id);
-    if (!success) {
+    // Strict Tenant Scope: therapists may only delete their own tasks
+    const existing = tasks.findById(id);
+    if (!existing) {
       return NextResponse.json({ error: 'משימה לא נמצאה למחיקה' }, { status: 404 });
     }
+    if (auth.role === 'therapist' && existing.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה למחוק משימה זו' }, { status: 403 });
+    }
+
+    const success = tasks.deleteById(id);
 
     await db.flush();
     return NextResponse.json({ message: 'משימה נמחקה בהצלחה' });

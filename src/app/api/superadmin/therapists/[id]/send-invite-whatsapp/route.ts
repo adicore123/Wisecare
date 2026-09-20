@@ -24,6 +24,7 @@ export async function POST(
     }
 
     const { id } = await props.params;
+    await db.ensureLoaded();
     const users = db.collection('users');
     const therapist = users.findById(id);
 

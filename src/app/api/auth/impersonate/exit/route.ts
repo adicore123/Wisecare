@@ -5,12 +5,16 @@ import { verifyToken, createSessionCookie, createClearCookie, UserPayload } from
 export async function POST(request: Request) {
   try {
     const cookieHeader = request.headers.get('cookie') || '';
-    const cookies = Object.fromEntries(
-      cookieHeader.split(';').map(c => {
-        const [k, ...v] = c.trim().split('=');
-        return [k, decodeURIComponent(v.join('='))];
-      })
-    );
+    const cookies: Record<string, string> = {};
+    for (const part of cookieHeader.split(';')) {
+      const [k, ...v] = part.trim().split('=');
+      if (!k) continue;
+      try {
+        cookies[k] = decodeURIComponent(v.join('='));
+      } catch {
+        cookies[k] = v.join('=');
+      }
+    }
 
     // Fallback: check Authorization or custom header if cookie not present
     const authHeader = request.headers.get('authorization');
@@ -21,10 +25,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'לא נמצאה הרשאת מנהל ראשי לחזרה' }, { status: 400 });
     }
 
-    const payload = verifyToken<UserPayload>(adminToken);
+    const payload = verifyToken<UserPayload>(adminToken, 'wisecare-app');
     if (!payload || payload.role !== 'superadmin') {
       return NextResponse.json({ error: 'הרשאת מנהל ראשי אינה תקינה או שפג תוקפה' }, { status: 403 });
     }
+
+    await db.ensureLoaded();
 
     const admin = db.collection('users').findById(payload.userId);
     const { password: _, ...adminInfo } = admin || (payload as any);

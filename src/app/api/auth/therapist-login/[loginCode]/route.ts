@@ -10,6 +10,7 @@ interface RouteProps {
 export async function GET(request: Request, props: RouteProps) {
   try {
     const { loginCode } = await props.params;
+    await db.ensureLoaded();
     const users = db.collection('users');
     const therapist = users.findOne((u: any) => u.loginCode === loginCode && u.role === 'therapist');
 
@@ -63,6 +64,8 @@ export async function POST(request: Request, props: RouteProps) {
         error: `דף כניסה זה נחסם זמנית עקב ריבוי ניסיונות שגויים מטעמי אבטחה. נא לנסות שוב בעוד ${rateLimit.remainingMinutes} דקות.`
       }, { status: 429 });
     }
+
+    await db.ensureLoaded();
 
     const users = db.collection('users');
     const therapist = users.findOne((u: any) => u.loginCode === loginCode && u.role === 'therapist');

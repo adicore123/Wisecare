@@ -20,6 +20,11 @@ export async function POST(
       return NextResponse.json({ error: 'פריט התוכן לא נמצא' }, { status: 404 });
     }
 
+    // Strict Tenant Scope: therapists may only assign their own content
+    if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לשייך פריט זה' }, { status: 403 });
+    }
+
     const body = await request.json().catch(() => ({}));
     const clientIds: string[] = Array.isArray(body.clientIds)
       ? Array.from(new Set(body.clientIds.map((cid: any) => String(cid))))

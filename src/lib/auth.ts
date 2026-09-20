@@ -50,15 +50,38 @@ export function signClientToken(client: { id: string; portalCode: string }): str
 }
 
 /**
- * Verify a token and return the decoded payload
+ * Verify a token and return the decoded payload.
+ * When `audience` is given, tokens minted for a different audience are rejected
+ * (a portal client token can never authenticate as an app user token, and vice versa).
  */
-export function verifyToken<T = UserPayload>(token: string): T | null {
+export function verifyToken<T = UserPayload>(token: string, audience?: string): T | null {
   try {
     const secret = getSecret();
-    return jwt.verify(token, secret) as T;
+    const payload = audience
+      ? jwt.verify(token, secret, { audience })
+      : jwt.verify(token, secret);
+    return payload as T;
   } catch {
     return null;
   }
+}
+
+/**
+ * Parse a Cookie header safely — a malformed value (e.g. a stray '%') must never
+ * throw, or a single bad cookie would 500 every authenticated request.
+ */
+function parseCookies(cookieHeader: string): Record<string, string> {
+  const cookies: Record<string, string> = {};
+  for (const part of cookieHeader.split(';')) {
+    const [k, ...v] = part.trim().split('=');
+    if (!k) continue;
+    try {
+      cookies[k] = decodeURIComponent(v.join('='));
+    } catch {
+      cookies[k] = v.join('=');
+    }
+  }
+  return cookies;
 }
 
 /**
@@ -68,16 +91,11 @@ export function getAuthFromRequest(request: Request): UserPayload | null {
   // 1. Try reading from HttpOnly Cookie
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
-    const cookies = Object.fromEntries(
-      cookieHeader.split(';').map(c => {
-        const [k, ...v] = c.trim().split('=');
-        return [k, decodeURIComponent(v.join('='))];
-      })
-    );
+    const cookies = parseCookies(cookieHeader);
 
     const cookieToken = cookies['wisecare_token'] || cookies['wisecare_admin_token'];
     if (cookieToken) {
-      const payload = verifyToken<UserPayload>(cookieToken);
+      const payload = verifyToken<UserPayload>(cookieToken, 'wisecare-app');
       if (payload) return payload;
     }
   }
@@ -86,7 +104,7 @@ export function getAuthFromRequest(request: Request): UserPayload | null {
   const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    return verifyToken<UserPayload>(token);
+    return verifyToken<UserPayload>(token, 'wisecare-app');
   }
 
   return null;
@@ -98,16 +116,11 @@ export function getAuthFromRequest(request: Request): UserPayload | null {
 export function getClientAuthFromRequest(request: Request): ClientPayload | null {
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
-    const cookies = Object.fromEntries(
-      cookieHeader.split(';').map(c => {
-        const [k, ...v] = c.trim().split('=');
-        return [k, decodeURIComponent(v.join('='))];
-      })
-    );
+    const cookies = parseCookies(cookieHeader);
 
     const clientToken = cookies['wisecare_client_token'];
     if (clientToken) {
-      const payload = verifyToken<ClientPayload>(clientToken);
+      const payload = verifyToken<ClientPayload>(clientToken, 'wisecare-portal');
       if (payload) return payload;
     }
   }
@@ -115,10 +128,19 @@ export function getClientAuthFromRequest(request: Request): ClientPayload | null
   const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
-    return verifyToken<ClientPayload>(token);
+    return verifyToken<ClientPayload>(token, 'wisecare-portal');
   }
 
   return null;
+}
+
+/**
+ * True when the request carries a valid patient session for THIS portal.
+ * Every /api/portal/[portalCode]/* data route must pass this before reading/writing.
+ */
+export function isAuthorizedPortalClient(request: Request, portalCode: string): boolean {
+  const auth = getClientAuthFromRequest(request);
+  return Boolean(auth && auth.portalCode === portalCode);
 }
 
 /**

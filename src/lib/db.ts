@@ -19,11 +19,21 @@ try {
   console.warn('[DB File Init Warning]:', err.message);
 }
 
-const DEFAULT_MONGODB_URI = 'mongodb+srv://adi050levy_db_user:3Zplg7lfCBdcctJh@cluster0.fvfb8kq.mongodb.net/wisecare?retryWrites=true&w=majority';
+// Production must never boot against the stale deploy-time JSON bundle: if the URI
+// is missing there, fail loudly at import time instead of silently serving old data
+// (and a seeded admin) while every write evaporates.
+if (
+  process.env.NODE_ENV === 'production' &&
+  !process.env.MONGODB_URI &&
+  process.env.WISECARE_DISABLE_MONGODB !== '1'
+) {
+  throw new Error('[DB] MONGODB_URI is not configured. Refusing to boot production with a stale local data bundle.');
+}
 
 function getMongoUri(): string | null {
   if (process.env.WISECARE_DISABLE_MONGODB === '1') return null;
   if (process.env.MONGODB_URI) return process.env.MONGODB_URI;
+  // Dev-only convenience: a local (gitignored) credentials file.
   try {
     const credsPath = path.join(process.cwd(), 'atlas-credentials.env');
     if (fs.existsSync(credsPath)) {
@@ -39,11 +49,15 @@ function getMongoUri(): string | null {
     const message = err instanceof Error ? err.message : String(err);
     console.warn('[MongoDB] Could not read atlas-credentials.env:', message);
   }
-  return DEFAULT_MONGODB_URI;
+  return null;
 }
 
+// Seed accounts carry publicly-known passwords (they lived in git history) — they
+// must never be seeded into a production database, only into fresh dev environments.
+const seedDefaultUsers = process.env.NODE_ENV !== 'production' && process.env.WISECARE_SEED_DEMO_USERS !== '0';
+
 const defaultData = {
-  users: [
+  users: seedDefaultUsers ? [
     {
       id: 'superadmin-1',
       username: 'adicore123',
@@ -68,7 +82,7 @@ const defaultData = {
       active: true,
       createdAt: new Date().toISOString()
     }
-  ],
+  ] : [],
   clients: [],
   tasks: [],
   contentItems: [],

@@ -4,13 +4,26 @@ import { getAuthFromRequest } from '@/lib/auth';
 
 export async function GET(request: NextRequest) {
   try {
+    await db.ensureLoaded();
     const settings = db.getSettings();
     const auth = getAuthFromRequest(request);
 
-    // Full settings for authenticated users
-    if (auth && (auth.role === 'therapist' || auth.role === 'superadmin')) {
+    if (auth && auth.role === 'superadmin') {
       await db.flush();
       return NextResponse.json(settings);
+    }
+
+    // Therapists get the operational settings WITHOUT the Green API credentials —
+    // the WhatsApp token/instance is a platform secret, not a per-therapist setting
+    if (auth && auth.role === 'therapist') {
+      const {
+        greenApiToken: _t,
+        greenApiInstanceId: _i,
+        greenApiUrl: _u,
+        ...therapistSettings
+      } = settings;
+      await db.flush();
+      return NextResponse.json(therapistSettings);
     }
 
     // Public safe subset for patient portal / unauthenticated visitors
@@ -44,6 +57,8 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
     }
 
+    await db.ensureLoaded();
+
     const body = await request.json().catch(() => ({}));
     const allowedFields = [
       'clinicName',
@@ -57,11 +72,14 @@ export async function PUT(request: NextRequest) {
       'clinicArrivalInstructions',
       'clinicDescription',
       'themeId',
-      'greenApiToken',
-      'greenApiInstanceId',
-      'greenApiUrl',
       'defaultMessageTemplate'
     ];
+
+    // Green API credentials control the clinic's shared WhatsApp identity —
+    // superadmin only (whoever holds them can send as the clinic / re-pair the QR).
+    if (auth.role === 'superadmin') {
+      allowedFields.push('greenApiToken', 'greenApiInstanceId', 'greenApiUrl');
+    }
 
     const update: Record<string, any> = {};
     for (const field of allowedFields) {
@@ -73,8 +91,13 @@ export async function PUT(request: NextRequest) {
     if (body.defaultMessageTemplate !== undefined) update.defaultMessageTemplate = body.defaultMessageTemplate;
     if (body.clinicArrivalInstructions !== undefined) update.clinicArrivalInstructions = body.clinicArrivalInstructions;
 
+    // Never echo credentials back to a therapist session
     const updated = db.updateSettings(update);
     await db.flush();
+    if (auth.role !== 'superadmin') {
+      const { greenApiToken: _t, greenApiInstanceId: _i, greenApiUrl: _u, ...safeUpdated } = updated;
+      return NextResponse.json(safeUpdated);
+    }
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error('[Settings PUT Error]', error);

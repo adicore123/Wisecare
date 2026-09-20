@@ -182,7 +182,7 @@ export default function ClientDetailsModal({
       setCurrentClient(prev => ({
         ...prev,
         username: res.username || prev.username,
-        initialPassword: res.newPassword,
+        initialPassword: '',
         hasPassword: true
       }));
       showToast(res.message || 'סיסמה חדשה הוגדרה ונשלחה בוואטסאפ ללקוח! 📲');
@@ -195,7 +195,8 @@ export default function ClientDetailsModal({
 
   const handleOpenEditModal = () => {
     setEditUsername(currentClient.username || currentClient.phone || '');
-    setEditPassword(currentClient.initialPassword || '');
+    // Never prefilled — the stored password is not retrievable by design
+    setEditPassword('');
     setShowManualEditModal(true);
   };
 
@@ -220,7 +221,7 @@ export default function ClientDetailsModal({
       setCurrentClient(prev => ({
         ...prev,
         username: editUsername.trim(),
-        initialPassword: editPassword.trim(),
+        initialPassword: '',
         hasPassword: true
       }));
 

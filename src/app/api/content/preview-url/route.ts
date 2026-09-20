@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthFromRequest } from '@/lib/auth';
+import { checkRateLimit } from '@/lib/rateLimit';
 import {
   cleanUrl,
   decodeHtmlEntities,
@@ -9,6 +10,18 @@ import {
 
 export async function POST(request: NextRequest) {
   try {
+    // Authenticated therapists only — this is an outbound fetcher, never a public proxy
+    const auth = getAuthFromRequest(request);
+    if (!auth || (auth.role !== 'therapist' && auth.role !== 'superadmin')) {
+      return NextResponse.json({ error: 'גישה מורשית למטפלים בלבד' }, { status: 403 });
+    }
+
+    const ip = (request.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'local';
+    const rl = checkRateLimit(`preview-url:${ip}`, 30, 60);
+    if (!rl.allowed) {
+      return NextResponse.json({ error: 'בוצעו יותר מדי בקשות. נסה/י שוב בעוד דקה.' }, { status: 429 });
+    }
+
     // URL preview is safe as isPublicWebUrl guards against internal SSRF
     const body = await request.json().catch(() => ({}));
     const url = cleanUrl(body.url);

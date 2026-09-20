@@ -23,6 +23,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'השיוך למטופל לא נמצא' }, { status: 404 });
     }
 
+    // Strict Tenant Scope: therapists may only manage assignments of their own content
+    if (auth.role === 'therapist' && assignment.therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה להסיר שיוך זה' }, { status: 403 });
+    }
+
     db.collection('contentAssignments').deleteById(assignment.id);
     await db.flush();
     return NextResponse.json({ success: true, message: 'התוכן הוסר מהמטופל שנבחר' });

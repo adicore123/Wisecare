@@ -6,6 +6,7 @@ import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
 import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
 import { hashPassword, generateSecurePassword } from '@/lib/security';
+import { sanitizeClient } from '@/lib/clientSanitize';
 
 function generatePortalCode(firstName: string): string {
   const cleanName = (firstName || 'client')
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
       const clientTasks = tasksCollection.find({ clientId: c.id });
       const completedTasks = clientTasks.filter((t: any) => t.completed).length;
       return {
-        ...c,
+        ...sanitizeClient(c),
         tasksTotal: clientTasks.length,
         tasksCompleted: completedTasks,
         tasksPending: clientTasks.length - completedTasks
@@ -86,6 +87,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם פרטי, שם משפחה ומספר טלפון הינם שדות חובה' }, { status: 400 });
     }
 
+    // Strict Tenant Scope: a therapist can only open clients under themselves
+    if (auth.role === 'therapist' && therapistId !== auth.userId) {
+      return NextResponse.json({ error: 'אין הרשאה לפתוח תיק תחת מטפל אחר' }, { status: 403 });
+    }
     if (!therapistId) {
       return NextResponse.json({ error: 'חסר מזהה מטפל (therapistId)' }, { status: 400 });
     }
@@ -158,7 +163,8 @@ export async function POST(request: NextRequest) {
       phone: phone.trim(),
       username: chosenUsername,
       password: hashedPassword,
-      initialPassword: rawPassword || '',
+      // Only the hash is persisted; the plaintext goes to the patient via WhatsApp alone
+      initialPassword: '',
       hasPassword,
       clientSetsCredentials,
       age: Number(age) || null,
@@ -223,7 +229,7 @@ export async function POST(request: NextRequest) {
     await db.flush();
 
     return NextResponse.json({
-      client: newClient,
+      client: sanitizeClient(newClient),
       whatsappResult
     }, { status: 201 });
   } catch (err: unknown) {
