@@ -927,6 +927,41 @@ export const api = {
       throw new Error(err.error || 'שגיאה בשליחת ההצעה');
     }
     return res.json();
+  },
+
+  // Quote templates (תבניות הצעות מחיר)
+  getQuoteTemplates: async () => {
+    const res = await fetch(`${API_BASE}/quote-templates`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת התבניות');
+    }
+    return res.json();
+  },
+
+  createQuoteTemplate: async (payload: { name: string; options: Array<Record<string, unknown>> }) => {
+    const res = await fetch(`${API_BASE}/quote-templates`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשמירת התבנית');
+    }
+    return res.json();
+  },
+
+  deleteQuoteTemplate: async (templateId: string) => {
+    const res = await fetch(`${API_BASE}/quote-templates/${encodeURIComponent(templateId)}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת התבנית');
+    }
+    return res.json();
   }
 };
 

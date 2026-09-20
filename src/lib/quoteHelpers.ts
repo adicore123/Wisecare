@@ -128,6 +128,111 @@ export function quoteChosenOptionLabel(quote: { options?: Array<{ id: string; la
   return chosen.pricingModel === 'package' ? `${chosen.label} (${chosen.sessionsCount} מפגשים)` : chosen.label;
 }
 
+// ---------------- Quote templates (תבניות הצעות מחיר) ----------------
+
+export interface TemplateOption {
+  id: string;
+  label: string;
+  pricingModel: QuotePricingModel;
+  sessionsCount: number;
+  /** Default per-session price that pre-fills the editor; 0 = not set yet */
+  sessionPrice: number;
+}
+
+/**
+ * Validate & normalize template options. Unlike quote options, the price is
+ * OPTIONAL — a template is a reusable structure ("10 מפגשים") and the therapist
+ * only fills the amount when creating a quote from it.
+ */
+export function normalizeTemplateOptions(raw: unknown): { options: TemplateOption[] } | { error: string } {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return { error: 'יש לכלול לפחות אפשרות אחת בתבנית' };
+  }
+  if (raw.length > 4) {
+    return { error: 'ניתן לכלול עד 4 אפשרויות בתבנית' };
+  }
+
+  const options: TemplateOption[] = [];
+  for (const [index, entry] of raw.entries()) {
+    if (!entry || typeof entry !== 'object') {
+      return { error: `אפשרות ${index + 1} בתבנית אינה תקינה` };
+    }
+    const item = entry as Record<string, unknown>;
+
+    const label = String(item.label || '').trim().slice(0, 120);
+    if (!label) {
+      return { error: `יש לתת שם לאפשרות ${index + 1} בתבנית` };
+    }
+
+    const pricingModel: QuotePricingModel = item.pricingModel === 'package' ? 'package' : 'single';
+
+    let sessionsCount = 1;
+    if (pricingModel === 'package') {
+      const rawCount = Number(item.sessionsCount);
+      if (!Number.isInteger(rawCount) || rawCount < 2 || rawCount > 96) {
+        return { error: `באפשרות "${label}" (חבילה) יש להזין מספר מפגשים תקין בין 2 ל-96` };
+      }
+      sessionsCount = rawCount;
+    }
+
+    const rawPrice = Number(item.sessionPrice);
+    const sessionPrice = Number.isFinite(rawPrice) && rawPrice > 0 ? Math.round(rawPrice * 100) / 100 : 0;
+
+    options.push({
+      id: typeof item.id === 'string' && item.id ? item.id : `opt-${index + 1}-${Math.random().toString(36).slice(2, 8)}`,
+      label,
+      pricingModel,
+      sessionsCount,
+      sessionPrice
+    });
+  }
+
+  return { options };
+}
+
+/** Standard templates seeded on first use — טיפול בודד / 5 / 10 / 15 מפגשים. */
+export function defaultQuoteTemplates(therapistId: string): Array<{ therapistId: string; name: string; options: TemplateOption[] }> {
+  return [
+    {
+      therapistId,
+      name: 'טיפול בודד',
+      options: [
+        { id: 'tpl-single-1', label: 'טיפול בודד', pricingModel: 'single', sessionsCount: 1, sessionPrice: 0 }
+      ]
+    },
+    {
+      therapistId,
+      name: '5 מפגשים',
+      options: [
+        { id: 'tpl-5-1', label: 'תהליך קצר — 5 מפגשים', pricingModel: 'package', sessionsCount: 5, sessionPrice: 0 }
+      ]
+    },
+    {
+      therapistId,
+      name: '10 מפגשים',
+      options: [
+        { id: 'tpl-10-1', label: 'תהליך טיפולי — 10 מפגשים', pricingModel: 'package', sessionsCount: 10, sessionPrice: 0 }
+      ]
+    },
+    {
+      therapistId,
+      name: '15 מפגשים',
+      options: [
+        { id: 'tpl-15-1', label: 'תהליך מעמיק — 15 מפגשים', pricingModel: 'package', sessionsCount: 15, sessionPrice: 0 }
+      ]
+    }
+  ];
+}
+
+/** Short chip summary for a template, e.g. "10 מפגשים · 350 ₪ למפגש". */
+export function templateSummary(options: TemplateOption[] | undefined): string {
+  return (options || [])
+    .map(o => o.pricingModel === 'package'
+      ? `${o.sessionsCount} מפגשים${o.sessionPrice ? ` · ${formatILS(o.sessionPrice)} למפגש` : ''}`
+      : `מפגש בודד${o.sessionPrice ? ` · ${formatILS(o.sessionPrice)}` : ''}`)
+    .join(' · ');
+}
+
 /** The WhatsApp message the potential client receives with the quote link. */
 export function buildQuoteMessageForLead(quote: QuoteRecord, quoteUrl: string): string {
   const lines: string[] = [

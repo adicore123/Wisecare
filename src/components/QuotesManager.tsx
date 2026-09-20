@@ -16,10 +16,18 @@ import {
   User,
   UserPlus,
   Link2,
+  BookmarkPlus,
+  Layers,
   Search
 } from 'lucide-react';
 import { api } from '@/lib/api';
-import { formatILS, quoteStatusMeta, quoteOptionsSummary, quoteChosenOptionLabel } from '@/lib/quoteHelpers';
+import {
+  formatILS,
+  quoteStatusMeta,
+  quoteOptionsSummary,
+  quoteChosenOptionLabel,
+  templateSummary
+} from '@/lib/quoteHelpers';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -72,6 +80,18 @@ interface ClientOption {
   phone: string;
 }
 
+interface TemplateRow {
+  id: string;
+  name: string;
+  options: Array<{
+    id: string;
+    label: string;
+    pricingModel: 'single' | 'package';
+    sessionsCount: number;
+    sessionPrice: number;
+  }>;
+}
+
 type StatusFilter = 'all' | 'sent' | 'confirmed' | 'declined';
 
 const STATUS_FILTERS: Array<{ key: StatusFilter; label: string; color: string; bg: string; border: string }> = [
@@ -106,8 +126,14 @@ function formatDate(value: string | null): string {
 export default function QuotesManager() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
+
+  // Save-as-template (editor)
+  const [saveTemplateName, setSaveTemplateName] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const [deleteTemplateModal, setDeleteTemplateModal] = useState<TemplateRow | null>(null);
 
   // Editor state (null = list view)
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -150,10 +176,106 @@ export default function QuotesManager() {
     }
   }, []);
 
+  const loadTemplates = useCallback(async () => {
+    try {
+      const data = await api.getQuoteTemplates();
+      setTemplates(Array.isArray(data) ? data : []);
+    } catch {
+      // Non-blocking — quotes still work without templates
+    }
+  }, []);
+
   useEffect(() => {
     loadQuotes();
     loadClients();
-  }, [loadQuotes, loadClients]);
+    loadTemplates();
+  }, [loadQuotes, loadClients, loadTemplates]);
+
+  // Start a NEW quote from a template — the therapist only fills client + amount
+  const startFromTemplate = (template: TemplateRow) => {
+    setDraft({
+      clientId: '',
+      newClient: null,
+      leadName: '',
+      leadPhone: '',
+      title: template.name,
+      description: '',
+      options: (template.options || []).map(o => ({
+        id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        label: o.label,
+        pricingModel: o.pricingModel,
+        sessionPrice: o.sessionPrice ? String(o.sessionPrice) : '',
+        sessionsCount: String(o.sessionsCount || '')
+      }))
+    });
+    setShowNewClientForm(false);
+    setSaveTemplateName('');
+    setEditingId(null);
+    setIsNew(true);
+  };
+
+  // Save the current editor structure (+ prices as defaults) as a reusable template
+  const saveDraftAsTemplate = async () => {
+    if (!saveTemplateName.trim()) {
+      showToast('נא להזין שם לתבנית', 'error');
+      return;
+    }
+    if (draft.options.length === 0) {
+      showToast('יש להוסיף לפחות אפשרות מחיר אחת לפני השמירה כתבנית', 'error');
+      return;
+    }
+    setSavingTemplate(true);
+    try {
+      await api.createQuoteTemplate({
+        name: saveTemplateName.trim(),
+        options: draft.options.map(o => ({
+          label: o.label.trim(),
+          pricingModel: o.pricingModel,
+          sessionsCount: Number(o.sessionsCount) || (o.pricingModel === 'single' ? 1 : 2),
+          sessionPrice: Number(o.sessionPrice) || 0
+        }))
+      });
+      setSaveTemplateName('');
+      await loadTemplates();
+      showToast('התבנית נשמרה ותופיע ברשימת התבניות המהירות ✨');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשמירת התבנית', 'error');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  // Turn an existing quote into a reusable template (prices become the defaults)
+  const saveQuoteAsTemplate = async (quote: QuoteRow) => {
+    try {
+      await api.createQuoteTemplate({
+        name: quote.title || `תבנית — ${quote.leadName}`,
+        options: (quote.options || []).map(o => ({
+          label: o.label,
+          pricingModel: o.pricingModel,
+          sessionsCount: o.sessionsCount,
+          sessionPrice: o.sessionPrice
+        }))
+      });
+      await loadTemplates();
+      showToast('ההצעה נשמרה כתבנית לשימוש חוזר ✨');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשמירת התבנית', 'error');
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!deleteTemplateModal) return;
+    try {
+      await api.deleteQuoteTemplate(deleteTemplateModal.id);
+      setTemplates(current => current.filter(t => t.id !== deleteTemplateModal.id));
+      showToast('התבנית נמחקה בהצלחה');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה במחיקת התבנית', 'error');
+    } finally {
+      setDeleteTemplateModal(null);
+    }
+  };
 
   const openNew = () => {
     setDraft(EMPTY_DRAFT());
@@ -179,6 +301,7 @@ export default function QuotesManager() {
       }))
     });
     setShowNewClientForm(false);
+    setSaveTemplateName('');
   };
 
   const openEdit = (quote: QuoteRow) => {
@@ -610,6 +733,34 @@ export default function QuotesManager() {
               ביטול
             </button>
           </div>
+
+          {/* Save as a reusable template */}
+          <div style={{
+            marginTop: '18px', paddingTop: '14px', borderTop: '1px dashed #e2e8f0',
+            display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'
+          }}>
+            <BookmarkPlus size={16} style={{ color: '#64748b' }} />
+            <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600 }}>
+              שמירת המבנה כתבנית לשימוש חוזר:
+            </span>
+            <input
+              className="form-control"
+              style={{ maxWidth: '180px', padding: '7px 12px', fontSize: '0.85rem' }}
+              value={saveTemplateName}
+              onChange={e => setSaveTemplateName(e.target.value)}
+              placeholder="שם התבנית"
+            />
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={saveDraftAsTemplate}
+              disabled={savingTemplate}
+              style={{ padding: '7px 14px', fontSize: '0.85rem' }}
+            >
+              {savingTemplate ? <Loader2 size={14} className="spin" /> : <BookmarkPlus size={14} />}
+              שמירה כתבנית
+            </button>
+          </div>
         </div>
 
         <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
@@ -648,6 +799,53 @@ export default function QuotesManager() {
           <div className="stat-info"><strong>{stats.declined}</strong><span>לא אושר</span></div>
         </div>
       </div>
+
+      {/* Quick-start templates — click to open a pre-filled editor */}
+      {templates.length > 0 && (
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
+            <Layers size={15} /> תבניות מהירות:
+          </span>
+          {templates.map(template => (
+            <span
+              key={template.id}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                border: '1px solid #e2e8f0', background: '#ffffff',
+                borderRadius: '999px', overflow: 'hidden'
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => startFromTemplate(template)}
+                title={`הצעה חדשה מהתבנית — ${templateSummary(template.options)}`}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  padding: '7px 12px 7px 14px', cursor: 'pointer', border: 'none',
+                  background: 'transparent', fontSize: '0.85rem', fontWeight: 700, color: '#0f766e'
+                }}
+              >
+                {template.name}
+                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8' }}>
+                  {templateSummary(template.options)}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeleteTemplateModal(template)}
+                aria-label={`מחיקת תבנית ${template.name}`}
+                title="מחיקת תבנית"
+                style={{
+                  border: 'none', background: 'transparent', cursor: 'pointer',
+                  padding: '6px 10px 6px 6px', color: '#cbd5e1', display: 'inline-flex'
+                }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Filters + search */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
@@ -798,6 +996,9 @@ export default function QuotesManager() {
                             <button type="button" className="btn-icon" onClick={() => duplicateQuote(quote)} aria-label="שכפול" title="שכפול להצעה חדשה">
                               <CopyPlus size={16} />
                             </button>
+                            <button type="button" className="btn-icon" onClick={() => saveQuoteAsTemplate(quote)} aria-label="שמור כתבנית" title="שמירה כתבנית לשימוש חוזר">
+                              <BookmarkPlus size={16} />
+                            </button>
                             <button type="button" className="btn-icon" onClick={() => setDeleteModal(quote)} aria-label="מחיקה" title="מחיקה">
                               <Trash2 size={16} />
                             </button>
@@ -865,6 +1066,15 @@ export default function QuotesManager() {
         title="מחיקת הצעת מחיר"
         message={deleteModal ? `ההצעה עבור ${deleteModal.leadName}${deleteModal.title ? ` — "${deleteModal.title}"` : ''} תימחק לצמיתות.` : ''}
         confirmText="מחק הצעה"
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deleteTemplateModal)}
+        onClose={() => setDeleteTemplateModal(null)}
+        onConfirm={handleDeleteTemplate}
+        title="מחיקת תבנית"
+        message={deleteTemplateModal ? `התבנית "${deleteTemplateModal.name}" תימחק. הצעות שנוצרו ממנה אינן מושפעות.` : ''}
+        confirmText="מחק תבנית"
       />
 
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
