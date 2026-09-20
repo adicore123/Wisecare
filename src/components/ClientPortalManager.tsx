@@ -4,11 +4,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
 import { 
-  HeartHandshake, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles, 
-  ArrowRight, 
+  HeartHandshake,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+  Palette,
+  ArrowRight,
   Send, 
   Calendar,
   MessageCircle,
@@ -63,6 +64,7 @@ import WhatsAppIcon from './WhatsAppIcon';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import SignatureCanvas from './SignatureCanvas';
 import { applyTheme } from '@/lib/theme';
+import ThemePalettePicker from './ThemePalettePicker';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -337,6 +339,25 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [pinFormNew, setPinFormNew] = useState('');
   const [pinFormConfirm, setPinFormConfirm] = useState('');
   const [settingsMsg, setSettingsMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  // Optimistic palette selection — null means "follow the server value"
+  const [portalThemeOverride, setPortalThemeOverride] = useState<string | null>(null);
+
+  // Patient restyles their own space: applied instantly (no save button),
+  // persisted to the client record, and picked up by the SSR injection on
+  // every future visit. persist:false — never touches the CRM's stored palette.
+  const handleSelectPortalTheme = async (themeId: string) => {
+    const previous = portalThemeOverride ?? portalInfo?.themeId ?? 'sage';
+    setPortalThemeOverride(themeId);
+    applyTheme(themeId, { persist: false });
+    try {
+      await api.updatePortalTheme(portalCode, themeId);
+      setSettingsMsg({ type: 'success', text: 'פלטת המרחב האישי עודכנה ✨' });
+    } catch (err: any) {
+      setPortalThemeOverride(previous);
+      applyTheme(previous, { persist: false });
+      setSettingsMsg({ type: 'error', text: err.message || 'שגיאה בעדכון הפלטה' });
+    }
+  };
 
   // Initial Onboarding Credentials Setup State (when client chooses username & password)
   const [setupUsername, setSetupUsername] = useState('');
@@ -5066,7 +5087,24 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               </button>
             </div>
 
-            {/* Section 3: Account & Clinic Summary */}
+            {/* Section 3: Palette — the patient restyles their own space */}
+            <div className="portal-settings-section">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <Palette size={18} color="var(--primary)" />
+                <span style={{ fontWeight: 800, fontSize: '0.98rem', color: '#0f172a' }}>
+                  פלטת הצבעים של המרחב שלי
+                </span>
+              </div>
+              <p style={{ fontSize: '0.84rem', color: '#64748b', lineHeight: 1.5, margin: '0 0 12px 0' }}>
+                בחר/י את הפלטה שמרגישה לך נכון — המרחב ייצבע מיד בצבעים שלה, והבחירה תישמר לכניסות הבאות.
+              </p>
+              <ThemePalettePicker
+                value={portalThemeOverride ?? portalInfo?.themeId ?? 'sage'}
+                onChange={handleSelectPortalTheme}
+              />
+            </div>
+
+            {/* Section 4: Account & Clinic Summary */}
             <div className="portal-settings-section" style={{ fontSize: '0.86rem', color: '#475569' }}>
               <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '8px' }}>פרטי החשבון שלך</div>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>

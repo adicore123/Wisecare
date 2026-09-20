@@ -384,6 +384,19 @@ export const api = {
     return res.json();
   },
 
+  updatePortalTheme: async (portalCode: string, themeId: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/theme`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ themeId })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון הפלטה');
+    }
+    return res.json();
+  },
+
   addPortalInsight: async (portalCode, data) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/insights`, {
       method: 'POST',
