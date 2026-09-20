@@ -123,12 +123,34 @@ function formatDate(value: string | null): string {
   }
 }
 
+function initialsOf(name: string): string {
+  const parts = (name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '?';
+  return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+}
+
+/** "₪450" or "₪450–1,200" across the quote's options */
+function quotePriceRange(options: QuoteRow['options'] | undefined): string {
+  const totals = (options || [])
+    .map(o => Number(o.totalPrice ?? (Number(o.sessionPrice) || 0) * (Number(o.sessionsCount) || 1)))
+    .filter(n => n > 0);
+  if (!totals.length) return '—';
+  const fmt = (n: number) => `₪${n.toLocaleString('he-IL')}`;
+  const min = Math.min(...totals);
+  const max = Math.max(...totals);
+  return min === max ? fmt(min) : `${fmt(min)}–${fmt(max)}`;
+}
+
 export default function QuotesManager() {
   const [quotes, setQuotes] = useState<QuoteRow[]>([]);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [templates, setTemplates] = useState<TemplateRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
+
+  // Standalone post-save prompt: "send it to the client now?" — decoupled from
+  // the table on purpose; it fires right after a quote is created.
+  const [pendingSend, setPendingSend] = useState<QuoteRow | null>(null);
 
   // Save-as-template (editor)
   const [saveTemplateName, setSaveTemplateName] = useState('');
@@ -402,8 +424,11 @@ export default function QuotesManager() {
     setSaving(true);
     try {
       if (isNew) {
-        await api.createQuote(payload);
-        showToast('ההצעה נוצרה בהצלחה וממתינה לשליחה ✨');
+        const created = await api.createQuote(payload) as QuoteRow;
+        showToast('ההצעה נוצרה בהצלחה ✨');
+        // Offer the WhatsApp send immediately — the therapist just finished
+        // building the quote; sending shouldn't require hunting the row in the table.
+        if (created && created.id) setPendingSend(created);
       } else {
         await api.updateQuote(editingId!, payload);
         showToast('ההצעה עודכנה בהצלחה ✨');
@@ -910,16 +935,17 @@ export default function QuotesManager() {
             <p>נסה/י סינון או חיפוש אחר.</p>
           </div>
         ) : (
-          <div className="content-table-shell">
-            <div className="table-responsive">
-              <table>
+          <div className="quotes-table-card">
+            <div className="quotes-table-scroll">
+              <table className="quotes-table">
                 <thead>
                   <tr>
                     <th>לקוח</th>
                     <th>הצעה</th>
+                    <th>היקף</th>
                     <th>סטטוס</th>
                     <th>נשלח / נענה</th>
-                    <th>פעולות</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -931,55 +957,53 @@ export default function QuotesManager() {
                     return (
                       <tr key={quote.id}>
                         <td>
-                          <div className="content-table-primary">
-                            <div className="content-table-copy">
-                              <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <User size={14} /> {quote.leadName}
+                          <div className="qt-client">
+                            <div className="qt-avatar" aria-hidden="true">{initialsOf(quote.leadName)}</div>
+                            <div className="qt-client-copy">
+                              <span className="qt-name">
+                                {quote.leadName}
                                 {quote.clientId && (
-                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', background: '#eef2ff', color: '#4338ca', border: '1px solid #e0e7ff', borderRadius: '8px', padding: '1px 7px', fontSize: '0.68rem', fontWeight: 700 }}>
-                                    <Link2 size={10} /> מקושר לתיק
+                                  <span className="qt-linked" title="מקושר לתיק לקוח">
+                                    <Link2 size={10} /> תיק
                                   </span>
                                 )}
-                              </strong>
-                              <span dir="ltr" style={{ color: '#64748b' }}>{quote.leadPhone}</span>
+                              </span>
+                              <span className="qt-sub" dir="ltr">{quote.leadPhone}</span>
                             </div>
                           </div>
                         </td>
                         <td>
-                          <div className="content-table-copy">
-                            <strong>{quote.title || 'הצעת מחיר'}</strong>
-                            <span>{quoteOptionsSummary(quote.options)}</span>
+                          <div className="qt-quote-copy">
+                            <span className="qt-title">{quote.title || 'הצעת מחיר'}</span>
+                            <span className="qt-sub">{quoteOptionsSummary(quote.options)}</span>
                           </div>
                         </td>
                         <td>
-                          <span style={{
-                            background: status.bg, color: status.color, border: `1px solid ${status.border}`,
-                            borderRadius: '8px', padding: '2px 8px', fontSize: '0.72rem', fontWeight: 700,
-                            whiteSpace: 'nowrap', display: 'inline-block'
-                          }}>
+                          <span className="qt-amount">{quotePriceRange(quote.options)}</span>
+                        </td>
+                        <td>
+                          <span className="qt-chip" style={{ background: status.bg, color: status.color, border: `1px solid ${status.border}` }}>
+                            <span className="qt-dot" aria-hidden="true" />
                             {status.text}
                           </span>
                           {decided && quoteChosenOptionLabel(quote) && (
-                            <div style={{ marginTop: '6px', fontSize: '0.78rem', color: '#334155', fontWeight: 600 }}>
-                              נבחר: {quoteChosenOptionLabel(quote)}
-                            </div>
+                            <div className="qt-chosen">נבחר: {quoteChosenOptionLabel(quote)}</div>
                           )}
                         </td>
                         <td>
-                          <span className="content-table-date">{formatDate(quote.sentAt)}</span>
-                          {decided && (
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
-                              החלטה: {formatDate(quote.decidedAt)}
-                            </div>
-                          )}
+                          <div className="qt-date">
+                            <span>{formatDate(quote.sentAt)}</span>
+                            {decided && (
+                              <span className="qt-sub">החלטה: {formatDate(quote.decidedAt)}</span>
+                            )}
+                          </div>
                         </td>
                         <td>
-                          <div className="content-table-actions" style={{ gap: '6px' }}>
+                          <div className="qt-actions">
                             {canSend && (
                               <button
                                 type="button"
-                                className="btn btn-primary"
-                                style={{ background: 'var(--primary)', padding: '7px 12px', fontSize: '0.8rem' }}
+                                className="qt-send"
                                 onClick={() => handleSend(quote)}
                                 disabled={sendingId === quote.id}
                                 title="שליחה בוואטסאפ ללקוח"
@@ -989,17 +1013,17 @@ export default function QuotesManager() {
                               </button>
                             )}
                             {canEdit && (
-                              <button type="button" className="btn-icon" onClick={() => openEdit(quote)} aria-label="עריכה" title="עריכה">
+                              <button type="button" className="qt-icon-btn" onClick={() => openEdit(quote)} aria-label="עריכה" title="עריכה">
                                 <Pencil size={16} />
                               </button>
                             )}
-                            <button type="button" className="btn-icon" onClick={() => duplicateQuote(quote)} aria-label="שכפול" title="שכפול להצעה חדשה">
+                            <button type="button" className="qt-icon-btn" onClick={() => duplicateQuote(quote)} aria-label="שכפול" title="שכפול להצעה חדשה">
                               <CopyPlus size={16} />
                             </button>
-                            <button type="button" className="btn-icon" onClick={() => saveQuoteAsTemplate(quote)} aria-label="שמור כתבנית" title="שמירה כתבנית לשימוש חוזר">
+                            <button type="button" className="qt-icon-btn" onClick={() => saveQuoteAsTemplate(quote)} aria-label="שמור כתבנית" title="שמירה כתבנית">
                               <BookmarkPlus size={16} />
                             </button>
-                            <button type="button" className="btn-icon" onClick={() => setDeleteModal(quote)} aria-label="מחיקה" title="מחיקה">
+                            <button type="button" className="qt-icon-btn qt-danger" onClick={() => setDeleteModal(quote)} aria-label="מחיקה" title="מחיקה">
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -1013,6 +1037,36 @@ export default function QuotesManager() {
           </div>
         )}
       </div>
+
+      {/* Post-save prompt — standalone, fires right after a quote is created */}
+      {pendingSend && (
+        <div className="modal-overlay" onClick={() => setPendingSend(null)}>
+          <div className="modal-card qt-send-prompt" onClick={e => e.stopPropagation()}>
+            <div className="qt-send-prompt-icon" aria-hidden="true">
+              <WhatsAppIcon size={30} />
+            </div>
+            <h2 className="qt-send-prompt-title">ההצעה נשמרה! 🎉</h2>
+            <p className="qt-send-prompt-text">
+              לשלוח עכשיו ל<span className="qt-send-prompt-name">{pendingSend.leadName}</span> הצעת מחיר
+              {quotePriceRange(pendingSend.options) !== '—' ? ` בהיקף ${quotePriceRange(pendingSend.options)}` : ''} בוואטסאפ?
+            </p>
+            <p className="qt-send-prompt-hint">הלקוח יקבל קישור אישי ויוכל לאשר בלחיצה אחת</p>
+            <div className="qt-send-prompt-actions">
+              <button
+                type="button"
+                className="qt-send"
+                style={{ padding: '11px 22px', fontSize: '0.92rem' }}
+                onClick={() => { const q = pendingSend; setPendingSend(null); handleSend(q); }}
+              >
+                <WhatsAppIcon size={17} /> כן, שליחה עכשיו
+              </button>
+              <button type="button" className="qt-later" onClick={() => setPendingSend(null)}>
+                לא עכשיו
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Send result modal */}
       {sendResult && (
