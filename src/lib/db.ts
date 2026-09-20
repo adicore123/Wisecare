@@ -91,6 +91,7 @@ const defaultData = {
   appointments: [],
   formTemplates: [],
   formSignatures: [],
+  quotes: [],
   settings: {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
@@ -117,7 +118,8 @@ const ENTITY_COLLECTIONS = [
   'formSignatures',
   'auditLogs',
   'videoCalls',
-  'scheduledCalls'
+  'scheduledCalls',
+  'quotes'
 ];
 
 export class Database {

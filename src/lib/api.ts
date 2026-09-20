@@ -867,6 +867,66 @@ export const api = {
       throw new Error(err.error || 'שגיאה באיפוס ושליחת הסיסמה בוואטסאפ');
     }
     return res.json();
+  },
+
+  // Price quotes for potential clients (הצעות מחיר)
+  getQuotes: async () => {
+    const res = await fetch(`${API_BASE}/quotes`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת ההצעות');
+    }
+    return res.json();
+  },
+
+  createQuote: async (payload: Record<string, unknown>) => {
+    const res = await fetch(`${API_BASE}/quotes`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת ההצעה');
+    }
+    return res.json();
+  },
+
+  updateQuote: async (quoteId: string, payload: Record<string, unknown>) => {
+    const res = await fetch(`${API_BASE}/quotes/${encodeURIComponent(quoteId)}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון ההצעה');
+    }
+    return res.json();
+  },
+
+  deleteQuote: async (quoteId: string) => {
+    const res = await fetch(`${API_BASE}/quotes/${encodeURIComponent(quoteId)}`, {
+      method: 'DELETE',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת ההצעה');
+    }
+    return res.json();
+  },
+
+  sendQuote: async (quoteId: string) => {
+    const res = await fetch(`${API_BASE}/quotes/${encodeURIComponent(quoteId)}/send`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחת ההצעה');
+    }
+    return res.json();
   }
 };
 

@@ -14,6 +14,7 @@ import {
   FileSignature,
   Video,
   Webcam,
+  Receipt,
   X
 } from 'lucide-react';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
@@ -111,7 +112,17 @@ export default function Sidebar({
             </button>
           )}
 
-          <button 
+          <button
+            type="button"
+            className={`nav-item ${currentTab === 'quotes' ? 'active' : ''}`}
+            onClick={() => handleNavClick('quotes')}
+            aria-current={currentTab === 'quotes' ? 'page' : undefined}
+          >
+            <Receipt size={20} />
+            <span>הצעות מחיר</span>
+          </button>
+
+          <button
             type="button"
             className={`nav-item ${currentTab === 'appointments' ? 'active' : ''}`}
             onClick={() => handleNavClick('appointments')}
