@@ -39,7 +39,9 @@ export async function getPortalPayload(portalCode: string, options: { includePri
     clinicFloor: settings.clinicFloor || '',
     clinicPhone: settings.clinicPhone || therapist?.phone || '',
     clinicArrivalInstructions: settings.clinicArrivalInstructions || '',
-    themeId: settings.themeId || 'sage',
+    // Per-client palette (set in the client edit form) — deliberately NOT the
+    // clinic-wide settings.themeId, so repainting the CRM never touches portals
+    themeId: client.themeId || 'sage',
     portalCode: client.portalCode,
     clientName: `${client.firstName} ${client.lastName}`.trim(),
     firstName: client.firstName,

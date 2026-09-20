@@ -4,6 +4,7 @@ import { getAuthFromRequest } from '@/lib/auth';
 import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
 import { hashPassword } from '@/lib/security';
 import { sanitizeClient } from '@/lib/clientSanitize';
+import { THEME_PALETTES } from '@/lib/theme';
 
 interface RouteProps {
   params: Promise<{ id: string }>;
@@ -121,6 +122,11 @@ export async function PUT(request: NextRequest, props: RouteProps) {
         updateData[field] = typeof body[field] === 'string' ? body[field].trim() : body[field];
       }
     });
+
+    // The client portal's own palette — validated against the known palette ids
+    if (body.themeId !== undefined) {
+      updateData.themeId = THEME_PALETTES.some(p => p.id === body.themeId) ? body.themeId : 'sage';
+    }
 
     if (body.password && String(body.password).trim()) {
       const rawPassword = String(body.password).trim();

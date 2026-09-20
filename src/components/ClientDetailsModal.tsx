@@ -35,6 +35,7 @@ import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
+import ThemePalettePicker from './ThemePalettePicker';
 
 export default function ClientDetailsModal({
   isOpen,
@@ -128,6 +129,8 @@ export default function ClientDetailsModal({
   // Portal on/off per client (a client can be a regular client without a personal portal)
   const [portalOn, setPortalOn] = useState(client?.portalEnabled !== false);
   const [isTogglingPortal, setIsTogglingPortal] = useState(false);
+  // This portal's own palette — saved immediately, independent of the CRM theme
+  const [clientTheme, setClientTheme] = useState(client?.themeId || 'sage');
 
   const showToast = (message, type = 'success') => {
     setModalToast({ message, type });
@@ -438,11 +441,23 @@ export default function ClientDetailsModal({
   useEffect(() => {
     if (isOpen && client?.id) {
       setPortalOn(client.portalEnabled !== false);
+      setClientTheme(client.themeId || 'sage');
       loadClientAppointments();
       loadClientContent();
       loadClientForms();
     }
   }, [isOpen, client?.id, loadClientAppointments, loadClientContent, loadClientForms]);
+
+  const handleSelectClientTheme = async (themeId: string) => {
+    setClientTheme(themeId);
+    try {
+      await api.updateClient(client.id, { themeId });
+      showToast('פלטת המרחב האישי עודכנה ✨');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בעדכון הפלטה', 'error');
+      setClientTheme(client.themeId || 'sage');
+    }
+  };
 
   if (!isOpen || !client) return null;
 
@@ -554,6 +569,23 @@ export default function ClientDetailsModal({
             </label>
             {isTogglingPortal && <Loader2 size={16} className="animate-spin" color="var(--primary)" />}
           </div>
+
+          {/* This client's own portal palette */}
+          {portalOn && (
+            <div style={{
+              background: '#ffffff',
+              border: '1px solid #e8f0ef',
+              borderRadius: '14px',
+              padding: '12px 16px',
+              marginBottom: '16px'
+            }}>
+              <ThemePalettePicker
+                label="🎨 פלטת המרחב האישי (נשמרת מיד)"
+                value={clientTheme}
+                onChange={handleSelectClientTheme}
+              />
+            </div>
+          )}
 
           {/* Client Personal Portal Banner */}
           {portalOn && (

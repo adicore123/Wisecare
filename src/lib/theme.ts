@@ -229,7 +229,19 @@ export function paletteToCssVars(palette: ThemePalette): Record<string, string> 
   return vars;
 }
 
-export function applyTheme(themeId: string): ThemePalette {
+/**
+ * Theme scopes — each interface paints from its own source so a palette
+ * change in one context never repaints another:
+ *  - CRM + login: the clinic-wide settings.themeId (persisted per browser
+ *    under CRM_THEME_STORAGE_KEY, applied by the boot script + SettingsManager)
+ *  - patient portals: per-client themeId injected server-side by the portal
+ *    page (never persisted — persist:false here)
+ *  - superadmin: fixed neutral slate (never persisted)
+ */
+export const CRM_THEME_STORAGE_KEY = 'wisecare_theme_crm';
+export const SUPERADMIN_THEME = 'slate';
+
+export function applyTheme(themeId: string, opts?: { persist?: boolean }): ThemePalette {
   if (typeof window === 'undefined') return THEME_PALETTES[0];
   const palette = THEME_PALETTES.find(p => p.id === themeId) || THEME_PALETTES[0];
   const root = document.documentElement;
@@ -244,12 +256,14 @@ export function applyTheme(themeId: string): ThemePalette {
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', palette.colors.primary);
 
-  localStorage.setItem('wisecare_theme', palette.id);
+  if (opts?.persist !== false) {
+    localStorage.setItem(CRM_THEME_STORAGE_KEY, palette.id);
+  }
   return palette;
 }
 
 export function getStoredTheme(): ThemePalette {
   if (typeof window === 'undefined') return THEME_PALETTES[0];
-  const stored = localStorage.getItem('wisecare_theme');
+  const stored = localStorage.getItem(CRM_THEME_STORAGE_KEY);
   return THEME_PALETTES.find(p => p.id === stored) || THEME_PALETTES[0];
 }

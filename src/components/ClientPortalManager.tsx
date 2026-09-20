@@ -773,9 +773,10 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         api.getPortalAppointments(portalCode).then(res => res && setPortalAppointments(res)).catch(() => {});
       }
       
-      // Synchronize clinic theme palette
+      // Synchronize the client's own palette (server also injects it pre-paint);
+      // persist:false so visiting a portal never repaints the CRM in this browser
       if (portalRes?.portalInfo?.themeId) {
-        applyTheme(portalRes.portalInfo.themeId);
+        applyTheme(portalRes.portalInfo.themeId, { persist: false });
       }
 
       const initialReflections: Record<string, string> = {};

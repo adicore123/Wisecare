@@ -28,15 +28,16 @@ export const viewport: Viewport = {
 };
 
 /**
- * Pre-paint theme application. Embeds the palette→CSS-var table (same source as
- * applyTheme) and re-applies the stored theme before first paint, so pages open
- * already themed instead of flashing the default palette until a component calls
- * applyTheme(). Runs synchronously as the first element of <body>.
+ * Pre-paint theme application, scoped per interface so palettes never leak
+ * across contexts: /superadmin is always the fixed neutral slate; /portal/*
+ * is skipped here (the portal page injects each client's own palette
+ * server-side); everything else (CRM + login) uses the clinic-wide palette
+ * persisted under wisecare_theme_crm.
  */
 const THEME_BOOT_DATA: Record<string, Record<string, string>> = Object.fromEntries(
   THEME_PALETTES.map(p => [p.id, paletteToCssVars(p)])
 );
-const themeBootScript = `(function(){try{var T=${JSON.stringify(THEME_BOOT_DATA)};var v=T[localStorage.getItem('wisecare_theme')]||T.sage;for(var k in v)document.documentElement.style.setProperty(k,v[k]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}})();`;
+const themeBootScript = `(function(){try{localStorage.removeItem('wisecare_theme');var p=location.pathname;if(p.indexOf('/portal/')===0)return;var T=${JSON.stringify(THEME_BOOT_DATA)};var v=p.indexOf('/superadmin')===0?T.slate:(T[localStorage.getItem('wisecare_theme_crm')]||T.sage);if(!v)v=T.sage;for(var k in v)document.documentElement.style.setProperty(k,v[k]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}})();`;
 
 export default function RootLayout({
   children,

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, UserPlus, MessageSquare, Check, Sparkles, Lock, Eye, EyeOff, Globe, Building2, Info } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
+import ThemePalettePicker from './ThemePalettePicker';
 
 interface ClientModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
     notes: '',
     sendWhatsAppNow: true,
     portalEnabled: true,
+    themeId: 'sage',
     clientSetsCredentials: true // Default: client chooses credentials upon first portal entry
   });
 
@@ -58,6 +60,7 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
         notes: '',
         sendWhatsAppNow: true,
         portalEnabled: true,
+        themeId: 'sage',
         clientSetsCredentials: true
       });
       setError('');
@@ -412,6 +415,15 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
                       המטפל קובע שם משתמש וסיסמה מראש
                     </span>
                   </button>
+                </div>
+
+                {/* The client portal's own palette — independent of the CRM theme */}
+                <div style={{ marginBottom: '14px' }}>
+                  <ThemePalettePicker
+                    label="🎨 פלטת המרחב האישי של הלקוח"
+                    value={formData.themeId || 'sage'}
+                    onChange={themeId => setFormData(prev => ({ ...prev, themeId }))}
+                  />
                 </div>
 
                 {formData.clientSetsCredentials ? (

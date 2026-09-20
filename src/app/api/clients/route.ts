@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { getBaseUrl } from '@/lib/urlHelpers';
+import { THEME_PALETTES } from '@/lib/theme';
 import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
 import { hashPassword, generateSecurePassword } from '@/lib/security';
 import { sanitizeClient } from '@/lib/clientSanitize';
@@ -171,6 +172,8 @@ export async function POST(request: NextRequest) {
       gender: gender || 'זכר',
       notes: notes ? notes.trim() : '',
       portalEnabled: body.portalEnabled !== false,
+      // The client portal's own palette — independent of the clinic CRM theme
+      themeId: THEME_PALETTES.some(p => p.id === body.themeId) ? body.themeId : 'sage',
       portalCode,
       pin,
       whatsappStatus: 'not_sent',

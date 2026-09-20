@@ -13,6 +13,7 @@ import {
 import Sidebar from './Sidebar';
 import Toast from './Toast';
 import { api } from '@/lib/api';
+import { applyTheme, getStoredTheme } from '@/lib/theme';
 
 interface CRMWorkspaceLayoutProps {
   children: React.ReactNode;
@@ -35,6 +36,13 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
     setToast({ message, type });
     setTimeout(() => setToast(null), 4000);
   };
+
+  // Restore the clinic palette on mount — after a client-side navigation back
+  // from superadmin (slate) or a patient portal (per-client palette), the CRM
+  // must repaint with its own theme again.
+  useEffect(() => {
+    applyTheme(getStoredTheme().id);
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;

@@ -43,6 +43,7 @@ import {
   FileText
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -305,6 +306,13 @@ export default function SuperAdminPage({
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+
+  // Superadmin always renders in the fixed neutral palette — independent of the
+  // clinic CRM palette and of patient portals (covers client-side navigation in
+  // too; the boot script handles full page loads).
+  useEffect(() => {
+    applyTheme(SUPERADMIN_THEME, { persist: false });
+  }, []);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
