@@ -482,24 +482,52 @@ export default function ClientsManager() {
                         {client.phone && (
                           <button
                             type="button"
-                            className="btn btn-secondary"
                             style={{
-                              padding: '6px 10px',
+                              width: '42px',
+                              height: '42px',
+                              borderRadius: '50%',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '5px',
-                              color: '#0369a1',
-                              background: '#e0f2fe',
-                              borderColor: '#bae6fd'
+                              justifyContent: 'center',
+                              color: '#ffffff',
+                              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                              border: 'none',
+                              boxShadow: '0 4px 12px rgba(3, 105, 161, 0.3)',
+                              cursor: sendingWazeId === client.id ? 'not-allowed' : 'pointer',
+                              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                              opacity: sendingWazeId === client.id ? 0.7 : 1,
+                            }}
+                            onMouseEnter={(e) => {
+                              if (sendingWazeId !== client.id) {
+                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(3, 105, 161, 0.4)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (sendingWazeId !== client.id) {
+                                e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(3, 105, 161, 0.3)';
+                              }
+                            }}
+                            onMouseDown={(e) => {
+                              if (sendingWazeId !== client.id) {
+                                e.currentTarget.style.transform = 'translateY(1px) scale(0.95)';
+                                e.currentTarget.style.boxShadow = '0 2px 6px rgba(3, 105, 161, 0.3)';
+                              }
+                            }}
+                            onMouseUp={(e) => {
+                              if (sendingWazeId !== client.id) {
+                                e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)';
+                                e.currentTarget.style.boxShadow = '0 8px 16px rgba(3, 105, 161, 0.4)';
+                              }
                             }}
                             onClick={(e) => handleSendWaze(client, e)}
                             disabled={sendingWazeId === client.id}
-                            title="שליחת קישור ניווט בוויז לכתובת הקליניקה — לוואטסאפ של הלקוח"
+                            title="שליחת קישור ניווט בוויז"
                           >
                             {sendingWazeId === client.id
-                              ? <span className="spin" style={{ width: 14, height: 14, border: '2px solid #bae6fd', borderTopColor: '#0369a1', borderRadius: '50%', display: 'inline-block' }} />
-                              : <WazeIcon size={16} />}
-                            <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>וויז</span>
+                              ? <span className="spin" style={{ width: 22, height: 22, border: '3px solid rgba(255,255,255,0.3)', borderTopColor: '#ffffff', borderRadius: '50%', display: 'inline-block' }} />
+                              : <WazeIcon size={26} />}
                           </button>
                         )}
 
