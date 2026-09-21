@@ -34,7 +34,7 @@ export interface QuoteRecord {
   updatedAt?: string;
 }
 
-function cleanMoney(value: unknown): number | null {
+export function cleanMoney(value: unknown): number | null {
   const num = Number(value);
   if (!Number.isFinite(num) || num < 0 || num > 1_000_000) return null;
   return Math.round(num * 100) / 100;

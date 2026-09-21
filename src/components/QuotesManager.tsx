@@ -18,7 +18,9 @@ import {
   Link2,
   BookmarkPlus,
   Layers,
-  Search
+  Search,
+  Sparkles,
+  X
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import {
@@ -108,9 +110,10 @@ const EMPTY_DRAFT = (): QuoteDraft => ({
   leadPhone: '',
   title: '',
   description: '',
+  // A quote carries exactly ONE pricing structure — picked from a template in
+  // the picker widget (or filled manually via the free-form card).
   options: [
-    { id: `opt-${Date.now()}-1`, label: 'מפגש בודד', pricingModel: 'single', sessionPrice: '', sessionsCount: '1' },
-    { id: `opt-${Date.now()}-2`, label: 'תהליך טיפולי', pricingModel: 'package', sessionPrice: '', sessionsCount: '12' }
+    { id: `opt-${Date.now()}-1`, label: 'מפגש בודד', pricingModel: 'single', sessionPrice: '', sessionsCount: '1' }
   ]
 });
 
@@ -156,6 +159,12 @@ export default function QuotesManager() {
   const [saveTemplateName, setSaveTemplateName] = useState('');
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [deleteTemplateModal, setDeleteTemplateModal] = useState<TemplateRow | null>(null);
+
+  // Template picker widget — the single entry point for creating a quote
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [editingTemplatePrice, setEditingTemplatePrice] = useState<TemplateRow | null>(null);
+  const [templatePriceInput, setTemplatePriceInput] = useState('');
+  const [savingTemplatePrice, setSavingTemplatePrice] = useState(false);
 
   // Editor state (null = list view)
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -213,8 +222,16 @@ export default function QuotesManager() {
     loadTemplates();
   }, [loadQuotes, loadClients, loadTemplates]);
 
-  // Start a NEW quote from a template — the therapist only fills client + amount
+  // Start a NEW quote from a template — a single pricing structure is copied
+  // from the template (with its default price); the therapist fills client,
+  // and may override the price for this specific quote.
   const startFromTemplate = (template: TemplateRow) => {
+    const t = (template.options || [])[0] || {
+      label: template.name,
+      pricingModel: 'single' as const,
+      sessionsCount: 1,
+      sessionPrice: 0
+    };
     setDraft({
       clientId: '',
       newClient: null,
@@ -222,18 +239,41 @@ export default function QuotesManager() {
       leadPhone: '',
       title: template.name,
       description: '',
-      options: (template.options || []).map(o => ({
+      options: [{
         id: `opt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        label: o.label,
-        pricingModel: o.pricingModel,
-        sessionPrice: o.sessionPrice ? String(o.sessionPrice) : '',
-        sessionsCount: String(o.sessionsCount || '')
-      }))
+        label: t.label,
+        pricingModel: t.pricingModel,
+        sessionPrice: t.sessionPrice ? String(t.sessionPrice) : '',
+        sessionsCount: String(t.sessionsCount || 1)
+      }]
     });
     setShowNewClientForm(false);
     setSaveTemplateName('');
     setEditingId(null);
     setIsNew(true);
+    setTemplatePickerOpen(false);
+  };
+
+  // Save the therapist's default price on a template (picker inline edit)
+  const saveTemplatePrice = async () => {
+    if (!editingTemplatePrice) return;
+    const price = Number(templatePriceInput.replace(/[^\d.]/g, ''));
+    if (!price || price <= 0) {
+      showToast('נא להזין מחיר תקין למפגש', 'error');
+      return;
+    }
+    setSavingTemplatePrice(true);
+    try {
+      await api.updateQuoteTemplate(editingTemplatePrice.id, { sessionPrice: price });
+      await loadTemplates();
+      showToast('מחיר ברירת המחדל נשמר — יוזן אוטומטית בכל הצעה מהתבנית ✨');
+      setEditingTemplatePrice(null);
+      setTemplatePriceInput('');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בשמירת המחיר', 'error');
+    } finally {
+      setSavingTemplatePrice(false);
+    }
   };
 
   // Save the current editor structure (+ prices as defaults) as a reusable template
@@ -242,8 +282,8 @@ export default function QuotesManager() {
       showToast('נא להזין שם לתבנית', 'error');
       return;
     }
-    if (draft.options.length === 0) {
-      showToast('יש להוסיף לפחות אפשרות מחיר אחת לפני השמירה כתבנית', 'error');
+    if (draft.options.length === 0 || !draft.options[0].label.trim()) {
+      showToast('נא להזין שם למבנה ההצעה לפני השמירה כתבנית', 'error');
       return;
     }
     setSavingTemplate(true);
@@ -304,6 +344,7 @@ export default function QuotesManager() {
     setEditingId(null);
     setShowNewClientForm(false);
     setIsNew(true);
+    setTemplatePickerOpen(false);
   };
 
   const applyQuoteToDraft = (quote: QuoteRow) => {
@@ -370,23 +411,6 @@ export default function QuotesManager() {
     }));
   };
 
-  const addOption = () => {
-    setDraft(current => ({
-      ...current,
-      options: [
-        ...current.options,
-        { id: `opt-${Date.now()}-${current.options.length + 1}`, label: '', pricingModel: 'single', sessionPrice: '', sessionsCount: '1' }
-      ]
-    }));
-  };
-
-  const removeOption = (optionId: string) => {
-    setDraft(current => ({
-      ...current,
-      options: current.options.filter(o => o.id !== optionId)
-    }));
-  };
-
   const handleSave = async () => {
     if (draft.newClient) {
       if (!draft.newClient.firstName.trim()) { showToast('נא להזין שם פרטי ללקוח החדש', 'error'); return; }
@@ -395,7 +419,12 @@ export default function QuotesManager() {
       if (!draft.leadName.trim()) { showToast('נא להזין את שם הלקוח הפוטנציאלי', 'error'); return; }
       if (draft.leadPhone.replace(/\D/g, '').length < 9) { showToast('נא להזין מספר טלפון תקין', 'error'); return; }
     }
-    if (draft.options.length === 0) { showToast('יש להוסיף לפחות אפשרות מחיר אחת', 'error'); return; }
+    // New quotes carry a single pricing structure; legacy multi-option quotes
+    // keep their options untouched (rendered read-only in the editor).
+    if (draft.options.length <= 1 && !(Number(draft.options[0]?.sessionPrice) > 0)) {
+      showToast('נא להזין מחיר למפגש', 'error');
+      return;
+    }
 
     const payload: Record<string, unknown> = {
       title: draft.title.trim(),
@@ -659,95 +688,83 @@ export default function QuotesManager() {
             />
           </div>
 
-          <div style={{ marginTop: '8px', marginBottom: '8px' }}>
-            <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Package size={16} /> אפשרויות המחיר בהצעה
-            </strong>
-            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-              אפשרות אחת = אישור פשוט. כמה אפשרויות = הלקוח בוחר אפשרות אחת ומאשר.
-            </span>
-          </div>
-
-          {draft.options.map((option, index) => (
-            <div key={option.id} style={{ border: '1px solid #e2e8f0', borderRadius: '14px', padding: '14px 16px', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <strong style={{ fontSize: '0.9rem', color: '#334155' }}>אפשרות {index + 1}</strong>
-                {draft.options.length > 1 && (
-                  <button type="button" className="btn-icon text-slate-400" onClick={() => removeOption(option.id)} aria-label="הסר אפשרות">
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-
-              <div className="form-row">
-                <div className="form-group" style={{ flex: 2 }}>
-                  <label>שם האפשרות *</label>
-                  <input
-                    className="form-control"
-                    value={option.label}
-                    onChange={e => updateOption(option.id, { label: e.target.value })}
-                    placeholder='למשל: "מפגש בודד" או "תהליך טיפולי מלא"'
-                  />
+          {/* ---- Pricing: a single structure from the template ---- */}
+          {draft.options.length > 1 ? (
+            <div style={{ background: '#f8fafc', border: '1px dashed #e2e8f0', borderRadius: '14px', padding: '14px 16px', marginTop: '8px', marginBottom: '8px' }}>
+              <strong style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <Package size={16} /> אפשרויות המחיר בהצעה זו
+              </strong>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '8px' }}>
+                הצעה שנבנתה במנגנון האפשרויות הקודם — האפשרויות נשמרות כפי שהן (אינן ניתנות לעריכה).
+              </span>
+              {draft.options.map(o => (
+                <div key={o.id} style={{ fontSize: '0.86rem', color: '#334155', lineHeight: 1.9 }}>
+                  • {o.label} — {o.pricingModel === 'package' ? `${o.sessionsCount} מפגשים · ` : ''}{formatILS(Number(o.sessionPrice) || 0)} למפגש
                 </div>
-                <div className="form-group">
-                  <label>סוג התמחור</label>
-                  <select
-                    className="form-control"
-                    value={option.pricingModel}
-                    onChange={e => updateOption(option.id, { pricingModel: e.target.value as 'single' | 'package' })}
-                  >
-                    <option value="single">מפגש בודד</option>
-                    <option value="package">חבילת מפגשים</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label>מחיר למפגש (₪) *</label>
-                  <input
-                    className="form-control"
-                    dir="ltr"
-                    inputMode="decimal"
-                    value={option.sessionPrice}
-                    onChange={e => updateOption(option.id, { sessionPrice: e.target.value.replace(/[^\d.]/g, '') })}
-                    placeholder="350"
-                  />
-                </div>
-                {option.pricingModel === 'package' && (
+              ))}
+            </div>
+          ) : (() => {
+            const option = draft.options[0] || { id: 'opt-0', label: '', pricingModel: 'single' as const, sessionPrice: '', sessionsCount: '1' };
+            const price = Number(option.sessionPrice) || 0;
+            const count = Math.max(1, Number(option.sessionsCount) || 1);
+            return (
+              <div style={{ border: '1px solid #e2e8f0', borderRadius: '14px', padding: '16px', marginTop: '8px', marginBottom: '8px', background: '#ffffff' }}>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Package size={16} /> מחיר ההצעה
+                </strong>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  המבנה ומחיר ברירת המחדל הגיעו מהתבנית — אפשר לשנות את המחיר להצעה זו בלבד.
+                </span>
+                <div className="form-row" style={{ marginTop: '12px' }}>
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label>שם המבנה *</label>
+                    <input
+                      className="form-control"
+                      value={option.label}
+                      onChange={e => updateOption(option.id, { label: e.target.value })}
+                      placeholder='למשל: "תהליך קצר — 5 מפגשים"'
+                    />
+                  </div>
                   <div className="form-group">
-                    <label>מספר מפגשים בחבילה *</label>
+                    <label>מספר מפגשים *</label>
                     <input
                       className="form-control"
                       dir="ltr"
                       inputMode="numeric"
                       value={option.sessionsCount}
-                      onChange={e => updateOption(option.id, { sessionsCount: e.target.value.replace(/\D/g, '') })}
-                      placeholder="12"
+                      onChange={e => {
+                        const v = e.target.value.replace(/\D/g, '');
+                        updateOption(option.id, {
+                          sessionsCount: v,
+                          pricingModel: Number(v) >= 2 ? 'package' : 'single'
+                        });
+                      }}
+                      placeholder="1"
                     />
                   </div>
-                )}
-                <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
-                  <div style={{
-                    padding: '10px 16px', borderRadius: '12px', background: 'var(--primary-faint)', border: '1px solid var(--primary-light)',
-                    color: 'var(--primary-hover)', fontWeight: 800, whiteSpace: 'nowrap'
-                  }}>
-                    {(() => {
-                      const price = Number(option.sessionPrice) || 0;
-                      const count = option.pricingModel === 'package' ? (Number(option.sessionsCount) || 0) : 1;
-                      return `סה"כ: ${formatILS(price * count)}`;
-                    })()}
+                  <div className="form-group">
+                    <label>מחיר למפגש (₪) *</label>
+                    <input
+                      className="form-control"
+                      dir="ltr"
+                      inputMode="decimal"
+                      value={option.sessionPrice}
+                      onChange={e => updateOption(option.id, { sessionPrice: e.target.value.replace(/[^\d.]/g, '') })}
+                      placeholder="350"
+                    />
+                  </div>
+                  <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
+                    <div style={{
+                      padding: '10px 16px', borderRadius: '12px', background: 'var(--primary-faint)', border: '1px solid var(--primary-light)',
+                      color: 'var(--primary-hover)', fontWeight: 800, whiteSpace: 'nowrap'
+                    }}>
+                      {(() => `סה"כ: ${formatILS(price * count)}`)()}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-
-          {draft.options.length < 4 && (
-            <button type="button" className="btn btn-secondary" onClick={addOption} style={{ marginBottom: '16px' }}>
-              <Plus size={16} /> הוספת אפשרות מחיר
-            </button>
-          )}
+            );
+          })()}
 
           <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
             <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
@@ -801,7 +818,7 @@ export default function QuotesManager() {
           <span className="eyebrow">הצעות מחיר ללקוחות פוטנציאליים</span>
           <h2>ניהול הצעות מחיר</h2>
         </div>
-        <button type="button" className="btn btn-primary" onClick={openNew}>
+        <button type="button" className="btn btn-primary" onClick={() => setTemplatePickerOpen(true)}>
           <Plus size={18} /> הצעת מחיר חדשה
         </button>
       </div>
@@ -825,52 +842,8 @@ export default function QuotesManager() {
         </div>
       </div>
 
-      {/* Quick-start templates — click to open a pre-filled editor */}
-      {templates.length > 0 && (
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '0.82rem', fontWeight: 700, color: '#475569' }}>
-            <Layers size={15} /> תבניות מהירות:
-          </span>
-          {templates.map(template => (
-            <span
-              key={template.id}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: '6px',
-                border: '1px solid #e2e8f0', background: '#ffffff',
-                borderRadius: '999px', overflow: 'hidden'
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => startFromTemplate(template)}
-                title={`הצעה חדשה מהתבנית — ${templateSummary(template.options)}`}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '6px',
-                  padding: '7px 12px 7px 14px', cursor: 'pointer', border: 'none',
-                  background: 'transparent', fontSize: '0.85rem', fontWeight: 700, color: 'var(--primary-hover)'
-                }}
-              >
-                {template.name}
-                <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8' }}>
-                  {templateSummary(template.options)}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDeleteTemplateModal(template)}
-                aria-label={`מחיקת תבנית ${template.name}`}
-                title="מחיקת תבנית"
-                style={{
-                  border: 'none', background: 'transparent', cursor: 'pointer',
-                  padding: '6px 10px 6px 6px', color: '#cbd5e1', display: 'inline-flex'
-                }}
-              >
-                <Trash2 size={13} />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Template picker widget is the entry point for new quotes — see the
+          modal at the bottom of this view (templatePickerOpen). */}
 
       {/* Filters + search */}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '14px' }}>
@@ -924,7 +897,7 @@ export default function QuotesManager() {
             <div className="content-empty-icon"><Receipt size={32} /></div>
             <h3>עדיין אין הצעות מחיר</h3>
             <p>בנה/י הצעה ראשונה ושלח/י אותה ללקוח פוטנציאלי בוואטסאפ — הלקוח יאשר בקליק אחד מהקישור.</p>
-            <button type="button" className="btn btn-primary" onClick={openNew}>
+            <button type="button" className="btn btn-primary" onClick={() => setTemplatePickerOpen(true)}>
               <Plus size={16} /> הצעת מחיר חדשה
             </button>
           </div>
@@ -1130,6 +1103,152 @@ export default function QuotesManager() {
         message={deleteTemplateModal ? `התבנית "${deleteTemplateModal.name}" תימחק. הצעות שנוצרו ממנה אינן מושפעות.` : ''}
         confirmText="מחק תבנית"
       />
+
+      {/* ---- Template picker widget — the entry point for every new quote ---- */}
+      {templatePickerOpen && (
+        <div className="modal-overlay" onClick={() => { setTemplatePickerOpen(false); setEditingTemplatePrice(null); }}>
+          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
+              <div>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                  <Layers size={20} /> הצעת מחיר חדשה — בחירת תבנית
+                </h3>
+                <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                  בחר/י תבנית וההצעה תיבנה אוטומטית עם המבנה ומחיר ברירת המחדל שלך.
+                </span>
+              </div>
+              <button
+                type="button"
+                className="btn-icon text-slate-400"
+                onClick={() => { setTemplatePickerOpen(false); setEditingTemplatePrice(null); }}
+                aria-label="סגירה"
+                title="סגירה"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+              {templates.map(template => {
+                const option = (template.options || [])[0];
+                const sessions = option?.pricingModel === 'package' ? option.sessionsCount : 1;
+                const price = option?.sessionPrice || 0;
+                const isEditing = editingTemplatePrice?.id === template.id;
+                return (
+                  <div
+                    key={template.id}
+                    style={{
+                      border: '1px solid #e2e8f0', borderRadius: '16px', padding: '14px',
+                      display: 'flex', flexDirection: 'column', gap: '10px', background: '#ffffff'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                      <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{template.name}</strong>
+                      <div style={{ display: 'flex', gap: '2px' }}>
+                        <button
+                          type="button"
+                          className="btn-icon text-slate-400"
+                          onClick={() => {
+                            setEditingTemplatePrice(isEditing ? null : template);
+                            setTemplatePriceInput(price ? String(price) : '');
+                          }}
+                          aria-label={`עריכת מחיר ברירת מחדל — ${template.name}`}
+                          title="עריכת מחיר ברירת מחדל"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-icon text-slate-400"
+                          onClick={() => setDeleteTemplateModal(template)}
+                          aria-label={`מחיקת תבנית ${template.name}`}
+                          title="מחיקת תבנית"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.7 }}>
+                      {sessions > 1 ? `תהליך של ${sessions} מפגשים` : 'מפגש בודד'}
+                      <br />
+                      {price > 0 ? (
+                        <span style={{ color: 'var(--primary-hover)', fontWeight: 700 }}>
+                          {formatILS(price)} למפגש · סה"כ {formatILS(price * sessions)}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#b45309' }}>טרם הוגדר מחיר ✎</span>
+                      )}
+                    </div>
+
+                    {isEditing ? (
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <input
+                          className="form-control"
+                          style={{ padding: '6px 10px', fontSize: '0.85rem' }}
+                          dir="ltr"
+                          inputMode="decimal"
+                          value={templatePriceInput}
+                          onChange={e => setTemplatePriceInput(e.target.value.replace(/[^\d.]/g, ''))}
+                          placeholder="מחיר למפגש"
+                          autoFocus
+                          onKeyDown={e => { if (e.key === 'Enter') saveTemplatePrice(); }}
+                        />
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                          onClick={saveTemplatePrice}
+                          disabled={savingTemplatePrice}
+                        >
+                          {savingTemplatePrice ? <Loader2 size={14} className="spin" /> : <CheckCircle2 size={14} />}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ marginTop: 'auto', justifyContent: 'center' }}
+                        onClick={() => startFromTemplate(template)}
+                        title={`הצעה חדשה — ${templateSummary(template.options)}`}
+                      >
+                        <Plus size={15} /> יצירת הצעה
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Free-form card — manual structure, no template */}
+              <div
+                style={{
+                  border: '1px dashed var(--primary-light)', borderRadius: '16px', padding: '14px',
+                  display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--primary-faint)'
+                }}
+              >
+                <strong style={{ fontSize: '0.95rem', color: 'var(--primary-hover)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Sparkles size={16} /> הצעה חופשית
+                </strong>
+                <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: 1.7 }}>
+                  בלי תבנית — מגדירים ידנית מספר מפגשים ומחיר בעורך.
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ marginTop: 'auto', justifyContent: 'center' }}
+                  onClick={openNew}
+                >
+                  <Pencil size={15} /> התחלה ידנית
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ justifyContent: 'flex-start', fontSize: '0.78rem', color: '#94a3b8' }}>
+              טיפ: המחיר שיישמר בתבנית יוזן אוטומטית בכל הצעה חדשה ממנה — ותמיד אפשר לשנות אותו בהצעה עצמה.
+            </div>
+          </div>
+        </div>
+      )}
 
       <Toast message={toast?.message} type={toast?.type} onClose={() => setToast(null)} />
     </div>

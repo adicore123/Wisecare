@@ -37,7 +37,10 @@ export const viewport: Viewport = {
 const THEME_BOOT_DATA: Record<string, Record<string, string>> = Object.fromEntries(
   THEME_PALETTES.map(p => [p.id, paletteToCssVars(p)])
 );
-const themeBootScript = `(function(){try{localStorage.removeItem('wisecare_theme');var p=location.pathname;if(p.indexOf('/portal/')===0)return;var T=${JSON.stringify(THEME_BOOT_DATA)};var v=p.indexOf('/superadmin')===0?T.slate:(T[localStorage.getItem('wisecare_theme_crm')]||T.sage);if(!v)v=T.sage;for(var k in v)document.documentElement.style.setProperty(k,v[k]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}})();`;
+// The vars go into a dedicated <style> node (never inline on <html>, and the
+// theme-color meta is only touched after `load`) — mutating attributes of
+// React-rendered elements before hydration triggers a hydration mismatch.
+const themeBootScript = `(function(){try{localStorage.removeItem('wisecare_theme');var p=location.pathname;if(p.indexOf('/portal/')===0)return;var T=${JSON.stringify(THEME_BOOT_DATA)};var v=p.indexOf('/superadmin')===0?T.slate:(T[localStorage.getItem('wisecare_theme_crm')]||T.sage);if(!v)v=T.sage;var css=':root{';for(var k in v)css+=k+':'+v[k]+';';css+='}';var s=document.createElement('style');s.id='wisecare-theme-boot';s.textContent=css;document.head.appendChild(s);window.addEventListener('load',function(){try{var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}});}catch(e){}})();`;
 
 export default function RootLayout({
   children,

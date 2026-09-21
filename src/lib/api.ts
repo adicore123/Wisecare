@@ -975,6 +975,19 @@ export const api = {
       throw new Error(err.error || 'שגיאה במחיקת התבנית');
     }
     return res.json();
+  },
+
+  updateQuoteTemplate: async (templateId: string, payload: { name?: string; sessionPrice?: number }) => {
+    const res = await fetch(`${API_BASE}/quote-templates/${encodeURIComponent(templateId)}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון התבנית');
+    }
+    return res.json();
   }
 };
 
