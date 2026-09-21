@@ -234,6 +234,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   });
   const [savingInsight, setSavingInsight] = useState(false);
 
+  // Journal entries collapse to a 3-line excerpt; tapping the body reveals the
+  // full entry so one long insight can't take over the whole page.
+  const [expandedInsightId, setExpandedInsightId] = useState<string | null>(null);
+  const isLongInsight = (content: string) => (content || '').trim().length > 120;
+  const toggleInsight = (id: string) =>
+    setExpandedInsightId(current => (current === id ? null : id));
+
   // Breathing state
   const [breathingPhase, setBreathingPhase] = useState('שאף (4 שניות)');
   const [breathingRunning, setBreathingRunning] = useState(false);
@@ -3324,9 +3331,23 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               </td>
 
                               <td>
-                                <p style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap', margin: 0 }}>
+                                <p
+                                  className={`insight-card-body insight-table-body ${expandedInsightId === item.id ? '' : 'insight-clamped'}`}
+                                  onClick={() => isLongInsight(item.content) && toggleInsight(item.id)}
+                                  role={isLongInsight(item.content) ? 'button' : undefined}
+                                  style={{ fontSize: '0.92rem', margin: 0 }}
+                                >
                                   {item.content}
                                 </p>
+                                {isLongInsight(item.content) && (
+                                  <button
+                                    type="button"
+                                    className="insight-body-toggle"
+                                    onClick={() => toggleInsight(item.id)}
+                                  >
+                                    {expandedInsightId === item.id ? 'הצג פחות ↑' : 'קרא עוד ↓'}
+                                  </button>
+                                )}
                               </td>
 
                               <td>
@@ -3414,9 +3435,23 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           </div>
                         ) : null}
 
-                        <div className="insight-card-body">
+                        <div
+                          className={`insight-card-body ${expandedInsightId === item.id ? '' : 'insight-clamped'}`}
+                          onClick={() => isLongInsight(item.content) && toggleInsight(item.id)}
+                          role={isLongInsight(item.content) ? 'button' : undefined}
+                          title={isLongInsight(item.content) ? (expandedInsightId === item.id ? 'הצג פחות' : 'קרא עוד') : undefined}
+                        >
                           {item.content}
                         </div>
+                        {isLongInsight(item.content) && (
+                          <button
+                            type="button"
+                            className="insight-body-toggle"
+                            onClick={() => toggleInsight(item.id)}
+                          >
+                            {expandedInsightId === item.id ? 'הצג פחות ↑' : 'קרא עוד ↓'}
+                          </button>
+                        )}
 
                         <div className="insight-card-footer">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -36,7 +36,10 @@ export default async function PortalRoutePage(props: { params: Promise<{ code: s
   const portalThemeId = initialPayload?.portalInfo?.themeId || 'sage';
   const portalPalette = THEME_PALETTES.find(p => p.id === portalThemeId) || THEME_PALETTES[0];
   const portalThemeVars = paletteToCssVars(portalPalette);
-  const portalThemeScript = `(function(){try{var v=${JSON.stringify(portalThemeVars)};for(var k in v)document.documentElement.style.setProperty(k,v[k]);var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}})();`;
+  // Hydration-safe, same pattern as the root boot script in layout.tsx: the
+  // vars go into an injected <style> node (never inline on <html>, which React
+  // rendered without one) and the theme-color meta only syncs after `load`.
+  const portalThemeScript = `(function(){try{var v=${JSON.stringify(portalThemeVars)};var css=':root{';for(var k in v)css+=k+':'+v[k]+';';css+='}';var s=document.createElement('style');s.id='wisecare-theme-portal';s.textContent=css;document.head.appendChild(s);window.addEventListener('load',function(){try{var m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',v['--primary']);}catch(e){}});}catch(e){}})();`;
 
   return (
     <>
