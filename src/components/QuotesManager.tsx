@@ -162,13 +162,19 @@ export default function QuotesManager() {
   const [deleteTemplateModal, setDeleteTemplateModal] = useState<TemplateRow | null>(null);
 
   // Template picker widget — the single entry point for creating a quote.
-  // Two steps inside one window: 'templates' (pick) → 'editor' (fill & save),
-  // with a back button — no navigation away from the list.
+  // Steps inside one window: 'templates' (pick) → 'editor' (fill & save),
+  // plus 'new-template' for building a personal reusable template.
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
-  const [pickerStep, setPickerStep] = useState<'templates' | 'editor'>('templates');
+  const [pickerStep, setPickerStep] = useState<'templates' | 'editor' | 'new-template'>('templates');
   const [editingTemplatePrice, setEditingTemplatePrice] = useState<TemplateRow | null>(null);
   const [templatePriceInput, setTemplatePriceInput] = useState('');
   const [savingTemplatePrice, setSavingTemplatePrice] = useState(false);
+
+  // Personal template builder (e.g. "8 מפגשים" when the standard list lacks it)
+  const [newTplName, setNewTplName] = useState('');
+  const [newTplSessions, setNewTplSessions] = useState('');
+  const [newTplPrice, setNewTplPrice] = useState('');
+  const [savingNewTpl, setSavingNewTpl] = useState(false);
 
   const closePicker = () => {
     setTemplatePickerOpen(false);
@@ -285,6 +291,47 @@ export default function QuotesManager() {
       showToast(err.message || 'שגיאה בשמירת המחיר', 'error');
     } finally {
       setSavingTemplatePrice(false);
+    }
+  };
+
+  // Build a personal reusable template from the widget (e.g. "8 מפגשים")
+  const newTplAutoName = (sessions: string) => {
+    const n = Number(sessions);
+    return Number.isFinite(n) && n >= 2 ? `${n} מפגשים` : 'טיפול בודד';
+  };
+
+  const openNewTemplateStep = () => {
+    setNewTplName('');
+    setNewTplSessions('');
+    setNewTplPrice('');
+    setPickerStep('new-template');
+  };
+
+  const saveNewTemplate = async () => {
+    const sessions = Math.min(96, Math.max(1, Number(newTplSessions.replace(/\D/g, '')) || 1));
+    const name = newTplName.trim() || newTplAutoName(String(sessions));
+    const price = Number(newTplPrice.replace(/[^\d.]/g, '')) || 0;
+    setSavingNewTpl(true);
+    try {
+      await api.createQuoteTemplate({
+        name,
+        options: [{
+          label: sessions >= 2 ? `תהליך של ${sessions} מפגשים` : 'טיפול בודד',
+          pricingModel: sessions >= 2 ? 'package' : 'single',
+          sessionsCount: sessions,
+          sessionPrice: price
+        }]
+      });
+      await loadTemplates();
+      setNewTplName('');
+      setNewTplSessions('');
+      setNewTplPrice('');
+      setPickerStep('templates');
+      showToast(`התבנית "${name}" נוצרה ונוספה לרשימה ✨`);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה ביצירת התבנית', 'error');
+    } finally {
+      setSavingNewTpl(false);
     }
   };
 
@@ -1131,19 +1178,27 @@ export default function QuotesManager() {
         <div className="modal-overlay" onClick={closePicker}>
           <div className="modal-card qw-window" onClick={e => e.stopPropagation()}>
             <div className="qw-header">
-              {pickerStep === 'editor' ? (
+              {pickerStep === 'templates' ? (
+                <div className="qw-header-icon"><Layers size={22} /></div>
+              ) : (
                 <button type="button" className="qw-back" onClick={() => setPickerStep('templates')}>
                   <ArrowRight size={15} /> חזרה לתבניות
                 </button>
-              ) : (
-                <div className="qw-header-icon"><Layers size={22} /></div>
               )}
               <div className="qw-header-text">
-                <h3>{pickerStep === 'editor' ? (draft.title || 'הגדרה ידנית') : 'הצעת מחיר חדשה'}</h3>
+                <h3>
+                  {pickerStep === 'editor'
+                    ? (draft.title || 'הגדרה ידנית')
+                    : pickerStep === 'new-template'
+                      ? 'תבנית חדשה משלך'
+                      : 'הצעת מחיר חדשה'}
+                </h3>
                 <span>
                   {pickerStep === 'editor'
                     ? 'מילוי פרטי הלקוח והמחיר — הכול נשאר בתוך החלון'
-                    : 'בחירת תבנית — המבנה ומחיר ברירת המחדל יוזנו אוטומטית'}
+                    : pickerStep === 'new-template'
+                      ? 'בונים תבנית פעם אחת — למשל "8 מפגשים" — והיא תופיע ברשימה לשימוש חוזר'
+                      : 'בחירת תבנית — המבנה ומחיר ברירת המחדל יוזנו אוטומטית'}
                 </span>
               </div>
               <button type="button" className="close-btn" onClick={closePicker} aria-label="סגירה" title="סגירה">
@@ -1152,7 +1207,7 @@ export default function QuotesManager() {
             </div>
 
             <div className="modal-body qw-body">
-              {pickerStep === 'templates' ? (
+              {pickerStep === 'templates' && (
                 <div className="qw-grid">
                   {templates.map(template => {
                     const option = (template.options || [])[0];
@@ -1241,7 +1296,7 @@ export default function QuotesManager() {
                     );
                   })}
 
-                  {/* Free-form tile — manual structure, no template */}
+                  {/* Free-form tile — manual one-off quote, no template */}
                   <div className="qw-tile qw-tile-free">
                     <div className="qw-tile-top">
                       <span className="qw-tile-title" style={{ color: 'var(--primary-hover)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -1253,17 +1308,98 @@ export default function QuotesManager() {
                       התחלה ידנית <ArrowRight size={14} style={{ transform: 'scaleX(-1)' }} />
                     </button>
                   </div>
+
+                  {/* Personal template tile — build your own reusable template */}
+                  <div className="qw-tile qw-tile-free qw-tile-newtpl">
+                    <div className="qw-tile-top">
+                      <span className="qw-tile-title" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={15} /> תבנית משלך
+                      </span>
+                    </div>
+                    <span className="qw-tile-meta">
+                      חסר משהו ברשימה? בונים תבנית פעם אחת — למשל "8 מפגשים" — והיא תישמר כאן לשימוש חוזר.
+                    </span>
+                    <button type="button" className="qw-create" onClick={openNewTemplateStep}>
+                      יצירת תבנית <ArrowRight size={14} style={{ transform: 'scaleX(-1)' }} />
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                editorFormBody
               )}
+
+              {pickerStep === 'new-template' && (
+                <div className="qw-newtpl">
+                  <div className="form-row">
+                    <div className="form-group" style={{ flex: 2 }}>
+                      <label>שם התבנית</label>
+                      <input
+                        className="form-control"
+                        value={newTplName}
+                        onChange={e => setNewTplName(e.target.value)}
+                        placeholder={newTplAutoName(newTplSessions)}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>מספר מפגשים *</label>
+                      <input
+                        className="form-control"
+                        dir="ltr"
+                        inputMode="numeric"
+                        value={newTplSessions}
+                        onChange={e => setNewTplSessions(e.target.value.replace(/\D/g, '').slice(0, 2))}
+                        placeholder="8"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>מחיר למפגש (₪) — אופציונלי</label>
+                      <input
+                        className="form-control"
+                        dir="ltr"
+                        inputMode="decimal"
+                        value={newTplPrice}
+                        onChange={e => setNewTplPrice(e.target.value.replace(/[^\d.]/g, ''))}
+                        placeholder="350"
+                      />
+                    </div>
+                  </div>
+                  <div className="qw-newtpl-preview">
+                    <strong>כך זה ייראה:</strong>{' '}
+                    {(() => {
+                      const n = Math.max(1, Number(newTplSessions) || 1);
+                      const p = Number(newTplPrice) || 0;
+                      return n >= 2
+                        ? `תהליך של ${n} מפגשים${p > 0 ? ` · ${formatILS(p)} למפגש · סה"כ ${formatILS(p * n)}` : ''}`
+                        : `טיפול בודד${p > 0 ? ` · ${formatILS(p)}` : ''}`;
+                    })()}
+                  </div>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-light)' }}>
+                    השם יילקח אוטומטית ממספר המפגשים אם לא תמלא/י. 1 מפגש = טיפול בודד; 2 ומעלה = חבילה.
+                  </span>
+                </div>
+              )}
+
+              {pickerStep === 'editor' && editorFormBody}
             </div>
 
-            {pickerStep === 'templates' ? (
+            {pickerStep === 'templates' && (
               <div className="modal-footer qw-footer-tip">
                 טיפ: המחיר שיישמר בתבנית יוזן אוטומטית בכל הצעה חדשה ממנה — ותמיד אפשר לשנות אותו בהצעה עצמה.
               </div>
-            ) : (
+            )}
+
+            {pickerStep === 'new-template' && (
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setPickerStep('templates')}>
+                  <ArrowRight size={16} /> חזרה לתבניות
+                </button>
+                <button type="button" className="btn btn-primary" onClick={saveNewTemplate} disabled={savingNewTpl}>
+                  {savingNewTpl ? <Loader2 size={18} className="spin" /> : <CheckCircle2 size={18} />}
+                  יצירת התבנית
+                </button>
+              </div>
+            )}
+
+            {pickerStep === 'editor' && (
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => setPickerStep('templates')}>
                   <ArrowRight size={16} /> חזרה לתבניות
