@@ -34,6 +34,7 @@ import {
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
+import SearchableClientSelect from './SearchableClientSelect';
 
 interface QuoteOptionDraft {
   id: string;
@@ -605,19 +606,14 @@ export default function QuotesManager() {
           <div className="form-row">
             <div className="form-group" style={{ flex: 2 }}>
               <label>שיוך לתיק לקוח קיים</label>
-              <select
-                className="form-control"
+              <SearchableClientSelect
+                clients={clients}
                 value={draft.clientId}
-                onChange={e => pickClient(e.target.value)}
+                onChange={clientId => pickClient(clientId)}
+                clearLabel="— לקוח חדש / הזנה ידנית —"
+                placeholder="חיפוש לקוח קיים לפי שם או טלפון..."
                 disabled={Boolean(draft.newClient)}
-              >
-                <option value="">— לקוח חדש / הזנה ידנית —</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {`${c.firstName} ${c.lastName || ''}`.trim()}{c.phone ? ` · ${c.phone}` : ''}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end' }}>
               <button

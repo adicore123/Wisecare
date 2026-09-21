@@ -8,6 +8,7 @@ import {
 import { api } from '@/lib/api';
 import Toast from './Toast';
 import LiveKitCallView, { ActiveCallSession } from './livekit/LiveKitCallView';
+import SearchableClientSelect from './SearchableClientSelect';
 
 type LiveKitStatus = {
   configured: boolean;
@@ -621,19 +622,13 @@ export default function LiveKitManager() {
               <div className="lk-start-form">
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>בחירת מטופל</label>
-                  <select
-                    className="form-control"
+                  <SearchableClientSelect
+                    clients={clients}
                     value={selectedClientId}
-                    onChange={(e) => setSelectedClientId(e.target.value)}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '10px' }}
-                  >
-                    <option value="">— בחר/י מטופל —</option>
-                    {clients.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {`${c.firstName || ''} ${c.lastName || ''}`.trim()}{c.phone ? ` (${c.phone})` : ''}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(clientId) => setSelectedClientId(clientId)}
+                    clearLabel="— בחר/י מטופל —"
+                    placeholder="חיפוש לפי שם מטופל או טלפון..."
+                  />
                 </div>
                 <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', paddingBottom: '10px', cursor: 'pointer' }}>
                   <input type="checkbox" checked={sendWhatsApp} onChange={(e) => setSendWhatsApp(e.target.checked)} />
@@ -685,20 +680,14 @@ export default function LiveKitManager() {
                 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>בחירת מטופל</label>
-                    <select
-                      className="form-control"
+                    <SearchableClientSelect
+                      clients={clients}
                       value={scheduleForm.clientId}
-                      onChange={(e) => setScheduleForm((f) => ({ ...f, clientId: e.target.value }))}
-                      style={{ width: '100%', padding: '10px 14px', borderRadius: '10px' }}
-                    >
-                      <option value="">— בחר/י מטופל —</option>
-                      {clients.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {`${c.firstName || ''} ${c.lastName || ''}`.trim()}
-                          {c.portalEnabled !== false ? ' • מרחב אישי' : ' • קליניקה בלבד'}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(clientId) => setScheduleForm((f) => ({ ...f, clientId }))}
+                      clearLabel="— בחר/י מטופל —"
+                      placeholder="חיפוש לפי שם מטופל או טלפון..."
+                      noteFor={(c) => (c.portalEnabled !== false ? 'מרחב אישי' : 'קליניקה בלבד')}
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '6px', fontWeight: 500 }}>תאריך</label>

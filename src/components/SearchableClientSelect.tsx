@@ -4,35 +4,43 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 
 export interface SearchableClient {
   id: string;
-  firstName: string;
+  firstName?: string;
   lastName?: string;
   phone?: string | null;
 }
 
-interface SearchableClientSelectProps {
-  clients: SearchableClient[];
+interface SearchableClientSelectProps<T extends SearchableClient> {
+  clients: T[];
   value: string;
-  onChange: (clientId: string, selected?: SearchableClient) => void;
+  onChange: (clientId: string, selected?: T) => void;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  /** Pinned first row that resets to "no client" (onChange('')) — mirrors the old select's empty <option>. */
+  clearLabel?: string;
+  /** Per-client annotation shown under the name in the list and in the closed value (e.g. "מרחב אישי"). */
+  noteFor?: (client: T) => string | undefined;
 }
 
-const fullName = (c: SearchableClient) => `${c.firstName} ${c.lastName ?? ''}`.trim();
+const fullName = (c: SearchableClient) => `${c.firstName ?? ''} ${c.lastName ?? ''}`.trim();
+
+const digitsOnly = (s: string) => s.replace(/\D/g, '');
 
 /**
  * Combobox for picking a client by name or phone. Replaces the plain <select> +
  * separate search box that large client lists made unusable. Colors follow the
  * dynamic theme (var(--primary) family) so it matches every palette.
  */
-export default function SearchableClientSelect({
+export default function SearchableClientSelect<T extends SearchableClient = SearchableClient>({
   clients,
   value,
   onChange,
   placeholder = 'חיפוש לפי שם לקוח או טלפון...',
   required,
   disabled,
-}: SearchableClientSelectProps) {
+  clearLabel,
+  noteFor,
+}: SearchableClientSelectProps<T>) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
@@ -41,6 +49,7 @@ export default function SearchableClientSelect({
   const listRef = useRef<HTMLDivElement>(null);
 
   const selected = clients.find(c => c.id === value);
+  const hasClearRow = Boolean(clearLabel);
 
   useEffect(() => {
     if (!open) return;
@@ -58,9 +67,12 @@ export default function SearchableClientSelect({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return clients;
-    return clients.filter(
-      c => fullName(c).toLowerCase().includes(q) || (c.phone ?? '').includes(q)
-    );
+    const qDigits = digitsOnly(q);
+    return clients.filter(c => {
+      if (fullName(c).toLowerCase().includes(q)) return true;
+      // Digits-only compare so typing/pasting "0501234567" still finds "050-123-4567"
+      return Boolean(qDigits) && digitsOnly(c.phone ?? '').includes(qDigits);
+    });
   }, [clients, query]);
 
   useEffect(() => {
@@ -73,24 +85,39 @@ export default function SearchableClientSelect({
     el?.scrollIntoView({ block: 'nearest' });
   }, [highlight]);
 
-  const pick = (client: SearchableClient) => {
-    onChange(client.id, client);
+  const closeAndReset = () => {
     setQuery('');
     setOpen(false);
     inputRef.current?.blur();
   };
 
+  const pick = (client: T) => {
+    onChange(client.id, client);
+    closeAndReset();
+  };
+
+  const pickClear = () => {
+    onChange('', undefined);
+    closeAndReset();
+  };
+
+  const rowCount = filtered.length + (hasClearRow ? 1 : 0);
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!open) setOpen(true);
-      else setHighlight(h => Math.min(h + 1, filtered.length - 1));
+      else setHighlight(h => Math.min(h + 1, rowCount - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setHighlight(h => Math.max(h - 1, 0));
     } else if (e.key === 'Enter' && open) {
       e.preventDefault();
-      const client = filtered[highlight];
+      if (hasClearRow && highlight === 0) {
+        pickClear();
+        return;
+      }
+      const client = filtered[hasClearRow ? highlight - 1 : highlight];
       if (client) pick(client);
     } else if (e.key === 'Escape') {
       setOpen(false);
@@ -98,11 +125,12 @@ export default function SearchableClientSelect({
     }
   };
 
+  const selectedNote = selected && noteFor ? noteFor(selected) : undefined;
   const displayValue = open
     ? query
     : selected
-      ? `${fullName(selected)}${selected.phone ? ` (${selected.phone})` : ''}`
-      : '';
+      ? `${fullName(selected)}${selected.phone ? ` (${selected.phone})` : ''}${selectedNote ? ` · ${selectedNote}` : ''}`
+      : clearLabel ?? '';
 
   return (
     <div ref={rootRef} style={{ position: 'relative' }}>
@@ -162,6 +190,34 @@ export default function SearchableClientSelect({
             boxShadow: '0 12px 30px rgba(15, 23, 42, 0.14)',
           }}
         >
+          {clearLabel && (
+            <div
+              role="option"
+              aria-selected={value === ''}
+              data-index={0}
+              onMouseEnter={() => setHighlight(0)}
+              onMouseDown={e => {
+                e.preventDefault();
+                pickClear();
+              }}
+              style={{
+                padding: '10px 14px',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                color: value === '' ? 'var(--primary-hover)' : 'var(--text-muted)',
+                fontWeight: value === '' ? 700 : 500,
+                background:
+                  value === ''
+                    ? 'var(--primary-faint)'
+                    : highlight === 0
+                      ? 'color-mix(in srgb, var(--primary) 6%, white)'
+                      : 'transparent',
+                borderBottom: '1px solid var(--border-card)',
+              }}
+            >
+              {clearLabel}
+            </div>
+          )}
           {filtered.length === 0 ? (
             <div
               style={{
@@ -175,15 +231,17 @@ export default function SearchableClientSelect({
             </div>
           ) : (
             filtered.map((c, i) => {
+              const index = hasClearRow ? i + 1 : i;
               const isSelected = c.id === value;
-              const isHighlighted = i === highlight;
+              const isHighlighted = index === highlight;
+              const note = noteFor ? noteFor(c) : undefined;
               return (
                 <div
                   key={c.id}
                   role="option"
                   aria-selected={isSelected}
-                  data-index={i}
-                  onMouseEnter={() => setHighlight(i)}
+                  data-index={index}
+                  onMouseEnter={() => setHighlight(index)}
                   onMouseDown={e => {
                     e.preventDefault();
                     pick(c);
@@ -193,7 +251,7 @@ export default function SearchableClientSelect({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '10px',
-                    padding: '10px 14px',
+                    padding: note ? '8px 14px' : '10px 14px',
                     cursor: 'pointer',
                     fontSize: '0.88rem',
                     background: isSelected
@@ -203,11 +261,18 @@ export default function SearchableClientSelect({
                         : 'transparent',
                     color: isSelected ? 'var(--primary-hover)' : 'var(--text-main)',
                     fontWeight: isSelected ? 700 : 500,
-                    borderBottom: i < filtered.length - 1 ? '1px solid var(--border-card)' : 'none',
+                    borderBottom: index < rowCount - 1 ? '1px solid var(--border-card)' : 'none',
                   }}
                 >
-                  <span>{fullName(c)}</span>
-                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }} dir="ltr">
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: '1px', minWidth: 0 }}>
+                    <span>{fullName(c)}</span>
+                    {note && (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        • {note}
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', flexShrink: 0 }} dir="ltr">
                     {c.phone || 'ללא טלפון'}
                   </span>
                 </div>

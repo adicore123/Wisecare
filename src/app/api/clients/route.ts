@@ -177,7 +177,10 @@ export async function POST(request: NextRequest) {
       portalCode,
       pin,
       whatsappStatus: 'not_sent',
-      lastSentAt: null
+      lastSentAt: null,
+      owesMoney: body.owesMoney === true,
+      billingNotes: body.billingNotes ? String(body.billingNotes).trim() : '',
+      debts: Array.isArray(body.debts) ? body.debts : []
     });
 
     let whatsappResult: any = null;

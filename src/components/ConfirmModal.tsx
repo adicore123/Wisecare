@@ -16,6 +16,7 @@ interface ConfirmModalProps {
   cancelLabel?: string;
   isDanger?: boolean;
   loading?: boolean;
+  zIndex?: number;
 }
 
 export default function ConfirmModal({ 
@@ -30,7 +31,8 @@ export default function ConfirmModal({
   confirmLabel,
   cancelLabel,
   isDanger = true,
-  loading = false
+  loading = false,
+  zIndex = 1200
 }: ConfirmModalProps) {
   const cancelButtonRef = useRef(null);
   const titleId = useId();
@@ -52,7 +54,7 @@ export default function ConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={closeModal} style={{ zIndex: 200 }}>
+    <div className="modal-overlay" onClick={closeModal} style={{ zIndex }}>
       <div 
         className="modal-card" 
         style={{ maxWidth: '440px', padding: '0', overflow: 'hidden' }}

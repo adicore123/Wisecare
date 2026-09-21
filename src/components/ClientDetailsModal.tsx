@@ -29,31 +29,43 @@ import {
   RefreshCw,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  Receipt
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
-import ThemePalettePicker from './ThemePalettePicker';
 
 export default function ClientDetailsModal({
   isOpen,
   onClose,
   client,
+  onClientUpdated,
   tasks = [],
   insights = [],
   onAddTask,
   onDeleteTask,
   onSendWhatsApp,
   onOpenPortal
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  client: any;
+  onClientUpdated?: (updatedClient: any) => void;
+  tasks?: any[];
+  insights?: any[];
+  onAddTask?: any;
+  onDeleteTask?: any;
+  onSendWhatsApp?: any;
+  onOpenPortal?: any;
 }) {
   const [currentClient, setCurrentClient] = useState(client);
   useEffect(() => {
     setCurrentClient(client);
   }, [client]);
 
-  const [modalTab, setModalTab] = useState('tasks'); // 'tasks' | 'insights' | 'appointments'
+  const [modalTab, setModalTab] = useState('dashboard');
   const [copied, setCopied] = useState(false);
   const [showAddTask, setShowAddTask] = useState(false);
   const [taskForm, setTaskForm] = useState({
@@ -243,6 +255,87 @@ export default function ClientDetailsModal({
     } finally {
       setIsSavingManualCredentials(false);
     }
+  };
+
+  
+  // Billing State
+  const [owesMoney, setOwesMoney] = useState(client?.owesMoney || false);
+  const [billingNotes, setBillingNotes] = useState(client?.billingNotes || '');
+  const [debts, setDebts] = useState<any[]>(client?.debts || []);
+  const [isSavingBilling, setIsSavingBilling] = useState(false);
+
+  // Custom Debt Modals State
+  const [isAddDebtModalOpen, setIsAddDebtModalOpen] = useState(false);
+  const [debtAmount, setDebtAmount] = useState('350');
+  const [debtDescription, setDebtDescription] = useState('לא שולם על מפגש');
+  const [debtDate, setDebtDate] = useState(() => new Date().toLocaleDateString('he-IL'));
+  const [debtToSettle, setDebtToSettle] = useState<any | null>(null);
+
+  useEffect(() => {
+    setCurrentClient(client);
+    setOwesMoney(client?.owesMoney || false);
+    setBillingNotes(client?.billingNotes || '');
+    setDebts(Array.isArray(client?.debts) ? client.debts : []);
+  }, [client]);
+
+  const handleSaveBilling = async (customOwesMoney?: boolean, customDebts?: any[]) => {
+    setIsSavingBilling(true);
+    const finalOwesMoney = customOwesMoney !== undefined ? customOwesMoney : owesMoney;
+    const finalDebts = customDebts !== undefined ? customDebts : debts;
+    
+    try {
+      const res = await api.updateClient(client.id, { owesMoney: finalOwesMoney, billingNotes, debts: finalDebts });
+      
+      setOwesMoney(finalOwesMoney);
+      setDebts(finalDebts);
+
+      const updatedObj = { ...client, ...res, owesMoney: finalOwesMoney, billingNotes, debts: finalDebts };
+      setCurrentClient(updatedObj);
+
+      if (onClientUpdated) {
+        onClientUpdated(updatedObj);
+      }
+      
+      showToast('פרטי התשלום עודכנו בהצלחה ✨');
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בעדכון פרטי תשלום', 'error');
+    } finally {
+      setIsSavingBilling(false);
+    }
+  };
+
+  const openAddDebtModal = () => {
+    setDebtAmount('350');
+    setDebtDescription('לא שולם על מפגש');
+    setDebtDate(new Date().toLocaleDateString('he-IL'));
+    setIsAddDebtModalOpen(true);
+  };
+
+  const handleConfirmAddDebt = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const numAmount = parseFloat(debtAmount);
+    if (isNaN(numAmount) || numAmount <= 0) {
+      showToast('נא להזין סכום חוב תקין', 'error');
+      return;
+    }
+    const newDebt = {
+      id: Date.now().toString(),
+      date: debtDate.trim() || new Date().toLocaleDateString('he-IL'),
+      amount: numAmount,
+      description: debtDescription.trim() || 'לא שולם על מפגש'
+    };
+    const newDebts = [...debts, newDebt];
+    setIsAddDebtModalOpen(false);
+    handleSaveBilling(true, newDebts);
+  };
+
+  const handleConfirmSettleDebt = () => {
+    if (!debtToSettle) return;
+    const newDebts = debts.filter(d => d.id !== debtToSettle.id);
+    const newOwesMoney = newDebts.length > 0 ? owesMoney : false;
+    setDebtToSettle(null);
+    handleSaveBilling(newOwesMoney, newDebts);
+    showToast('החוב סומן כשולם בהצלחה ✨');
   };
 
   const loadClientAppointments = useCallback(async () => {
@@ -448,17 +541,6 @@ export default function ClientDetailsModal({
     }
   }, [isOpen, client?.id, loadClientAppointments, loadClientContent, loadClientForms]);
 
-  const handleSelectClientTheme = async (themeId: string) => {
-    setClientTheme(themeId);
-    try {
-      await api.updateClient(client.id, { themeId });
-      showToast('פלטת המרחב האישי עודכנה ✨');
-    } catch (err: any) {
-      showToast(err.message || 'שגיאה בעדכון הפלטה', 'error');
-      setClientTheme(client.themeId || 'sage');
-    }
-  };
-
   if (!isOpen || !client) return null;
 
   const portalUrl = `${window.location.origin}/portal/${client.portalCode}`;
@@ -549,6 +631,188 @@ export default function ClientDetailsModal({
         </div>
 
         <div className="modal-body">
+
+          {/* Dashboard View */}
+          {modalTab === 'dashboard' && (
+            <div style={{ padding: '10px 0' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+                
+                {/* Billing Summary Card */}
+                <div 
+                  onClick={() => setModalTab('billing')}
+                  style={{
+                    background: owesMoney ? '#fef2f2' : '#f0fdf4',
+                    border: owesMoney ? '1px solid #fecaca' : '1px solid #bbf7d0',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                  }}
+                  className="hover-lift"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ background: owesMoney ? '#fee2e2' : '#dcfce3', padding: '10px', borderRadius: '12px', color: owesMoney ? '#ef4444' : '#22c55e' }}>
+                      <AlertCircle size={24} />
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>סטטוס תשלום</h4>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: owesMoney ? '#ef4444' : '#22c55e', fontWeight: 700 }}>
+                        {owesMoney ? 'חייב כסף' : 'הכל שולם'}
+                      </p>
+                    </div>
+                  </div>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                    לחץ לניהול מערך התשלומים והערות חוב.
+                  </p>
+                </div>
+
+                {/* Portal & Access Card */}
+                <div 
+                  onClick={() => setModalTab('portal')}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                  }}
+                  className="hover-lift"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <div style={{ background: '#e2e8f0', padding: '10px', borderRadius: '12px', color: '#475569' }}>
+                      <Lock size={24} />
+                    </div>
+                    <div>
+                      <h4 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a' }}>גישה ואבטחה</h4>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: portalOn ? 'var(--primary)' : '#64748b', fontWeight: 700 }}>
+                        {portalOn ? 'פורטל פעיל' : 'פורטל כבוי'}
+                      </p>
+                    </div>
+                  </div>
+                  <p style={{ margin: '8px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                    לחץ לניהול סיסמאות, שיתוף לינקים ופורטל.
+                  </p>
+                </div>
+
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                <button className="btn btn-secondary" style={{ padding: '16px', height: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', fontSize: '1rem' }} onClick={() => setModalTab('tasks')}>
+                  <CheckCircle2 size={24} color="var(--primary)" /> משימות ויעדים ({tasks.length})
+                </button>
+                <button className="btn btn-secondary" style={{ padding: '16px', height: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', fontSize: '1rem' }} onClick={() => setModalTab('appointments')}>
+                  <Calendar size={24} color="var(--primary)" /> יומן פגישות
+                </button>
+                <button className="btn btn-secondary" style={{ padding: '16px', height: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', fontSize: '1rem' }} onClick={() => setModalTab('content')}>
+                  <Library size={24} color="var(--primary)" /> חומרים וטפסים
+                </button>
+              </div>
+            </div>
+          )}
+
+
+          {modalTab === 'billing' && (
+            <div className="tab-pane active fade-in" style={{ padding: '10px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+                <button className="btn-icon" onClick={() => setModalTab('dashboard')} style={{ background: '#f1f5f9' }}>
+                  <X size={18} />
+                </button>
+                <h3 style={{ margin: 0 }}>ניהול תשלומים וחובות</h3>
+              </div>
+
+              <div style={{
+                background: '#ffffff',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+              }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px', paddingBottom: '20px', borderBottom: '1px solid #e2e8f0' }}>
+                  <button onClick={openAddDebtModal} className="btn btn-secondary hover-lift" style={{ background: '#fee2e2', color: '#b91c1c', borderColor: '#fca5a5', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', padding: '8px 16px', fontWeight: 600 }}>
+                    <Plus size={16} /> הוסף חוב על מפגש
+                  </button>
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '16px', background: owesMoney ? '#fee2e2' : '#f8fafc', border: owesMoney ? '2px solid #ef4444' : '1px solid #e2e8f0', borderRadius: '12px', transition: 'all 0.2s' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={owesMoney}
+                      onChange={(e) => handleSaveBilling(e.target.checked)}
+                      style={{ transform: 'scale(1.5)', accentColor: '#ef4444' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '1.1rem', color: owesMoney ? '#b91c1c' : '#334155' }}>
+                        המטופל חייב כסף
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: owesMoney ? '#ef4444' : '#64748b' }}>
+                        סמן וי כדי להתריע שהמטופל נמצא ביתרת חובה
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
+                {debts && debts.length > 0 && (
+                  <div style={{ marginBottom: '24px' }}>
+                    <h4 style={{ color: '#0f172a', marginBottom: '12px' }}>פירוט חובות ({debts.reduce((acc, curr) => acc + curr.amount, 0)} ₪ סה"כ)</h4>
+                    <div style={{ border: '1px solid #e2e8f0', borderRadius: '12px', overflow: 'hidden' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '0.9rem' }}>
+                        <thead style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                          <tr>
+                            <th style={{ padding: '12px', fontWeight: 600, color: '#475569' }}>תאריך</th>
+                            <th style={{ padding: '12px', fontWeight: 600, color: '#475569' }}>תיאור</th>
+                            <th style={{ padding: '12px', fontWeight: 600, color: '#475569' }}>סכום</th>
+                            <th style={{ padding: '12px', fontWeight: 600, color: '#475569', textAlign: 'left' }}>פעולות</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {debts.map((debt, index) => (
+                            <tr key={debt.id || index} style={{ borderBottom: index < debts.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                              <td style={{ padding: '12px', color: '#334155' }}>{debt.date}</td>
+                              <td style={{ padding: '12px', color: '#334155' }}>{debt.description}</td>
+                              <td style={{ padding: '12px', color: '#b91c1c', fontWeight: 600 }}>{debt.amount} ₪</td>
+                              <td style={{ padding: '12px', textAlign: 'left' }}>
+                                <button 
+                                  onClick={() => setDebtToSettle(debt)}
+                                  className="btn btn-secondary hover-lift"
+                                  style={{ padding: '4px 10px', fontSize: '0.8rem', background: '#dcfce3', color: '#166534', borderColor: '#bbf7d0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                                >
+                                  <CheckCircle2 size={14} /> שולם
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>הערות פירוט תשלום (למשל: תנאי הסדר תשלום)</label>
+                  <textarea 
+                    className="form-control" 
+                    value={billingNotes}
+                    onChange={(e) => setBillingNotes(e.target.value)}
+                    onBlur={() => handleSaveBilling()}
+                    placeholder="פירוט החוב או הסדר התשלום..."
+                    style={{ minHeight: '120px' }}
+                  />
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {modalTab === 'portal' && (<>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px' }}>
+            <button className="btn-icon" onClick={() => setModalTab('dashboard')} style={{ background: '#f1f5f9' }}><X size={18} /></button>
+            <h3 style={{ margin: 0 }}>ניהול גישה ופורטל</h3>
+          </div>
+
           {/* Portal on/off toggle — the therapist decides who gets a personal portal */}
           <div style={{
             display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap',
@@ -569,23 +833,6 @@ export default function ClientDetailsModal({
             </label>
             {isTogglingPortal && <Loader2 size={16} className="animate-spin" color="var(--primary)" />}
           </div>
-
-          {/* This client's own portal palette */}
-          {portalOn && (
-            <div style={{
-              background: '#ffffff',
-              border: '1px solid #e8f0ef',
-              borderRadius: '14px',
-              padding: '12px 16px',
-              marginBottom: '16px'
-            }}>
-              <ThemePalettePicker
-                label="🎨 פלטת המרחב האישי (נשמרת מיד)"
-                value={clientTheme}
-                onChange={handleSelectClientTheme}
-              />
-            </div>
-          )}
 
           {/* Client Personal Portal Banner */}
           {portalOn && (
@@ -743,6 +990,8 @@ export default function ClientDetailsModal({
           </div>
           )}
 
+          </>)}
+
           {/* Clinical Notes */}
           {client.notes && (
             <div style={{
@@ -762,7 +1011,14 @@ export default function ClientDetailsModal({
           )}
 
           {/* Tabs Switcher: Tasks vs Insights */}
-          <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid #e2e8f0', marginBottom: '20px' }}>
+          
+          {['tasks', 'insights', 'appointments', 'content', 'forms'].includes(modalTab) && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+              <button className="btn-icon" onClick={() => setModalTab('dashboard')} style={{ background: '#f1f5f9', flexShrink: 0 }}>
+                <X size={18} />
+              </button>
+              <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid #e2e8f0', flex: 1, overflowX: 'auto' }}>
+
             <button
               type="button"
               onClick={() => setModalTab('tasks')}
@@ -853,9 +1109,11 @@ export default function ClientDetailsModal({
               ✍️ טפסים וחתימות{clientForms.length > 0 ? ` (${clientForms.length})` : ''}
             </button>
           </div>
+        </div>
+      )}
 
-          {/* TAB 1: Tasks Section */}
-          {modalTab === 'tasks' && (
+      {/* TAB 1: Tasks Section */}
+      {modalTab === 'tasks' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
                 <div>
@@ -1996,6 +2254,245 @@ export default function ClientDetailsModal({
         cancelText="ביטול"
         isDanger={true}
       />
+
+      {/* Settle Debt Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(debtToSettle)}
+        onClose={() => setDebtToSettle(null)}
+        onConfirm={handleConfirmSettleDebt}
+        title="סימון חוב כשולם"
+        message={`האם לסמן את החוב ע״ס ${debtToSettle?.amount} ₪ (${debtToSettle?.description}) כשולם ולהסירו מהתיק?`}
+        confirmText="כן, סמן כשולם"
+        cancelText="ביטול"
+        isDanger={false}
+        zIndex={1200}
+      />
+
+      {/* Add Debt Custom Modal */}
+      {isAddDebtModalOpen && (
+        <div 
+          className="modal-overlay" 
+          style={{ zIndex: 1200 }} 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsAddDebtModalOpen(false); }}
+        >
+          <div 
+            className="modal-card" 
+            style={{ 
+              maxWidth: '460px', 
+              width: '92vw', 
+              borderRadius: '20px', 
+              overflow: 'hidden', 
+              border: '1px solid #e2e8f0', 
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)' 
+            }} 
+            onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              borderBottom: '1px solid #f1f5f9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              background: 'linear-gradient(to bottom, #ffffff, #fafafa)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: '#fee2e2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <Receipt size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
+                    רישום חוב על מפגש
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
+                    הזנת סכום ופרטי חוב שלא שולם
+                  </p>
+                </div>
+              </div>
+              <button 
+                type="button"
+                className="btn-icon" 
+                onClick={() => setIsAddDebtModalOpen(false)}
+                style={{ background: '#f1f5f9', borderRadius: '50%', padding: '6px' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleConfirmAddDebt} style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Amount field */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', color: '#334155', marginBottom: '8px' }}>
+                  סכום החוב (₪)
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input 
+                    type="number"
+                    step="any"
+                    min="1"
+                    autoFocus
+                    required
+                    value={debtAmount}
+                    onChange={(e) => setDebtAmount(e.target.value)}
+                    placeholder="350"
+                    style={{
+                      width: '100%',
+                      padding: '12px 42px 12px 14px',
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      background: '#f8fafc',
+                      border: '1.5px solid #cbd5e1',
+                      borderRadius: '12px',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'var(--primary, #0d9488)'}
+                    onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                  />
+                  <span style={{ position: 'absolute', right: '14px', fontSize: '1.2rem', fontWeight: 700, color: '#64748b', pointerEvents: 'none' }}>
+                    ₪
+                  </span>
+                </div>
+
+                {/* Quick Presets */}
+                <div style={{ display: 'flex', gap: '6px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  {[250, 300, 350, 400, 450].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setDebtAmount(preset.toString())}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '8px',
+                        border: debtAmount === preset.toString() ? '1.5px solid #ef4444' : '1px solid #e2e8f0',
+                        background: debtAmount === preset.toString() ? '#fee2e2' : '#ffffff',
+                        color: debtAmount === preset.toString() ? '#b91c1c' : '#475569',
+                        fontSize: '0.82rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {preset} ₪
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Description field */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', color: '#334155', marginBottom: '8px' }}>
+                  תיאור או סיבת החוב
+                </label>
+                <input 
+                  type="text"
+                  value={debtDescription}
+                  onChange={(e) => setDebtDescription(e.target.value)}
+                  placeholder="למשל: לא שולם על מפגש"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.92rem',
+                    color: '#0f172a',
+                    background: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '12px',
+                    outline: 'none'
+                  }}
+                  onFocus={(e) => e.target.style.borderColor = 'var(--primary, #0d9488)'}
+                  onBlur={(e) => e.target.style.borderColor = '#cbd5e1'}
+                />
+                <div style={{ display: 'flex', gap: '6px', marginTop: '6px', flexWrap: 'wrap' }}>
+                  {['לא שולם על מפגש', 'מפגש טיפולי', 'ביטול מאוחר', 'הפרש תשלום'].map((text) => (
+                    <button
+                      key={text}
+                      type="button"
+                      onClick={() => setDebtDescription(text)}
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        border: '1px solid #e2e8f0',
+                        background: '#f1f5f9',
+                        color: '#475569',
+                        fontSize: '0.78rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date field */}
+              <div>
+                <label style={{ display: 'block', fontWeight: 600, fontSize: '0.9rem', color: '#334155', marginBottom: '8px' }}>
+                  תאריך
+                </label>
+                <input 
+                  type="text"
+                  value={debtDate}
+                  onChange={(e) => setDebtDate(e.target.value)}
+                  placeholder="DD/MM/YYYY"
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    fontSize: '0.92rem',
+                    color: '#0f172a',
+                    background: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '12px',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+
+              {/* Footer buttons */}
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px', paddingTop: '16px', borderTop: '1px solid #f1f5f9' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={() => setIsAddDebtModalOpen(false)}
+                  style={{ padding: '10px 18px', fontSize: '0.9rem' }}
+                >
+                  ביטול
+                </button>
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  style={{ 
+                    padding: '10px 22px', 
+                    fontSize: '0.95rem', 
+                    fontWeight: 700, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    background: '#ef4444',
+                    borderColor: '#dc2626',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)'
+                  }}
+                >
+                  <Plus size={18} />
+                  הוסף חוב לתיק
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Signed Form Viewer Modal */}
       {viewingSignature && (

@@ -115,7 +115,7 @@ export async function PUT(request: NextRequest, props: RouteProps) {
       }
     }
 
-    const allowedFields = ['firstName', 'lastName', 'phone', 'username', 'age', 'gender', 'notes', 'pin', 'portalEnabled'];
+    const allowedFields = ['firstName', 'lastName', 'phone', 'username', 'age', 'gender', 'notes', 'pin', 'portalEnabled', 'owesMoney', 'billingNotes', 'debts'];
     const updateData: Record<string, any> = {};
     allowedFields.forEach(field => {
       if (body[field] !== undefined) {

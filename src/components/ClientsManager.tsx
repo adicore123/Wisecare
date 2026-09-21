@@ -12,7 +12,9 @@ import {
   Users, 
   Phone,
   Building2,
-  Globe
+  Globe,
+  User,
+  AlertCircle
 } from 'lucide-react';
 import ClientModal from './ClientModal';
 import ClientDetailsModal from './ClientDetailsModal';
@@ -29,6 +31,7 @@ export default function ClientsManager() {
   const [searchTerm, setSearchTerm] = useState('');
   const [genderFilter, setGenderFilter] = useState('all');
   const [portalFilter, setPortalFilter] = useState<'all' | 'portal' | 'clinic'>('all');
+  const [paymentFilter, setPaymentFilter] = useState<'all' | 'debt' | 'paid'>('all');
   const [isNewClientOpen, setIsNewClientOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [clientTasks, setClientTasks] = useState<any[]>([]);
@@ -76,6 +79,10 @@ export default function ClientsManager() {
     setLoadingDetails(true);
     try {
       const data = await api.getClient(client.id);
+      if (data?.client) {
+        setSelectedClient(data.client);
+        setClients(prev => prev.map(c => c.id === client.id ? { ...c, ...data.client } : c));
+      }
       setClientTasks(data.tasks || []);
       setClientInsights(data.insights || []);
     } catch (err: any) {
@@ -191,7 +198,17 @@ export default function ClientsManager() {
       : portalFilter === 'portal' 
         ? c.portalEnabled !== false 
         : c.portalEnabled === false;
-    return matchesSearch && matchesGender && matchesPortal;
+
+    const clientDebts = Array.isArray(c.debts) ? c.debts : [];
+    const totalDebt = clientDebts.reduce((sum: number, d: any) => sum + (Number(d.amount) || 0), 0);
+    const isOwing = Boolean(c.owesMoney || totalDebt > 0);
+    const matchesPayment = paymentFilter === 'all'
+      ? true
+      : paymentFilter === 'debt'
+        ? isOwing
+        : !isOwing;
+
+    return matchesSearch && matchesGender && matchesPortal && matchesPayment;
   });
 
   // KPI Statistics
@@ -310,6 +327,21 @@ export default function ClientsManager() {
               <option value="אחר">אחר</option>
             </select>
           </div>
+
+          <div className="toolbar-filter">
+            <label htmlFor="payment-filter">סטטוס תשלום:</label>
+            <select 
+              id="payment-filter"
+              className="form-control"
+              style={{ width: '135px', padding: '6px 10px', fontSize: '0.88rem' }}
+              value={paymentFilter}
+              onChange={e => setPaymentFilter(e.target.value as any)}
+            >
+              <option value="all">כל הסטטוסים</option>
+              <option value="debt">🔴 בעלי חוב</option>
+              <option value="paid">🟢 הכל שולם</option>
+            </select>
+          </div>
         </div>
 
         <div className="table-responsive">
@@ -321,6 +353,7 @@ export default function ClientsManager() {
                 <th>גיל</th>
                 <th>מין</th>
                 <th>משימות בית</th>
+                <th>סטטוס תשלום</th>
                 <th>מרחב אישי (קישור ייחודי)</th>
                 <th>
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -333,75 +366,148 @@ export default function ClientsManager() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                     טוען לקוחות...
                   </td>
                 </tr>
               ) : filteredClients.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                     לא נמצאו לקוחות מתאימים. לחץ על "לקוח חדש" לפתיחת סביבה ראשונה!
                   </td>
                 </tr>
               ) : (
-                filteredClients.map(client => (
-                  <tr key={client.id}>
-                    <td>
-                      <button 
-                        type="button" 
-                        className="client-name-button" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          handleOpenClientDetails(client);
-                        }}
-                      >
-                        <div className={`client-avatar ${client.gender === 'נקבה' ? 'is-female' : ''}`} aria-hidden="true">
-                          {client.firstName.charAt(0)}
-                        </div>
-                        <div>
-                          <div className="client-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
-                            <span>{client.firstName} {client.lastName}</span>
-                            {client.isSelfCare && (
-                              <span style={{ fontSize: '0.72rem', background: 'var(--primary-faint)', color: 'var(--primary)', padding: '1px 7px', borderRadius: '999px', fontWeight: 700, border: '1px solid var(--primary-light)' }}>
-                                🌱 עצמאי (/join)
-                              </span>
+                filteredClients.map(client => {
+                  const clientDebts = Array.isArray(client.debts) ? client.debts : [];
+                  const totalDebt = clientDebts.reduce((sum: number, d: any) => sum + (Number(d.amount) || 0), 0);
+                  const isOwing = Boolean(client.owesMoney || totalDebt > 0);
+
+                  return (
+                    <tr key={client.id}>
+                      <td>
+                        <button 
+                          type="button" 
+                          className="client-name-button" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleOpenClientDetails(client);
+                          }}
+                        >
+                          <div className={`client-avatar ${client.gender === 'נקבה' ? 'is-female' : ''}`} aria-hidden="true">
+                            {client.firstName.charAt(0)}
+                          </div>
+                          <div>
+                            <div className="client-name" style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                              <span>{client.firstName} {client.lastName}</span>
+                              {isOwing && (
+                                <span 
+                                  title={`יתרת חוב פתוחה${totalDebt > 0 ? `: ${totalDebt} ₪` : ''}`}
+                                  style={{ 
+                                    fontSize: '0.72rem', 
+                                    background: '#fee2e2', 
+                                    color: '#b91c1c', 
+                                    padding: '1px 7px', 
+                                    borderRadius: '999px', 
+                                    fontWeight: 700, 
+                                    border: '1px solid #fca5a5',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '3px'
+                                  }}
+                                >
+                                  <AlertCircle size={10} color="#dc2626" />
+                                  <span>חוב {totalDebt > 0 ? `${totalDebt} ₪` : ''}</span>
+                                </span>
+                              )}
+                              {client.isSelfCare && (
+                                <span style={{ fontSize: '0.72rem', background: 'var(--primary-faint)', color: 'var(--primary)', padding: '1px 7px', borderRadius: '999px', fontWeight: 700, border: '1px solid var(--primary-light)' }}>
+                                  🌱 עצמאי (/join)
+                                </span>
+                              )}
+                              {client.portalEnabled === false && (
+                                <span style={{ fontSize: '0.72rem', background: '#f1f5f9', color: '#475569', padding: '1px 7px', borderRadius: '999px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
+                                  🏢 קליניקה
+                                </span>
+                              )}
+                            </div>
+                            {client.notes && (
+                              <div className="client-note-preview">
+                                {client.notes}
+                              </div>
                             )}
-                            {client.portalEnabled === false && (
-                              <span style={{ fontSize: '0.72rem', background: '#f1f5f9', color: '#475569', padding: '1px 7px', borderRadius: '999px', fontWeight: 600, border: '1px solid #cbd5e1' }}>
-                                🏢 קליניקה
+                          </div>
+                        </button>
+                      </td>
+
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', direction: 'ltr', justifyContent: 'flex-end' }}>
+                          <span>{client.phone}</span>
+                          <Phone size={14} color="#94a3b8" />
+                        </div>
+                      </td>
+
+                      <td>{client.age || '-'}</td>
+
+                      <td>
+                        <span className="badge badge-neutral">{client.gender}</span>
+                      </td>
+
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span className={`badge ${client.tasksCompleted > 0 ? 'badge-success' : 'badge-neutral'}`}>
+                            {client.tasksCompleted || 0} / {client.tasksTotal || 0} הושלמו
+                          </span>
+                        </div>
+                      </td>
+
+                      <td>
+                        {isOwing ? (
+                          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+                            <span 
+                              style={{
+                                background: '#fee2e2',
+                                color: '#b91c1c',
+                                border: '1px solid #fca5a5',
+                                padding: '3px 8px',
+                                borderRadius: '999px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                              title={`המטופל ביתרת חוב${client.billingNotes ? ` | ${client.billingNotes}` : ''}`}
+                            >
+                              <AlertCircle size={12} color="#dc2626" />
+                              <span>{totalDebt > 0 ? `חוב: ${totalDebt} ₪` : 'יתרת חוב'}</span>
+                            </span>
+                            {clientDebts.length > 0 && (
+                              <span style={{ fontSize: '0.72rem', color: '#dc2626', paddingRight: '4px' }}>
+                                {clientDebts.length === 1 ? 'מפגש 1' : `${clientDebts.length} מפגשים`}
                               </span>
                             )}
                           </div>
-                          {client.notes && (
-                            <div className="client-note-preview">
-                              {client.notes}
-                            </div>
-                          )}
-                        </div>
-                      </button>
-                    </td>
-
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', direction: 'ltr', justifyContent: 'flex-end' }}>
-                        <span>{client.phone}</span>
-                        <Phone size={14} color="#94a3b8" />
-                      </div>
-                    </td>
-
-                    <td>{client.age || '-'}</td>
-
-                    <td>
-                      <span className="badge badge-neutral">{client.gender}</span>
-                    </td>
-
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span className={`badge ${client.tasksCompleted > 0 ? 'badge-success' : 'badge-neutral'}`}>
-                          {client.tasksCompleted || 0} / {client.tasksTotal || 0} הושלמו
-                        </span>
-                      </div>
-                    </td>
+                        ) : (
+                          <span 
+                            style={{
+                              background: '#f0fdf4',
+                              color: '#166534',
+                              border: '1px solid #bbf7d0',
+                              padding: '3px 8px',
+                              borderRadius: '999px',
+                              fontSize: '0.78rem',
+                              fontWeight: 600,
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                          >
+                            <CheckCircle2 size={12} color="#16a34a" />
+                            <span>הכל שולם</span>
+                          </span>
+                        )}
+                      </td>
 
                     <td>
                       {client.portalEnabled !== false ? (
@@ -457,6 +563,30 @@ export default function ClientsManager() {
 
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.8rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            color: '#334155',
+                            background: '#f1f5f9',
+                            borderColor: '#cbd5e1'
+                          }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleOpenClientDetails(client);
+                          }}
+                          title="פתיחת כרטיס מטופל (תיק אישי מלא)"
+                        >
+                          <User size={14} />
+                          <span>תיק מטופל</span>
+                        </button>
+
                         {client.portalEnabled !== false && (
                           <button
                             type="button"
@@ -543,7 +673,8 @@ export default function ClientsManager() {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+                })
               )}
             </tbody>
           </table>
@@ -562,8 +693,15 @@ export default function ClientsManager() {
       {selectedClient && (
         <ClientDetailsModal 
           isOpen={Boolean(selectedClient)}
-          onClose={() => setSelectedClient(null)}
+          onClose={() => {
+            setSelectedClient(null);
+            loadClients(currentUser?.id);
+          }}
           client={selectedClient}
+          onClientUpdated={(updated) => {
+            setSelectedClient(prev => prev ? { ...prev, ...updated } : updated);
+            setClients(prev => prev.map(c => c.id === updated.id ? { ...c, ...updated } : c));
+          }}
           tasks={clientTasks}
           insights={clientInsights}
           onAddTask={handleAddTaskToClient}
