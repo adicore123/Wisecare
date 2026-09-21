@@ -241,6 +241,18 @@ export const api = {
     return api.sendWhatsApp(clientId, customMessage);
   },
 
+  sendClientWaze: async (clientId: string) => {
+    const res = await fetch(`${API_BASE}/clients/${encodeURIComponent(clientId)}/send-waze`, {
+      method: 'POST',
+      headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחת ניווט הוויז');
+    }
+    return res.json();
+  },
+
   // Tasks (Therapist)
   createTask: async (taskData) => {
     const res = await fetch(`${API_BASE}/tasks`, {

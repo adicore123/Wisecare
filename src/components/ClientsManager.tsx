@@ -18,6 +18,7 @@ import ClientModal from './ClientModal';
 import ClientDetailsModal from './ClientDetailsModal';
 import ConfirmModal from './ConfirmModal';
 import WhatsAppIcon from './WhatsAppIcon';
+import WazeIcon from './WazeIcon';
 import Toast from './Toast';
 import { api } from '@/lib/api';
 
@@ -160,6 +161,22 @@ export default function ClientsManager() {
       loadClients(currentUser?.id);
     } catch (err: any) {
       showToast('שגיאה בשליחת וואטסאפ: ' + (err.message || ''));
+    }
+  };
+
+  // One-tap Waze navigation link to the clinic, sent to the client's WhatsApp
+  // (address comes from the therapist's settings — server-side)
+  const [sendingWazeId, setSendingWazeId] = useState<string | null>(null);
+  const handleSendWaze = async (client: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSendingWazeId(client.id);
+    try {
+      await api.sendClientWaze(client.id);
+      showToast(`קישור ניווט וויז נשלח ל-${client.firstName} בוואטסאפ 🧭`);
+    } catch (err: any) {
+      showToast('שגיאה בשליחת ניווט הוויז: ' + (err.message || ''));
+    } finally {
+      setSendingWazeId(null);
     }
   };
 
@@ -459,6 +476,30 @@ export default function ClientsManager() {
                           >
                             <WhatsAppIcon size={14} />
                             <span>שלח WhatsApp</span>
+                          </button>
+                        )}
+
+                        {client.phone && (
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{
+                              padding: '6px 10px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              color: '#0369a1',
+                              background: '#e0f2fe',
+                              borderColor: '#bae6fd'
+                            }}
+                            onClick={(e) => handleSendWaze(client, e)}
+                            disabled={sendingWazeId === client.id}
+                            title="שליחת קישור ניווט בוויז לכתובת הקליניקה — לוואטסאפ של הלקוח"
+                          >
+                            {sendingWazeId === client.id
+                              ? <span className="spin" style={{ width: 14, height: 14, border: '2px solid #bae6fd', borderTopColor: '#0369a1', borderRadius: '50%', display: 'inline-block' }} />
+                              : <WazeIcon size={16} />}
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700 }}>וויז</span>
                           </button>
                         )}
 
