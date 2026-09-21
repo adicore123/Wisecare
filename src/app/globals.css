@@ -5386,3 +5386,232 @@ table.quotes-table {
   .qt-actions { opacity: 1; }
   .quotes-table thead th { position: static; }
 }
+
+/* ===== Quote widget — one unified window (pick template → fill & save) ===== */
+.qw-window {
+  max-width: 680px;
+}
+
+.qw-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.qw-header-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.qw-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.qw-header-text h3 {
+  color: #ffffff;
+  font-size: 1.05rem;
+  margin: 0 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qw-header-text span {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+}
+
+.qw-header .close-btn {
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.qw-header .close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.qw-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.qw-back:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.qw-body {
+  padding: 18px 20px;
+}
+
+/* One surface, hairline dividers between tiles — never floating cards */
+.qw-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border-light);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.qw-tile {
+  background: #ffffff;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  transition: background 0.15s ease;
+}
+
+.qw-tile:hover {
+  background: var(--primary-faint);
+}
+
+.qw-tile-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.qw-tile-title {
+  font-weight: 800;
+  color: var(--text-strong);
+  font-size: 0.95rem;
+}
+
+.qw-tile-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.qw-tile-actions .btn-icon {
+  opacity: 0.45;
+  transition: opacity 0.15s ease;
+}
+
+.qw-tile:hover .qw-tile-actions .btn-icon,
+.qw-tile-actions .btn-icon:focus-visible {
+  opacity: 1;
+}
+
+.qw-tile-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.qw-tile-price .set {
+  color: var(--primary-hover);
+  font-weight: 800;
+  font-size: 0.84rem;
+}
+
+.qw-tile-price .unset {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #b45309;
+  font-weight: 700;
+  font-size: 0.84rem;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.qw-tile-price .unset:hover {
+  color: #92400e;
+}
+
+.qw-price-edit {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.qw-price-edit .form-control {
+  padding: 7px 10px;
+  font-size: 0.86rem;
+}
+
+.qw-price-edit .btn {
+  padding: 7px 11px;
+}
+
+.qw-create {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--primary-light);
+  background: #ffffff;
+  color: var(--primary-hover);
+  font-weight: 800;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.qw-create:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+/* Free-form tile — full-width closing row of the unified surface */
+.qw-tile-free {
+  grid-column: 1 / -1;
+  background: #f8fafc;
+  border-top: 1px dashed var(--primary-light);
+}
+
+.qw-create-ghost {
+  border-color: var(--border-light);
+  color: var(--text-main);
+  background: #ffffff;
+}
+
+.qw-create-ghost:hover {
+  border-color: var(--primary);
+}
+
+.qw-footer-tip {
+  justify-content: flex-start;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  background: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .qw-grid {
+    grid-template-columns: 1fr;
+  }
+}

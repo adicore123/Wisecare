@@ -20,7 +20,8 @@ import {
   Layers,
   Search,
   Sparkles,
-  X
+  X,
+  ArrowRight
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import {
@@ -160,11 +161,20 @@ export default function QuotesManager() {
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [deleteTemplateModal, setDeleteTemplateModal] = useState<TemplateRow | null>(null);
 
-  // Template picker widget — the single entry point for creating a quote
+  // Template picker widget — the single entry point for creating a quote.
+  // Two steps inside one window: 'templates' (pick) → 'editor' (fill & save),
+  // with a back button — no navigation away from the list.
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [pickerStep, setPickerStep] = useState<'templates' | 'editor'>('templates');
   const [editingTemplatePrice, setEditingTemplatePrice] = useState<TemplateRow | null>(null);
   const [templatePriceInput, setTemplatePriceInput] = useState('');
   const [savingTemplatePrice, setSavingTemplatePrice] = useState(false);
+
+  const closePicker = () => {
+    setTemplatePickerOpen(false);
+    setPickerStep('templates');
+    setEditingTemplatePrice(null);
+  };
 
   // Editor state (null = list view)
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -251,7 +261,9 @@ export default function QuotesManager() {
     setSaveTemplateName('');
     setEditingId(null);
     setIsNew(true);
-    setTemplatePickerOpen(false);
+    // Stay INSIDE the widget — step 2 is the editor, with a back button
+    setTemplatePickerOpen(true);
+    setPickerStep('editor');
   };
 
   // Save the therapist's default price on a template (picker inline edit)
@@ -344,7 +356,8 @@ export default function QuotesManager() {
     setEditingId(null);
     setShowNewClientForm(false);
     setIsNew(true);
-    setTemplatePickerOpen(false);
+    setTemplatePickerOpen(true);
+    setPickerStep('editor');
   };
 
   const applyQuoteToDraft = (quote: QuoteRow) => {
@@ -464,6 +477,8 @@ export default function QuotesManager() {
       }
       setIsNew(false);
       setEditingId(null);
+      setTemplatePickerOpen(false);
+      setPickerStep('templates');
       await loadQuotes();
       await loadClients(); // a new client may have just been created
     } catch (err: any) {
@@ -527,21 +542,9 @@ export default function QuotesManager() {
 
   const clientLinked = Boolean(draft.clientId) || Boolean(draft.newClient);
 
-  // ---------- Editor view ----------
-  if (isNew || editingId) {
-    return (
-      <div className="page-content">
-        <div className="page-header">
-          <div className="page-title-group">
-            <span className="eyebrow">הצעות מחיר ללקוחות פוטנציאליים</span>
-            <h2>{isNew ? 'הצעת מחיר חדשה' : 'עריכת הצעת מחיר'}</h2>
-          </div>
-          <button type="button" className="btn btn-secondary" onClick={() => { setIsNew(false); setEditingId(null); }}>
-            ← חזרה לרשימת ההצעות
-          </button>
-        </div>
-
-        <div className="card" style={{ padding: '24px', maxWidth: '760px' }}>
+  // ---------- Shared quote form (picker-widget step 2 + edit-existing view) ----------
+  const editorFormBody = (
+    <>
           {/* ---- Client association ---- */}
           <div style={{ marginBottom: '8px' }}>
             <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -766,16 +769,6 @@ export default function QuotesManager() {
             );
           })()}
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-            <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 size={18} className="spin" /> : <CheckCircle2 size={18} />}
-              {isNew ? 'יצירת ההצעה' : 'שמירת השינויים'}
-            </button>
-            <button type="button" className="btn btn-secondary" onClick={() => { setIsNew(false); setEditingId(null); }}>
-              ביטול
-            </button>
-          </div>
-
           {/* Save as a reusable template */}
           <div style={{
             marginTop: '18px', paddingTop: '14px', borderTop: '1px dashed #e2e8f0',
@@ -801,6 +794,35 @@ export default function QuotesManager() {
             >
               {savingTemplate ? <Loader2 size={14} className="spin" /> : <BookmarkPlus size={14} />}
               שמירה כתבנית
+            </button>
+          </div>
+    </>
+  );
+
+  // ---------- Edit-existing view (creating new quotes happens inside the picker widget) ----------
+  if (editingId) {
+    return (
+      <div className="page-content">
+        <div className="page-header">
+          <div className="page-title-group">
+            <span className="eyebrow">הצעות מחיר ללקוחות פוטנציאליים</span>
+            <h2>עריכת הצעת מחיר</h2>
+          </div>
+          <button type="button" className="btn btn-secondary" onClick={() => { setIsNew(false); setEditingId(null); }}>
+            ← חזרה לרשימת ההצעות
+          </button>
+        </div>
+
+        <div className="card" style={{ padding: '24px', maxWidth: '760px' }}>
+          {editorFormBody}
+
+          <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
+            <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
+              {saving ? <Loader2 size={18} className="spin" /> : <CheckCircle2 size={18} />}
+              שמירת השינויים
+            </button>
+            <button type="button" className="btn btn-secondary" onClick={() => { setIsNew(false); setEditingId(null); }}>
+              ביטול
             </button>
           </div>
         </div>
@@ -1104,148 +1126,154 @@ export default function QuotesManager() {
         confirmText="מחק תבנית"
       />
 
-      {/* ---- Template picker widget — the entry point for every new quote ---- */}
+      {/* ---- Quote widget — one unified window: pick a template → fill & save ---- */}
       {templatePickerOpen && (
-        <div className="modal-overlay" onClick={() => { setTemplatePickerOpen(false); setEditingTemplatePrice(null); }}>
-          <div className="modal-content" style={{ maxWidth: '720px' }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
-              <div>
-                <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
-                  <Layers size={20} /> הצעת מחיר חדשה — בחירת תבנית
-                </h3>
-                <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                  בחר/י תבנית וההצעה תיבנה אוטומטית עם המבנה ומחיר ברירת המחדל שלך.
+        <div className="modal-overlay" onClick={closePicker}>
+          <div className="modal-card qw-window" onClick={e => e.stopPropagation()}>
+            <div className="qw-header">
+              {pickerStep === 'editor' ? (
+                <button type="button" className="qw-back" onClick={() => setPickerStep('templates')}>
+                  <ArrowRight size={15} /> חזרה לתבניות
+                </button>
+              ) : (
+                <div className="qw-header-icon"><Layers size={22} /></div>
+              )}
+              <div className="qw-header-text">
+                <h3>{pickerStep === 'editor' ? (draft.title || 'הגדרה ידנית') : 'הצעת מחיר חדשה'}</h3>
+                <span>
+                  {pickerStep === 'editor'
+                    ? 'מילוי פרטי הלקוח והמחיר — הכול נשאר בתוך החלון'
+                    : 'בחירת תבנית — המבנה ומחיר ברירת המחדל יוזנו אוטומטית'}
                 </span>
               </div>
-              <button
-                type="button"
-                className="btn-icon text-slate-400"
-                onClick={() => { setTemplatePickerOpen(false); setEditingTemplatePrice(null); }}
-                aria-label="סגירה"
-                title="סגירה"
-              >
+              <button type="button" className="close-btn" onClick={closePicker} aria-label="סגירה" title="סגירה">
                 <X size={18} />
               </button>
             </div>
 
-            <div className="modal-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
-              {templates.map(template => {
-                const option = (template.options || [])[0];
-                const sessions = option?.pricingModel === 'package' ? option.sessionsCount : 1;
-                const price = option?.sessionPrice || 0;
-                const isEditing = editingTemplatePrice?.id === template.id;
-                return (
-                  <div
-                    key={template.id}
-                    style={{
-                      border: '1px solid #e2e8f0', borderRadius: '16px', padding: '14px',
-                      display: 'flex', flexDirection: 'column', gap: '10px', background: '#ffffff'
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
-                      <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{template.name}</strong>
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        <button
-                          type="button"
-                          className="btn-icon text-slate-400"
-                          onClick={() => {
-                            setEditingTemplatePrice(isEditing ? null : template);
-                            setTemplatePriceInput(price ? String(price) : '');
-                          }}
-                          aria-label={`עריכת מחיר ברירת מחדל — ${template.name}`}
-                          title="עריכת מחיר ברירת מחדל"
-                        >
-                          <Pencil size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-icon text-slate-400"
-                          onClick={() => setDeleteTemplateModal(template)}
-                          aria-label={`מחיקת תבנית ${template.name}`}
-                          title="מחיקת תבנית"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
+            <div className="modal-body qw-body">
+              {pickerStep === 'templates' ? (
+                <div className="qw-grid">
+                  {templates.map(template => {
+                    const option = (template.options || [])[0];
+                    const sessions = option?.pricingModel === 'package' ? option.sessionsCount : 1;
+                    const price = option?.sessionPrice || 0;
+                    const isEditing = editingTemplatePrice?.id === template.id;
+                    return (
+                      <div key={template.id} className="qw-tile">
+                        <div className="qw-tile-top">
+                          <span className="qw-tile-title">{template.name}</span>
+                          <div className="qw-tile-actions">
+                            <button
+                              type="button"
+                              className="btn-icon text-slate-400"
+                              onClick={() => {
+                                setEditingTemplatePrice(isEditing ? null : template);
+                                setTemplatePriceInput(price ? String(price) : '');
+                              }}
+                              aria-label={`עריכת מחיר ברירת מחדל — ${template.name}`}
+                              title="עריכת מחיר ברירת מחדל"
+                            >
+                              <Pencil size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-icon text-slate-400"
+                              onClick={() => setDeleteTemplateModal(template)}
+                              aria-label={`מחיקת תבנית ${template.name}`}
+                              title="מחיקת תבנית"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
 
-                    <div style={{ fontSize: '0.8rem', color: '#64748b', lineHeight: 1.7 }}>
-                      {sessions > 1 ? `תהליך של ${sessions} מפגשים` : 'מפגש בודד'}
-                      <br />
-                      {price > 0 ? (
-                        <span style={{ color: 'var(--primary-hover)', fontWeight: 700 }}>
-                          {formatILS(price)} למפגש · סה"כ {formatILS(price * sessions)}
+                        <span className="qw-tile-meta">
+                          {sessions > 1 ? `תהליך של ${sessions} מפגשים` : 'מפגש בודד'}
                         </span>
-                      ) : (
-                        <span style={{ color: '#b45309' }}>טרם הוגדר מחיר ✎</span>
-                      )}
-                    </div>
 
-                    {isEditing ? (
-                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                        <input
-                          className="form-control"
-                          style={{ padding: '6px 10px', fontSize: '0.85rem' }}
-                          dir="ltr"
-                          inputMode="decimal"
-                          value={templatePriceInput}
-                          onChange={e => setTemplatePriceInput(e.target.value.replace(/[^\d.]/g, ''))}
-                          placeholder="מחיר למפגש"
-                          autoFocus
-                          onKeyDown={e => { if (e.key === 'Enter') saveTemplatePrice(); }}
-                        />
-                        <button
-                          type="button"
-                          className="btn btn-primary"
-                          style={{ padding: '6px 12px', fontSize: '0.82rem' }}
-                          onClick={saveTemplatePrice}
-                          disabled={savingTemplatePrice}
-                        >
-                          {savingTemplatePrice ? <Loader2 size={14} className="spin" /> : <CheckCircle2 size={14} />}
-                        </button>
+                        {isEditing ? (
+                          <div className="qw-price-edit">
+                            <input
+                              className="form-control"
+                              dir="ltr"
+                              inputMode="decimal"
+                              value={templatePriceInput}
+                              onChange={e => setTemplatePriceInput(e.target.value.replace(/[^\d.]/g, ''))}
+                              placeholder="מחיר למפגש"
+                              autoFocus
+                              onKeyDown={e => { if (e.key === 'Enter') saveTemplatePrice(); }}
+                            />
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              onClick={saveTemplatePrice}
+                              disabled={savingTemplatePrice}
+                              aria-label="שמירת מחיר"
+                              title="שמירת מחיר"
+                            >
+                              {savingTemplatePrice ? <Loader2 size={14} className="spin" /> : <CheckCircle2 size={15} />}
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="qw-tile-price">
+                            {price > 0 ? (
+                              <span className="set">{formatILS(price)} למפגש · סה"כ {formatILS(price * sessions)}</span>
+                            ) : (
+                              <button type="button" className="unset" onClick={() => { setEditingTemplatePrice(template); setTemplatePriceInput(''); }}>
+                                טרם הוגדר מחיר — לחץ/י להגדרה ✎
+                              </button>
+                            )}
+                          </span>
+                        )}
+
+                        {!isEditing && (
+                          <button
+                            type="button"
+                            className="qw-create"
+                            onClick={() => startFromTemplate(template)}
+                            title={`הצעה חדשה — ${templateSummary(template.options)}`}
+                          >
+                            יצירת הצעה <ArrowRight size={14} style={{ transform: 'scaleX(-1)' }} />
+                          </button>
+                        )}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        style={{ marginTop: 'auto', justifyContent: 'center' }}
-                        onClick={() => startFromTemplate(template)}
-                        title={`הצעה חדשה — ${templateSummary(template.options)}`}
-                      >
-                        <Plus size={15} /> יצירת הצעה
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
+                    );
+                  })}
 
-              {/* Free-form card — manual structure, no template */}
-              <div
-                style={{
-                  border: '1px dashed var(--primary-light)', borderRadius: '16px', padding: '14px',
-                  display: 'flex', flexDirection: 'column', gap: '10px', background: 'var(--primary-faint)'
-                }}
-              >
-                <strong style={{ fontSize: '0.95rem', color: 'var(--primary-hover)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <Sparkles size={16} /> הצעה חופשית
-                </strong>
-                <div style={{ fontSize: '0.8rem', color: '#475569', lineHeight: 1.7 }}>
-                  בלי תבנית — מגדירים ידנית מספר מפגשים ומחיר בעורך.
+                  {/* Free-form tile — manual structure, no template */}
+                  <div className="qw-tile qw-tile-free">
+                    <div className="qw-tile-top">
+                      <span className="qw-tile-title" style={{ color: 'var(--primary-hover)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        <Sparkles size={15} /> הצעה חופשית
+                      </span>
+                    </div>
+                    <span className="qw-tile-meta">בלי תבנית — מגדירים ידנית מספר מפגשים ומחיר בעורך.</span>
+                    <button type="button" className="qw-create qw-create-ghost" onClick={openNew}>
+                      התחלה ידנית <ArrowRight size={14} style={{ transform: 'scaleX(-1)' }} />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  style={{ marginTop: 'auto', justifyContent: 'center' }}
-                  onClick={openNew}
-                >
-                  <Pencil size={15} /> התחלה ידנית
+              ) : (
+                editorFormBody
+              )}
+            </div>
+
+            {pickerStep === 'templates' ? (
+              <div className="modal-footer qw-footer-tip">
+                טיפ: המחיר שיישמר בתבנית יוזן אוטומטית בכל הצעה חדשה ממנה — ותמיד אפשר לשנות אותו בהצעה עצמה.
+              </div>
+            ) : (
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={() => setPickerStep('templates')}>
+                  <ArrowRight size={16} /> חזרה לתבניות
+                </button>
+                <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving}>
+                  {saving ? <Loader2 size={18} className="spin" /> : <CheckCircle2 size={18} />}
+                  יצירת ההצעה
                 </button>
               </div>
-            </div>
-
-            <div className="modal-footer" style={{ justifyContent: 'flex-start', fontSize: '0.78rem', color: '#94a3b8' }}>
-              טיפ: המחיר שיישמר בתבנית יוזן אוטומטית בכל הצעה חדשה ממנה — ותמיד אפשר לשנות אותו בהצעה עצמה.
-            </div>
+            )}
           </div>
         </div>
       )}
