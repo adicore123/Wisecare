@@ -52,3 +52,6 @@ server/data/wisecare_db.json
 .playwright-mcp/
 .test-admin-token.txt
 .zcodeignore
+
+# security-scan tool output (never publish findings to the public repo)
+.mimosa/

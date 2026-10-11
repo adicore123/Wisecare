@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Sidebar from './Sidebar';
 import Toast from './Toast';
+import VoiceNoteCapture from './VoiceNoteCapture';
 import { api } from '@/lib/api';
 import { applyTheme, getStoredTheme } from '@/lib/theme';
 
@@ -284,6 +285,9 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
           {children}
         </main>
       </div>
+
+      {/* Floating voice-note capture — "record a note on the go" (mobile/PWA) */}
+      <VoiceNoteCapture currentUser={currentUser} />
 
       {toast && (
         <Toast 

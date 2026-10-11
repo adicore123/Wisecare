@@ -33,6 +33,7 @@ import { api } from '@/lib/api';
 import WhatsAppIcon from './WhatsAppIcon';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
+import VoiceDictationButton from './VoiceDictationButton';
 import SearchableClientSelect from './SearchableClientSelect';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
@@ -878,11 +879,19 @@ export default function AppointmentsPage({ clients: initialClients = [], current
 
                 {/* Notes */}
                 <div className="form-group">
-                  <label>הערות פנימיות / נושא הפגישה</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <label style={{ marginBottom: 0 }}>הערות פנימיות / נושא הפגישה</label>
+                    <VoiceDictationButton
+                      onText={(chunk) => setFormData(prev => ({
+                        ...prev,
+                        notes: prev.notes ? prev.notes.trimEnd() + ' ' + chunk : chunk
+                      }))}
+                    />
+                  </div>
                   <textarea
                     className="form-control"
                     rows={2}
-                    placeholder="לדוגמה: פגישת מעקב, התמקדות בטכניקות הרפיה, סיכום תהליך..."
+                    placeholder="לדוגמה: פגישת מעקב, התמקדות בטכניקות הרפיה, סיכום תהליך... (או לחצו על המיקרופון ודברו)"
                     value={formData.notes}
                     onChange={e => setFormData({ ...formData, notes: e.target.value })}
                   />

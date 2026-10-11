@@ -54,6 +54,7 @@ import {
   Edit,
   Edit3,
   Copy,
+  Share2,
   FileSignature
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -233,6 +234,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     intensity: 7
   });
   const [savingInsight, setSavingInsight] = useState(false);
+  const [sharingInsightId, setSharingInsightId] = useState<string | null>(null);
 
   // Journal entries collapse to a 3-line excerpt; tapping the body reveals the
   // full entry so one long insight can't take over the whole page.
@@ -1284,6 +1286,26 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       showToast('שגיאה בשמירת המשוב: ' + err.message, 'error');
     } finally {
       setSubmittingTaskId(null);
+    }
+  };
+
+  // Private full-page read view of an insight, opened in a new tab
+  const handleViewInsight = (item: any) => {
+    window.open(`/insight-view/${encodeURIComponent(item.id)}`, '_blank', 'noopener');
+  };
+
+  // Mint (once) the public share link and open the styled share page in a new tab
+  const handleShareInsight = async (item: any) => {
+    if (sharingInsightId) return;
+    setSharingInsightId(item.id);
+    try {
+      const { url } = await api.sharePortalInsight(portalCode, item.id);
+      window.open(url, '_blank', 'noopener');
+      showToast('נפתח עמוד השיתוף בטאב חדש — משם מעתיקים/שולחים את הקישור ✨');
+    } catch (err: any) {
+      showToast('שגיאה ביצירת קישור השיתוף: ' + (err.message || ''), 'error');
+    } finally {
+      setSharingInsightId(null);
     }
   };
 
@@ -3290,7 +3312,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           <th style={{ width: '220px' }}>כותרת התובנה / האירוע</th>
                           <th>פירוט מלא של מה שעבר עלי</th>
                           <th style={{ width: '130px' }}>עוצמת רגש</th>
-                          <th style={{ textAlign: 'left', width: '80px' }}>פעולות</th>
+                          <th style={{ textAlign: 'left', width: '130px' }}>פעולות</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -3374,17 +3396,34 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
                               <td style={{ textAlign: 'left' }}>
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                                  <button 
+                                  <button
+                                    onClick={() => handleViewInsight(item)}
+                                    className="btn-icon"
+                                    title="צפייה בתובנה בעמוד מעוצב"
+                                    style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
+                                  >
+                                    <Eye size={16} />
+                                  </button>
+                                  <button
                                     onClick={() => handleOpenEditInsight(item)}
-                                    className="btn-icon" 
+                                    className="btn-icon"
                                     title="ערוך תובנה זו"
                                     style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
                                   >
                                     <Edit size={16} />
                                   </button>
-                                  <button 
+                                  <button
+                                    onClick={() => handleShareInsight(item)}
+                                    className="btn-icon"
+                                    title="שיתוף התובנה בקישור אישי"
+                                    disabled={sharingInsightId === item.id}
+                                    style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
+                                  >
+                                    {sharingInsightId === item.id ? <Loader2 size={16} className="spin" /> : <Share2 size={16} />}
+                                  </button>
+                                  <button
                                     onClick={() => setPendingDeleteInsightId(item.id)}
-                                    className="btn-icon" 
+                                    className="btn-icon"
                                     title="מחק רשומה זו"
                                     style={{ color: '#ef4444', padding: '6px' }}
                                   >
@@ -3475,17 +3514,34 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                           </div>
 
                           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                            <button 
+                            <button
+                              onClick={() => handleViewInsight(item)}
+                              className="btn-icon"
+                              title="צפייה בתובנה בעמוד מעוצב"
+                              style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
                               onClick={() => handleOpenEditInsight(item)}
-                              className="btn-icon" 
+                              className="btn-icon"
                               title="ערוך תובנה זו"
                               style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
                             >
                               <Edit size={16} />
                             </button>
-                            <button 
+                            <button
+                              onClick={() => handleShareInsight(item)}
+                              className="btn-icon"
+                              title="שיתוף התובנה בקישור אישי"
+                              disabled={sharingInsightId === item.id}
+                              style={{ color: 'var(--primary, var(--primary))', padding: '6px' }}
+                            >
+                              {sharingInsightId === item.id ? <Loader2 size={16} className="spin" /> : <Share2 size={16} />}
+                            </button>
+                            <button
                               onClick={() => setPendingDeleteInsightId(item.id)}
-                              className="btn-icon" 
+                              className="btn-icon"
                               title="מחק רשומה זו"
                               style={{ color: '#ef4444', padding: '6px' }}
                             >

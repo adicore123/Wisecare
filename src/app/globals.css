@@ -1374,6 +1374,37 @@ textarea.form-control {
   border: 1px dashed var(--border-light);
 }
 
+/* Voice dictation — mic button + live preview bubble */
+@keyframes voicePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45); }
+  50% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
+}
+
+@keyframes voiceDotBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+
+.voice-dictation-btn.is-listening {
+  animation: voicePulse 1.4s ease-in-out infinite;
+}
+
+.voice-dictation-dot {
+  animation: voiceDotBlink 1s ease-in-out infinite;
+}
+
+.voice-dictation-bubble {
+  animation: fadeIn 0.15s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .voice-dictation-btn.is-listening,
+  .voice-dictation-dot,
+  .voice-dictation-bubble {
+    animation: none;
+  }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {

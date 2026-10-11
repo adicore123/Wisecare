@@ -443,6 +443,17 @@ export const api = {
     return res.json();
   },
 
+  sharePortalInsight: async (portalCode: string, id: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/insights/${id}/share`, {
+      method: 'POST'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת קישור השיתוף');
+    }
+    return res.json();
+  },
+
   // SuperAdmin
   getSuperadminStats: async (_adminId?: any) => {
     const res = await fetch(`${API_BASE}/superadmin/stats`, {

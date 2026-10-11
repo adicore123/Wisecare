@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Send, UserPlus, MessageSquare, Check, Sparkles, Lock, Eye, EyeOff, Globe, Building2, Info } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
+import VoiceDictationButton from './VoiceDictationButton';
 
 interface ClientModalProps {
   isOpen: boolean;
@@ -339,10 +340,18 @@ export default function ClientModal({ isOpen, onClose, onSave, therapistName, cu
 
             {/* Notes */}
             <div className="form-group">
-              <label>הערות טיפוליות ורקע ראשוני</label>
-              <textarea 
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <label style={{ marginBottom: 0 }}>הערות טיפוליות ורקע ראשוני</label>
+                <VoiceDictationButton
+                  onText={(chunk) => setFormData(prev => ({
+                    ...prev,
+                    notes: prev.notes ? prev.notes.trimEnd() + ' ' + chunk : chunk
+                  }))}
+                />
+              </div>
+              <textarea
                 className="form-control"
-                placeholder="נושאי פנייה מרכזיים, מטרות טיפול, דגשים מיוחדים..."
+                placeholder="נושאי פנייה מרכזיים, מטרות טיפול, דגשים מיוחדים... (או לחצו על המיקרופון ודברו)"
                 value={formData.notes}
                 onChange={e => setFormData({ ...formData, notes: e.target.value })}
               />

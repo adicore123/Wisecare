@@ -36,6 +36,7 @@ import { api } from '@/lib/api';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
+import VoiceDictationButton from './VoiceDictationButton';
 
 export default function ClientDetailsModal({
   isOpen,
@@ -792,9 +793,14 @@ export default function ClientDetailsModal({
                 )}
 
                 <div className="form-group">
-                  <label>הערות פירוט תשלום (למשל: תנאי הסדר תשלום)</label>
-                  <textarea 
-                    className="form-control" 
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                    <label style={{ marginBottom: 0 }}>הערות פירוט תשלום (למשל: תנאי הסדר תשלום)</label>
+                    <VoiceDictationButton
+                      onText={(chunk) => setBillingNotes(prev => prev ? prev.trimEnd() + ' ' + chunk : chunk)}
+                    />
+                  </div>
+                  <textarea
+                    className="form-control"
                     value={billingNotes}
                     onChange={(e) => setBillingNotes(e.target.value)}
                     onBlur={() => handleSaveBilling()}
@@ -1156,10 +1162,18 @@ export default function ClientDetailsModal({
                   </div>
 
                   <div className="form-group">
-                    <label>הנחיות והסבר מפורט למטופל</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <label style={{ marginBottom: 0 }}>הנחיות והסבר מפורט למטופל</label>
+                      <VoiceDictationButton
+                        onText={(chunk) => setTaskForm(prev => ({
+                          ...prev,
+                          description: prev.description ? prev.description.trimEnd() + ' ' + chunk : chunk
+                        }))}
+                      />
+                    </div>
                     <textarea
                       className="form-control"
-                      placeholder="רשום כאן את הדגשים לתרגול, כיצד לבצע, ועל מה לשים לב..."
+                      placeholder="רשום כאן את הדגשים לתרגול, כיצד לבצע, ועל מה לשים לב... (או לחצו על המיקרופון ודברו)"
                       value={taskForm.description}
                       onChange={e => setTaskForm({ ...taskForm, description: e.target.value })}
                     />
@@ -1466,7 +1480,15 @@ export default function ClientDetailsModal({
                   </div>
 
                   <div className="form-group">
-                    <label>הערות לפגישה</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                      <label style={{ marginBottom: 0 }}>הערות לפגישה</label>
+                      <VoiceDictationButton
+                        onText={(chunk) => setAppointmentForm(prev => ({
+                          ...prev,
+                          notes: prev.notes ? prev.notes.trimEnd() + ' ' + chunk : chunk
+                        }))}
+                      />
+                    </div>
                     <input
                       type="text"
                       className="form-control"
