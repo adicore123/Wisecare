@@ -85,26 +85,29 @@ function parseCookies(cookieHeader: string): Record<string, string> {
 }
 
 /**
- * Extract and verify token from a Next.js Request (Cookies first, then Authorization Header)
+ * Extract and verify token from a Next.js Request (Authorization Header first, then Cookies)
  */
 export function getAuthFromRequest(request: Request): UserPayload | null {
-  // 1. Try reading from HttpOnly Cookie
+  // 1. Prefer an explicit Authorization: Bearer <token> — it reflects the identity
+  //    the current tab is actually acting as. The cookie is shared across tabs and
+  //    can lag behind (e.g. a leftover impersonation/session cookie), which used to
+  //    make actions like delete fail with 403 until the user logged in again.
+  const authHeader = request.headers.get('authorization');
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const bearerPayload = verifyToken<UserPayload>(authHeader.slice(7), 'wisecare-app');
+    if (bearerPayload) return bearerPayload;
+  }
+
+  // 2. Fallback to HttpOnly Cookie
   const cookieHeader = request.headers.get('cookie');
   if (cookieHeader) {
     const cookies = parseCookies(cookieHeader);
-
-    const cookieToken = cookies['wisecare_token'] || cookies['wisecare_admin_token'];
-    if (cookieToken) {
+    for (const name of ['wisecare_token', 'wisecare_admin_token']) {
+      const cookieToken = cookies[name];
+      if (!cookieToken) continue;
       const payload = verifyToken<UserPayload>(cookieToken, 'wisecare-app');
       if (payload) return payload;
     }
-  }
-
-  // 2. Fallback to Authorization: Bearer <token>
-  const authHeader = request.headers.get('authorization');
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    return verifyToken<UserPayload>(token, 'wisecare-app');
   }
 
   return null;

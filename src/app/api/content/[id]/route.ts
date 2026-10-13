@@ -120,20 +120,33 @@ export async function DELETE(
     }
 
     const { id } = await props.params;
-    const items = db.collection('contentItems');
-    const item = items.findById(id);
+    let item = db.collection('contentItems').findById(id);
     if (!item) {
-      return NextResponse.json({ error: 'פריט התוכן לא נמצא' }, { status: 404 });
+      // This serverless instance may hold a stale snapshot (another instance created
+      // the item moments ago) — pull fresh data from MongoDB before deciding.
+      await db.ensureLoaded(true).catch(() => false);
+      item = db.collection('contentItems').findById(id);
+    }
+    if (!item) {
+      // Still absent after a fresh sync → it is already gone. Deleting is idempotent:
+      // report success so the UI can drop the stale row instead of erroring.
+      return NextResponse.json({ success: true, alreadyDeleted: true, message: 'הפריט כבר נמחק' }, {
+        headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate' }
+      });
     }
 
-    // Strict Tenant Scope: therapists may only delete their own content
+    // Strict Tenant Scope: therapists may only delete their own content (superadmin may delete any)
     if (auth.role === 'therapist' && item.therapistId !== auth.userId) {
       return NextResponse.json({ error: 'אין הרשאה למחוק פריט זה' }, { status: 403 });
     }
 
+    // Re-acquire collection handles AFTER any forced sync (sync replaces the arrays)
+    const items = db.collection('contentItems');
     const assignments = db.collection('contentAssignments');
     const relatedAssignments = assignments.find({ contentId: item.id });
     relatedAssignments.forEach((assignment: any) => assignments.deleteById(assignment.id));
+    // Catch assignments created on other instances that this snapshot hasn't seen yet
+    db.queueRemoteWrite('contentAssignments', 'deleteMany', col => col.deleteMany({ contentId: item.id }));
     items.deleteById(item.id);
 
     await db.flush();

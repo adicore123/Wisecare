@@ -19,12 +19,16 @@ export async function DELETE(
     }
 
     const { id } = await props.params;
-    const calls = db.collection('videoCalls');
-    const call = calls.findById(id) as any;
-
+    let call = db.collection('videoCalls').findById(id) as any;
     if (!call) {
-      return NextResponse.json({ error: 'השיחה לא נמצאה' }, { status: 404 });
+      // Stale serverless snapshot — refresh from MongoDB before deciding
+      await db.ensureLoaded(true).catch(() => false);
+      call = db.collection('videoCalls').findById(id) as any;
     }
+    if (!call) {
+      return NextResponse.json({ success: true, alreadyDeleted: true, message: 'רישום השיחה כבר נמחק' });
+    }
+    const calls = db.collection('videoCalls');
     if (auth.role === 'therapist' && call.therapistId !== auth.userId) {
       return NextResponse.json({ error: 'אין לך הרשאה למחוק רישום זה' }, { status: 403 });
     }
