@@ -18,6 +18,19 @@ const authHeaders = (extra: Record<string, string> = {}) => {
   };
 };
 
+/** Build Authorization header for patient portal endpoints */
+const portalHeaders = (extra: Record<string, string> = {}) => {
+  if (typeof window === 'undefined') return extra;
+  const token =
+    localStorage.getItem('wisecare_portal_token') ||
+    localStorage.getItem('wisecare_token') ||
+    localStorage.getItem('wisecare_admin_token');
+  return {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra
+  };
+};
+
 export const api = {
   // Auth
   login: async (username, password, extra?: { adminPortal?: boolean }) => {
@@ -758,7 +771,8 @@ export const api = {
 
   deletePortalSelfTask: async (portalCode, taskId) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/tasks/${taskId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: portalHeaders()
     });
     if (!res.ok) throw new Error('שגיאה במחיקת משימה');
     return res.json();
@@ -767,7 +781,7 @@ export const api = {
   addPortalSelfContent: async (portalCode, contentData) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: portalHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(contentData)
     });
     if (!res.ok) {
@@ -779,7 +793,8 @@ export const api = {
 
   removePortalSelfContent: async (portalCode, contentId) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: portalHeaders()
     });
     if (!res.ok) throw new Error('שגיאה בהסרת תוכן מהמרחב');
     return res.json();
@@ -788,7 +803,7 @@ export const api = {
   updatePortalSelfContent: async (portalCode, contentId, contentData) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: portalHeaders({ 'Content-Type': 'application/json' }),
       body: JSON.stringify(contentData)
     });
     if (!res.ok) {

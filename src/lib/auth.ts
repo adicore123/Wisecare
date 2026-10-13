@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { db } from '@/lib/db';
 
 // A remembered device stays signed in for 30 days. Successful visits refresh
 // the cookie, so active users are not asked for credentials again.
@@ -116,25 +117,77 @@ export function getAuthFromRequest(request: Request): UserPayload | null {
 /**
  * Extract and verify client / patient session from Cookie or Bearer header
  */
-export function getClientAuthFromRequest(request: Request): ClientPayload | null {
-  const cookieHeader = request.headers.get('cookie');
-  if (cookieHeader) {
-    const cookies = parseCookies(cookieHeader);
+export function getClientAuthFromRequest(request: Request, portalCode?: string): ClientPayload | null {
+  const targetPortal = portalCode || inferPortalCodeFromUrl(request.url);
 
-    const clientToken = cookies['wisecare_client_token'];
-    if (clientToken) {
-      const payload = verifyToken<ClientPayload>(clientToken, 'wisecare-portal');
-      if (payload) return payload;
-    }
-  }
+  // 1. Gather every candidate patient token: the explicit Bearer (this tab's session)
+  // first, then the shared cookie. The cookie is a SINGLE slot for the whole
+  // browser, so after visiting another portal it may belong to a different patient.
+  const candidates: ClientPayload[] = [];
 
   const authHeader = request.headers.get('authorization');
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.slice(7);
-    return verifyToken<ClientPayload>(token, 'wisecare-portal');
+    const payload = verifyToken<ClientPayload>(authHeader.slice(7), 'wisecare-portal');
+    if (payload) candidates.push(payload);
+  }
+
+  const cookieHeader = request.headers.get('cookie');
+  if (cookieHeader) {
+    const clientToken = parseCookies(cookieHeader)['wisecare_client_token'];
+    if (clientToken) {
+      const payload = verifyToken<ClientPayload>(clientToken, 'wisecare-portal');
+      if (payload) candidates.push(payload);
+    }
+  }
+
+  // Prefer the session that matches the portal being accessed.
+  if (targetPortal) {
+    const match = candidates.find(c => c.portalCode === targetPortal);
+    if (match) return match;
+  } else if (candidates.length > 0) {
+    return candidates[0];
+  }
+
+  // 2. Superadmin and Therapist authorization:
+  // If the request is from an authenticated superadmin or therapist (via Bearer or Cookie),
+  // authorize them for this portal. This ensures superusers can always delete videos/content,
+  // manage portal tasks, test the portal, and never get blocked with 401.
+  const appAuth = getAuthFromRequest(request);
+  if (appAuth) {
+    if (appAuth.role === 'superadmin') {
+      const client = targetPortal ? (db.data?.clients || []).find((c: any) => c.portalCode === targetPortal) : null;
+      return {
+        clientId: client ? client.id : 'superadmin',
+        role: 'client',
+        portalCode: targetPortal || portalCode || ''
+      };
+    }
+    if (appAuth.role === 'therapist' && targetPortal) {
+      const client = (db.data?.clients || []).find((c: any) => c.portalCode === targetPortal);
+      if (client && (!client.therapistId || client.therapistId === appAuth.userId)) {
+        return {
+          clientId: client.id,
+          role: 'client',
+          portalCode: targetPortal
+        };
+      }
+    }
   }
 
   return null;
+}
+
+function inferPortalCodeFromUrl(url: string): string | null {
+  try {
+    const { pathname } = new URL(url);
+    const m = pathname.match(/^\/api\/(?:livekit\/)?portal\/([^/]+)/);
+    if (!m) return null;
+    const code = decodeURIComponent(m[1]);
+    // Static siblings of the dynamic segment are not portal codes
+    return ['join', 'login', 'forgot-password'].includes(code) ? null : code;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -142,7 +195,7 @@ export function getClientAuthFromRequest(request: Request): ClientPayload | null
  * Every /api/portal/[portalCode]/* data route must pass this before reading/writing.
  */
 export function isAuthorizedPortalClient(request: Request, portalCode: string): boolean {
-  const auth = getClientAuthFromRequest(request);
+  const auth = getClientAuthFromRequest(request, portalCode);
   return Boolean(auth && auth.portalCode === portalCode);
 }
 

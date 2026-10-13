@@ -21,9 +21,19 @@ export default async function PortalRoutePage(props: { params: Promise<{ code: s
   // the SSR payload only when the request carries a valid patient session for THIS portal.
   let includePrivate = false;
   try {
-    const token = (await cookies()).get('wisecare_client_token')?.value;
+    const cookieStore = await cookies();
+    const token = cookieStore.get('wisecare_client_token')?.value;
     const auth = token ? verifyToken<ClientPayload>(token, 'wisecare-portal') : null;
     includePrivate = Boolean(auth && auth.portalCode === code);
+    if (!includePrivate) {
+      const appToken = cookieStore.get('wisecare_token')?.value || cookieStore.get('wisecare_admin_token')?.value;
+      if (appToken) {
+        const appAuth = verifyToken<{ role?: string }>(appToken, 'wisecare-app');
+        if (appAuth && (appAuth.role === 'superadmin' || appAuth.role === 'therapist')) {
+          includePrivate = true;
+        }
+      }
+    }
   } catch {
     includePrivate = false;
   }

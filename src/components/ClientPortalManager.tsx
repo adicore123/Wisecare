@@ -3,6 +3,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
+import { installPortalAuthFetch } from '@/lib/portalFetch';
+
+// Attach this tab's portal token to portal API calls (see portalFetch.ts)
+installPortalAuthFetch();
 import { 
   HeartHandshake,
   CheckCircle2,
@@ -408,11 +412,21 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       setIsPinEnabled(hasPinConfig);
       setSavedPin(storedPin);
 
-      const portalToken = localStorage.getItem('wisecare_portal_token');
+      const portalToken =
+        localStorage.getItem('wisecare_portal_token') ||
+        localStorage.getItem('wisecare_token') ||
+        localStorage.getItem('wisecare_admin_token');
       fetch(`/api/portal/${encodeURIComponent(portalCode)}/verify-auth`, {
         headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
       })
         .then(async (res) => {
+          if (res.status === 401) {
+            // Server rejected the remembered session — don't keep showing a
+            // "logged-in" portal whose every action would fail with 401.
+            localStorage.removeItem(authSessionKey);
+            setIsPortalAuthenticated(false);
+            return null;
+          }
           if (!res.ok) return null;
           return res.json();
         })

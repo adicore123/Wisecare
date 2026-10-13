@@ -10,13 +10,13 @@ export async function GET(
   props: { params: Promise<{ portalCode: string }> }
 ) {
   const { portalCode } = await props.params;
-  const auth = getClientAuthFromRequest(request);
+  const auth = getClientAuthFromRequest(request, portalCode);
   if (!auth || auth.portalCode !== portalCode) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
 
   await db.ensureLoaded();
-  const client = db.collection('clients').findById(auth.clientId);
+  const client = db.collection('clients').findById(auth.clientId) || db.collection('clients').findOne({ portalCode });
   if (!client || client.portalCode !== portalCode || client.status === 'inactive' || client.portalEnabled === false) {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }

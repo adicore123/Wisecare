@@ -15,19 +15,43 @@ export async function DELETE(
     await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
 
-    const clientAuth = getClientAuthFromRequest(request);
+    const clientAuth = getClientAuthFromRequest(request, portalCode);
     if (!clientAuth || clientAuth.portalCode !== portalCode) {
       return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
     }
 
-    const client = db.collection('clients').findOne({ portalCode });
+    let client = db.collection('clients').findOne({ portalCode });
+    if (!client) {
+      await db.ensureLoaded(true).catch(() => false);
+      client = db.collection('clients').findOne({ portalCode });
+    }
     if (!client) {
       return NextResponse.json({ error: 'מרחב אישי לא נמצא' }, { status: 404 });
     }
 
-    const assignments = db.collection('contentAssignments').find({ contentId, clientId: client.id });
+    let assignments = db.collection('contentAssignments').find({ contentId, clientId: client.id });
+    if (assignments.length === 0) {
+      await db.ensureLoaded(true).catch(() => false);
+      assignments = db.collection('contentAssignments').find({ contentId, clientId: client.id });
+    }
+
+    const assignmentCol = db.collection('contentAssignments');
     for (const a of assignments) {
-      db.collection('contentAssignments').deleteById(a.id);
+      assignmentCol.deleteById(a.id);
+    }
+    db.queueRemoteWrite('contentAssignments', 'deleteMany', col =>
+      col.deleteMany({ contentId, clientId: client.id })
+    );
+
+    // If no assignments remain for this item, or if it was client-created self-content, remove it from contentItems too
+    const remainingAssignments = db.collection('contentAssignments').find({ contentId });
+    if (remainingAssignments.length === 0) {
+      const items = db.collection('contentItems');
+      const item = items.findById(contentId);
+      if (item) {
+        items.deleteById(contentId);
+        db.queueRemoteWrite('contentItems', 'deleteOne', col => col.deleteOne({ _id: contentId as any }));
+      }
     }
 
     await db.flush();
@@ -56,7 +80,7 @@ export async function PUT(
     await db.ensureLoaded();
     const { portalCode, contentId } = await props.params;
 
-    const clientAuth = getClientAuthFromRequest(request);
+    const clientAuth = getClientAuthFromRequest(request, portalCode);
     if (!clientAuth || clientAuth.portalCode !== portalCode) {
       return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
     }

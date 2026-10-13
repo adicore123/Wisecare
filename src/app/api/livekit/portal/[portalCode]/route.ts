@@ -20,7 +20,7 @@ export async function GET(
     await db.ensureLoaded();
     const { portalCode } = await props.params;
 
-    const clientAuth = getClientAuthFromRequest(request);
+    const clientAuth = getClientAuthFromRequest(request, portalCode);
     if (!clientAuth || clientAuth.portalCode !== portalCode) {
       return NextResponse.json({ error: 'נדרשת התחברות למרחב האישי' }, { status: 401 });
     }
