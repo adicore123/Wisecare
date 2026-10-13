@@ -5,6 +5,7 @@ import { sendWhatsAppMessage } from '@/services/greenApi';
 import { hashPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
+import { normalizePhone, isTestPhoneNumber } from '@/lib/phoneHelpers';
 
 export async function POST(request: NextRequest) {
   try {
@@ -52,12 +53,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם משתמש זה כבר תפוס במערכת. נא לבחור שם משתמש אחר.' }, { status: 400 });
     }
 
-    // 2. Check if phone is already registered
-    const existingClientByPhone = clients.findOne({ phone: cleanPhone });
-    if (existingClientByPhone) {
-      return NextResponse.json({
-        error: 'מספר טלפון זה כבר רשום במערכת. אנא התחבר/י עם שם המשתמש והסיסמה שלך, או השתמש/י בשחזור סיסמה.'
-      }, { status: 400 });
+    // 2. Check if phone is already registered. The authorized QA number
+    // (0509611808) is exempt and may open unlimited test accounts.
+    if (!isTestPhoneNumber(cleanPhone)) {
+      const normalized = normalizePhone(cleanPhone);
+      const existingClientByPhone = clients.findOne((c: any) =>
+        c.phone && normalizePhone(c.phone) === normalized
+      );
+      if (existingClientByPhone) {
+        return NextResponse.json({
+          error: 'מספר טלפון זה כבר רשום במערכת. אנא התחבר/י עם שם המשתמש והסיסמה שלך, או השתמש/י בשחזור סיסמה.'
+        }, { status: 400 });
+      }
     }
 
     // 3. Generate unique portalCode
