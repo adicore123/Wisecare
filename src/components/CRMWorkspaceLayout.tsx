@@ -290,10 +290,10 @@ export default function CRMWorkspaceLayout({ children }: CRMWorkspaceLayoutProps
       <VoiceNoteCapture currentUser={currentUser} />
 
       {toast && (
-        <Toast 
-          message={toast.message} 
-          type={toast.type || 'success'} 
-          onClose={() => setToast(null)} 
+        <Toast
+          message={toast.message}
+          type={toast.type || 'success'}
+          onClose={() => setToast(null)}
         />
       )}
     </div>

@@ -21,10 +21,9 @@ import {
   Lock,
   User
 } from 'lucide-react';
+import IntroSplash from './IntroSplash';
 
-const INTRO_STORAGE_KEY = 'wisecare-intro-seen';
-
-export default function IntroManager() {
+const INTRO_STORAGE_KEY = 'wisecare-intro-seen';export default function IntroManager() {
   const [introComplete, setIntroComplete] = useState<boolean | null>(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [isClinicModalOpen, setIsClinicModalOpen] = useState(false);
@@ -51,7 +50,6 @@ export default function IntroManager() {
     const params = new URLSearchParams(window.location.search);
     const forceReplay = params.has('replay');
     let cancelled = false;
-    let introTimer: ReturnType<typeof setTimeout> | undefined;
 
     const initializeEntry = async () => {
       // Keep the clean placeholder visible while checking for a remembered
@@ -114,34 +112,16 @@ export default function IntroManager() {
         if (last) setExistingPortal(last);
       } catch {}
 
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      let hasSeen = false;
-      try {
-        hasSeen = localStorage.getItem(INTRO_STORAGE_KEY) === 'true';
-      } catch {}
-
+      // The intro-splash decision (seen / replay / reduced-motion + timer)
+      // lives inside <IntroSplash /> now; it calls back when it finishes.
       if (cancelled) return;
-      if (reduceMotion || (!forceReplay && hasSeen)) {
-        setIntroComplete(true);
-      } else {
-        setIntroComplete(false);
-        introTimer = setTimeout(completeIntro, 4700);
-      }
     };
 
     void initializeEntry();
     return () => {
       cancelled = true;
-      if (introTimer) clearTimeout(introTimer);
     };
   }, []);
-
-  const completeIntro = () => {
-    try {
-      localStorage.setItem(INTRO_STORAGE_KEY, 'true');
-    } catch {}
-    setIntroComplete(true);
-  };
 
   const handleGeneratePassword = () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';
@@ -206,41 +186,19 @@ export default function IntroManager() {
     }
   };
 
-  // While mounting on client, show clean placeholder to prevent flicker
-  if (introComplete === null) {
-    return (
-      <div className="intro-landing-wrapper" style={{ minHeight: '100vh', background: '#ffffff' }} />
-    );
-  }
-
+  // While mounting on client, keep a clean white backdrop to prevent flicker.
+  // The splash itself decides (seen / replay / reduced-motion) and reports back.
   return (
-    <div className="intro-landing-wrapper">
-      {/* 1. ANIMATED INTRO SPLASH OVERLAY */}
-      {!introComplete && (
-        <div className="intro-splash" id="intro">
-          <button
-            className="intro-splash__skip"
-            onClick={completeIntro}
-            type="button"
-            aria-label="דלג על אנימציית הפתיחה"
-          >
-            דלג
-          </button>
-
-          <div className="intro-splash__words" aria-hidden="true">
-            <span className="intro-splash__word">להקשיב.</span>
-            <span className="intro-splash__word">להבין.</span>
-            <span className="intro-splash__word">להתקדם.</span>
-            <span className="intro-splash__word intro-splash__word--together">ביחד.</span>
-          </div>
-
-          <div className="intro-splash__brand" aria-hidden="true">
-            <img src="/pwa-icon.svg" alt="Wisecare" />
-            <span>Wisecare</span>
-            <small>המרחב החכם לתהליך הטיפולי שלך</small>
-          </div>
-        </div>
-      )}
+    <div
+      className="intro-landing-wrapper"
+      style={introComplete === null ? { minHeight: '100vh', background: '#ffffff' } : undefined}
+    >
+      {/* 1. ANIMATED INTRO SPLASH OVERLAY (shared component) */}
+      <IntroSplash
+        storageKey={INTRO_STORAGE_KEY}
+        tagline="המרחב החכם לתהליך הטיפולי שלך"
+        onDone={() => setIntroComplete(true)}
+      />
 
       {/* 2. MAIN ENTRY & ROLE SELECTION VIEW (EXACT INTRO FOLDER DESIGN) */}
       <main className={`entry-home entry ${introComplete ? 'is-visible' : ''}`} id="mainContent">

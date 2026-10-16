@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import ClientPortalPage from '@/components/ClientPortalManager';
+import MusicPlayerProvider from '@/components/MusicPlayerProvider';
 import { getPortalPayload } from '@/app/api/portal/[portalCode]/route';
 import { verifyToken, type ClientPayload } from '@/lib/auth';
 import { THEME_PALETTES, paletteToCssVars } from '@/lib/theme';
@@ -54,7 +55,11 @@ export default async function PortalRoutePage(props: { params: Promise<{ code: s
   return (
     <>
       <script dangerouslySetInnerHTML={{ __html: portalThemeScript }} />
-      <ClientPortalPage portalCode={code} initialPayload={initialPayload} />
+      {/* The provider hosts the background-music audio element + floating
+          mini-player so playback survives tab switches inside the portal. */}
+      <MusicPlayerProvider>
+        <ClientPortalPage portalCode={code} initialPayload={initialPayload} />
+      </MusicPlayerProvider>
     </>
   );
 }

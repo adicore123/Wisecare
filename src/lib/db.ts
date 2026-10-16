@@ -93,12 +93,18 @@ const defaultData = {
   formSignatures: [],
   quotes: [],
   quoteTemplates: [],
+  songs: [],
+  songCategories: [],
+  recommendedSongs: [],
   settings: {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
     clinicName: 'מרחב טיפולי WiseCare',
     defaultMessageTemplate: 'שלום {{firstName}} יקר/ה,\nנפתח עבורך המרחב האישי המאובטח להמשך תרגול ומשימות טיפוליות עם {{therapistName}}.\n\nלהלן פרטי הגישה האישיים שלך למרחב:\n🔗 קישור כניסה:\n{{portalUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה אישית: {{password}}\n\nמאחלים לך מסע טיפולי פורה ומעצים! ✨',
     autoSendTherapistInviteWhatsApp: true,
+    selfCareRegistrationNotifyPhone: '',
+    autoSendSelfCareRegistrationWhatsApp: false,
+    selfCareRegistrationNotificationTemplate: '🌟 רישום חדש במרחב האישי!\n\n👤 שם: {{fullName}}\n📱 וואטספ: {{phone}}\n✉️ אימייל: {{email}}\n🔑 שם משתמש: {{username}}\n🎯 יעד: {{goal}}\n🔗 המרחב: {{portalUrl}}',
     therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare',
     autoSendContentNotificationWhatsApp: true,
     articleNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿',
@@ -121,7 +127,10 @@ const ENTITY_COLLECTIONS = [
   'videoCalls',
   'scheduledCalls',
   'quotes',
-  'quoteTemplates'
+  'quoteTemplates',
+  'songs',
+  'songCategories',
+  'recommendedSongs'
 ];
 
 export class Database {

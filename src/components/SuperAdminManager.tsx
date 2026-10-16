@@ -40,10 +40,13 @@ import {
   UserCheck,
   X,
   Trash2,
-  FileText
+  FileText,
+  Music
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
+import SuperadminSongsManager from './SuperadminSongsManager';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -458,6 +461,16 @@ export default function SuperAdminPage({
   // SuperAdmin Automation & WhatsApp Settings State
   const [activeTemplateKey, setActiveTemplateKey] = useState<'therapist' | 'article' | 'media'>('therapist');
   const [superadminSettings, setSuperadminSettings] = useState({
+    autoSendSelfCareRegistrationWhatsApp: false,
+    selfCareRegistrationNotifyPhone: '',
+    selfCareRegistrationNotificationTemplate: `🌟 רישום חדש במרחב האישי!
+
+👤 שם: {{fullName}}
+📱 וואטספ: {{phone}}
+✉️ אימייל: {{email}}
+🔑 שם משתמש: {{username}}
+🎯 יעד: {{goal}}
+🔗 המרחב: {{portalUrl}}`,
     autoSendTherapistInviteWhatsApp: true,
     therapistInviteMessageTemplate: `שלום {{name}} יקר/ה,
 הוגדר עבורך בהצלחה חשבון מטפל/ת אישי במערכת WiseCare 🌿
@@ -693,8 +706,13 @@ export default function SuperAdminPage({
     try {
       setImpersonatingClientId(client.id);
       const res = await api.impersonateClient(client.id);
-      if (res.token) {
+      if (res.token && res.portalCode) {
+        // The portal reads its session from the per-portal key (via
+        // portalTokenFor) — storing only the legacy wisecare_client_token
+        // left the superadmin facing the client's password gate.
+        localStorage.setItem(portalTokenKey(res.portalCode), res.token);
         localStorage.setItem('wisecare_client_token', res.token);
+        localStorage.setItem(`wisecare_portal_auth_${res.portalCode}`, 'true');
       }
       showToast(`כניסה ישירה כמנהל ראשי למרחב של ${client.firstName || ''} ${client.lastName || ''}... 🔑`);
       setTimeout(() => {
@@ -1364,7 +1382,33 @@ export default function SuperAdminPage({
             {superadminSettings.autoSendTherapistInviteWhatsApp ? 'פעיל' : 'כבוי'}
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('songs')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            borderBottom: activeTab === 'songs' ? '3px solid #6366f1' : '3px solid transparent',
+            color: activeTab === 'songs' ? '#4f46e5' : '#64748b',
+            marginBottom: '-2px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Music size={18} />
+          <span>המלצות שירים</span>
+        </button>
       </div>
+
+      {/* Songs Recommendations Tab Content */}
+      {activeTab === 'songs' && <SuperadminSongsManager />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (
@@ -2016,6 +2060,98 @@ export default function SuperAdminPage({
                     </span>
                   </label>
                 </div>
+              </div>
+
+              {/* Self-care registration notification card — התראת רישום חדש למנהל */}
+              <div style={{
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                  <div>
+                    <label
+                      htmlFor="selfCareRegNotifyToggle"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        cursor: 'pointer',
+                        margin: 0
+                      }}
+                    >
+                      <WhatsAppIcon size={20} />
+                      <span>התראת וואטספ על כל נרשם חדש למרחב האישי</span>
+                    </label>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: '#64748b', lineHeight: 1.4 }}>
+                      כשמישהו נרשם דרך עמוד השיווק (/space) או טופס ההרשמה — כל פרטיו יישלחו ישירות לוואטספ שלך.
+                    </p>
+                  </div>
+
+                  <label style={{ position: 'relative', display: 'inline-block', width: '50px', height: '28px', flexShrink: 0, cursor: 'pointer' }}>
+                    <input
+                      id="selfCareRegNotifyToggle"
+                      type="checkbox"
+                      checked={Boolean(superadminSettings.autoSendSelfCareRegistrationWhatsApp)}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        autoSendSelfCareRegistrationWhatsApp: e.target.checked
+                      })}
+                      style={{ opacity: 0, width: 0, height: 0 }}
+                    />
+                    <span style={{
+                      position: 'absolute',
+                      cursor: 'pointer',
+                      top: 0, left: 0, right: 0, bottom: 0,
+                      backgroundColor: superadminSettings.autoSendSelfCareRegistrationWhatsApp ? 'var(--primary)' : '#cbd5e1',
+                      transition: '.3s',
+                      borderRadius: '34px'
+                    }}>
+                      <span style={{
+                        position: 'absolute',
+                        content: '""',
+                        height: '20px', width: '20px',
+                        left: superadminSettings.autoSendSelfCareRegistrationWhatsApp ? '26px' : '4px',
+                        bottom: '4px',
+                        backgroundColor: 'white',
+                        transition: '.3s',
+                        borderRadius: '50%',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                      }}></span>
+                    </span>
+                  </label>
+                </div>
+
+                <label style={{ display: 'block', marginTop: '16px' }}>
+                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', marginBottom: '6px' }}>
+                    מספר הוואטספ שיקבל את ההתראות
+                  </span>
+                  <input
+                    type="tel"
+                    dir="ltr"
+                    value={superadminSettings.selfCareRegistrationNotifyPhone || ''}
+                    onChange={e => setSuperadminSettings({ ...superadminSettings, selfCareRegistrationNotifyPhone: e.target.value })}
+                    placeholder="050-0000000"
+                    style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #e2e8f0', borderRadius: 10, padding: '10px 14px', fontFamily: 'inherit', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </label>
+
+                <label style={{ display: 'block', marginTop: '4px' }}>
+                  <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: '#334155', margin: '8px 0 6px' }}>
+                    תבנית הודעת ההתראה (תגיות: {'{{fullName}} {{phone}} {{email}} {{username}} {{goal}} {{portalUrl}}'})
+                  </span>
+                  <textarea
+                    value={superadminSettings.selfCareRegistrationNotificationTemplate || ''}
+                    onChange={e => setSuperadminSettings({ ...superadminSettings, selfCareRegistrationNotificationTemplate: e.target.value })}
+                    rows={7}
+                    style={{ width: '100%', boxSizing: 'border-box', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 14px', fontFamily: 'inherit', fontSize: '0.86rem', lineHeight: 1.6, outline: 'none', resize: 'vertical' }}
+                  />
+                </label>
               </div>
 
               {/* Message Template Editor Card */}

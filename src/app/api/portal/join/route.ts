@@ -110,6 +110,36 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // התראת רישום חדש למנהל — לפי הגדרות הסופראדמין. כישלון שקט: לא חוסם רישום.
+    let registrationNotifySent = false;
+    try {
+      const settings: any = db.getSettings();
+      if (settings?.autoSendSelfCareRegistrationWhatsApp && settings?.selfCareRegistrationNotifyPhone) {
+        const GOAL_LABELS: Record<string, string> = {
+          calm: 'רוגע והרפיה',
+          habits: 'הרגלים בריאים',
+          mood: 'שיפור מצב הרוח',
+          growth: 'התפתחות אישית',
+          sessions: 'תיעוד מפגשים',
+          content: 'תכנים'
+        };
+        const fullName = [client.firstName, client.lastName].filter(Boolean).join(' ');
+        const template = settings.selfCareRegistrationNotificationTemplate ||
+          '🌟 רישום חדש במרחב האישי!\n\n👤 שם: {{fullName}}\n📱 וואטספ: {{phone}}\n✉️ אימייל: {{email}}\n🔑 שם משתמש: {{username}}\n🎯 יעד: {{goal}}\n🔗 המרחב: {{portalUrl}}';
+        const notifyMessage = template
+          .replace(/\{\{fullName\}\}/g, fullName)
+          .replace(/\{\{phone\}\}/g, client.phone || '')
+          .replace(/\{\{email\}\}/g, client.email || '')
+          .replace(/\{\{username\}\}/g, client.username || '')
+          .replace(/\{\{goal\}\}/g, GOAL_LABELS[String(goal)] || 'לא צוין')
+          .replace(/\{\{portalUrl\}\}/g, portalUrl);
+        await sendWhatsAppMessage({ phone: settings.selfCareRegistrationNotifyPhone, message: notifyMessage });
+        registrationNotifySent = true;
+      }
+    } catch (err: any) {
+      console.warn('[WhatsApp Registration Notify Warning]', err.message);
+    }
+
     const token = signClientToken(client);
     await db.flush();
 
@@ -120,6 +150,7 @@ export async function POST(request: NextRequest) {
       token,
       whatsappSent,
       whatsappError,
+      registrationNotifySent,
       client: {
         id: client.id,
         firstName: client.firstName,
