@@ -1,4 +1,5 @@
 // Central API client
+import { portalTokenFor } from '@/lib/portalFetch';
 
 const API_BASE = '/api';
 
@@ -18,13 +19,16 @@ const authHeaders = (extra: Record<string, string> = {}) => {
   };
 };
 
-/** Build Authorization header for patient portal endpoints */
-const portalHeaders = (extra: Record<string, string> = {}) => {
+/** Build Authorization header for patient portal endpoints — the session of
+ *  THIS portal first, so switching between portals on one device keeps each
+ *  session alive (see portalFetch.ts). */
+const portalHeaders = (portalCode?: string, extra: Record<string, string> = {}) => {
   if (typeof window === 'undefined') return extra;
-  const token =
+  const token = portalCode ? portalTokenFor(portalCode) : (
     localStorage.getItem('wisecare_portal_token') ||
     localStorage.getItem('wisecare_token') ||
-    localStorage.getItem('wisecare_admin_token');
+    localStorage.getItem('wisecare_admin_token')
+  );
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extra
@@ -772,7 +776,7 @@ export const api = {
   deletePortalSelfTask: async (portalCode, taskId) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/tasks/${taskId}`, {
       method: 'DELETE',
-      headers: portalHeaders()
+      headers: portalHeaders(portalCode)
     });
     if (!res.ok) throw new Error('שגיאה במחיקת משימה');
     return res.json();
@@ -781,7 +785,7 @@ export const api = {
   addPortalSelfContent: async (portalCode, contentData) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content`, {
       method: 'POST',
-      headers: portalHeaders({ 'Content-Type': 'application/json' }),
+      headers: portalHeaders(portalCode, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(contentData)
     });
     if (!res.ok) {
@@ -794,16 +798,23 @@ export const api = {
   removePortalSelfContent: async (portalCode, contentId) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
       method: 'DELETE',
-      headers: portalHeaders()
+      headers: portalHeaders(portalCode)
     });
-    if (!res.ok) throw new Error('שגיאה בהסרת תוכן מהמרחב');
+    if (!res.ok) {
+      // Surface the real reason — a 401 means the session expired (log in
+      // again), not a generic failure the user can't act on.
+      const err = await res.json().catch(() => ({}));
+      throw new Error(res.status === 401
+        ? 'פג תוקף ההתחברות למרחב. נא להתחבר מחדש ולנסות שוב.'
+        : (err.error || 'שגיאה בהסרת תוכן מהמרחב'));
+    }
     return res.json();
   },
 
   updatePortalSelfContent: async (portalCode, contentId, contentData) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/content/${contentId}`, {
       method: 'PUT',
-      headers: portalHeaders({ 'Content-Type': 'application/json' }),
+      headers: portalHeaders(portalCode, { 'Content-Type': 'application/json' }),
       body: JSON.stringify(contentData)
     });
     if (!res.ok) {
@@ -976,6 +987,139 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בשליחת ההצעה');
+    }
+    return res.json();
+  },
+
+  // Personal songs of the patient (השירים שלי) — portal-side; auth attached
+  // by the portal fetch patch (per-portal client token)
+  getPortalSongs: async (portalCode: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/songs`, { cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת השירים');
+    }
+    return res.json();
+  },
+
+  createPortalSong: async (portalCode: string, payload: { title: string; url: string; note?: string; thumbnailUrl?: string }) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/songs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהוספת השיר');
+    }
+    return res.json();
+  },
+
+  updatePortalSong: async (portalCode: string, songId: string, payload: { title?: string; url?: string; note?: string; thumbnailUrl?: string }) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/songs/${encodeURIComponent(songId)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון השיר');
+    }
+    return res.json();
+  },
+
+  deletePortalSong: async (portalCode: string, songId: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/songs/${encodeURIComponent(songId)}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת השיר');
+    }
+    return res.json();
+  },
+
+  // Staff song recommendations (המלצות הצוות) — superadmin management
+  getSongCategories: async () => {
+    const res = await fetch(`${API_BASE}/song-categories`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת הקטגוריות');
+    }
+    return res.json();
+  },
+
+  createSongCategory: async (name: string) => {
+    const res = await fetch(`${API_BASE}/song-categories`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  updateSongCategory: async (id: string, name: string) => {
+    const res = await fetch(`${API_BASE}/song-categories/${encodeURIComponent(id)}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון הקטגוריה');
+    }
+    return res.json();
+  },
+
+  deleteSongCategory: async (id: string) => {
+    const res = await fetch(`${API_BASE}/song-categories/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  getRecommendedSongs: async () => {
+    const res = await fetch(`${API_BASE}/recommended-songs`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת השירים המומלצים');
+    }
+    return res.json();
+  },
+
+  createRecommendedSong: async (payload: Record<string, unknown>) => {
+    const res = await fetch(`${API_BASE}/recommended-songs`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהוספת השיר');
+    }
+    return res.json();
+  },
+
+  updateRecommendedSong: async (id: string, payload: Record<string, unknown>) => {
+    const res = await fetch(`${API_BASE}/recommended-songs/${encodeURIComponent(id)}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון השיר');
+    }
+    return res.json();
+  },
+
+  deleteRecommendedSong: async (id: string) => {
+    const res = await fetch(`${API_BASE}/recommended-songs/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת השיר');
     }
     return res.json();
   },

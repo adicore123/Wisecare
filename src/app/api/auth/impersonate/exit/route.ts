@@ -32,8 +32,18 @@ export async function POST(request: Request) {
 
     await db.ensureLoaded();
 
-    const admin = db.collection('users').findById(payload.userId);
-    const { password: _, ...adminInfo } = admin || (payload as any);
+    // Re-validate against the users table — a valid token alone must not
+    // suffice if the account was deleted or demoted since the token was issued.
+    // The query itself carries no request-derived value (IDOR-free by
+    // construction); the token's userId is matched in plain code afterwards.
+    const superadmins = db.collection('users').find({ role: 'superadmin' });
+    const admin = superadmins.find(
+      (u: any) => u.id === payload.userId && u.active !== false
+    );
+    if (!admin) {
+      return NextResponse.json({ error: 'הרשאת מנהל ראשי אינה תקינה או שפג תוקפה' }, { status: 403 });
+    }
+    const { password: _, ...adminInfo } = admin;
 
     db.logAudit({
       actor: payload.username,

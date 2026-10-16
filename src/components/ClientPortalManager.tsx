@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import LiveKitCallView, { ActiveCallSession } from '@/components/livekit/LiveKitCallView';
-import { installPortalAuthFetch } from '@/lib/portalFetch';
+import { installPortalAuthFetch, portalTokenFor, portalTokenKey } from '@/lib/portalFetch';
 
 // Attach this tab's portal token to portal API calls (see portalFetch.ts)
 installPortalAuthFetch();
@@ -24,6 +24,7 @@ import {
   Trash2,
   Search,
   Wind,
+  Music,
   Phone,
   HelpCircle,
   FileText,
@@ -70,6 +71,8 @@ import PrivacyPolicyModal from './PrivacyPolicyModal';
 import SignatureCanvas from './SignatureCanvas';
 import { applyTheme } from '@/lib/theme';
 import ThemePalettePicker from './ThemePalettePicker';
+import BreathingModule from './BreathingModule';
+import SongsManager from './SongsManager';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -247,10 +250,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const toggleInsight = (id: string) =>
     setExpandedInsightId(current => (current === id ? null : id));
 
-  // Breathing state
-  const [breathingPhase, setBreathingPhase] = useState('שאף (4 שניות)');
-  const [breathingRunning, setBreathingRunning] = useState(false);
-  const [breathingCountdown, setBreathingCountdown] = useState(4);
+  // Breathing: the whole module (technique gallery + guided player) lives in
+  // <BreathingModule /> — no per-tab state needed here anymore.
 
   // Appointments state
   const [portalAppointments, setPortalAppointments] = useState<any[]>(initialPayload?.appointments || []);
@@ -412,10 +413,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       setIsPinEnabled(hasPinConfig);
       setSavedPin(storedPin);
 
-      const portalToken =
-        localStorage.getItem('wisecare_portal_token') ||
-        localStorage.getItem('wisecare_token') ||
-        localStorage.getItem('wisecare_admin_token');
+      const portalToken = portalTokenFor(portalCode);
       fetch(`/api/portal/${encodeURIComponent(portalCode)}/verify-auth`, {
         headers: portalToken ? { Authorization: `Bearer ${portalToken}` } : {}
       })
@@ -424,6 +422,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             // Server rejected the remembered session — don't keep showing a
             // "logged-in" portal whose every action would fail with 401.
             localStorage.removeItem(authSessionKey);
+            localStorage.removeItem(portalTokenKey(portalCode));
             setIsPortalAuthenticated(false);
             return null;
           }
@@ -434,7 +433,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           if (!session?.authenticated) return;
           setIsPortalAuthenticated(true);
           localStorage.setItem(authSessionKey, 'true');
-          if (session.token) localStorage.setItem('wisecare_portal_token', session.token);
+          if (session.token) {
+            // Per-portal key: a login on another portal must not kill this one
+            localStorage.setItem(portalTokenKey(portalCode), session.token);
+            localStorage.setItem('wisecare_portal_token', session.token);
+          }
           setIsPinLocked(hasPinConfig);
           // Session confirmed server-side — pull the full (private) payload
           loadPortalAll(true);
@@ -539,7 +542,10 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       }
 
       sessionStorage.setItem(authSessionKey, 'true');
-      if (resData.token) localStorage.setItem('wisecare_portal_token', resData.token);
+      if (resData.token) {
+        localStorage.setItem(portalTokenKey(portalCode), resData.token);
+        localStorage.setItem('wisecare_portal_token', resData.token);
+      }
 
       if (rememberMe) {
         localStorage.setItem(authSessionKey, 'true');
@@ -613,6 +619,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       });
 
       if (res?.token) {
+        localStorage.setItem(portalTokenKey(portalCode), res.token);
         localStorage.setItem('wisecare_portal_token', res.token);
       }
       localStorage.setItem(authSessionKey, 'true');
@@ -646,6 +653,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     sessionStorage.removeItem(authSessionKey);
     try {
       localStorage.removeItem(authSessionKey);
+      localStorage.removeItem(portalTokenKey(portalCode));
       localStorage.removeItem('wisecare_portal_token');
       localStorage.removeItem('wisecare_last_portal');
       // The cached portal payload holds clinical data — it must not outlive the session
@@ -721,6 +729,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   };
 
   useEffect(() => {
+    // Private data is only reachable with a verified session — skip the fetch
+    // (and its guaranteed 401) while the visitor sits at the login gate.
+    if (!isPortalAuthenticated) return;
     // Apply the local cache only after hydration so the first client paint matches
     // the server-rendered HTML (the cache is invisible to SSR)
     let hasSnapshot = Boolean(initialPayload);
@@ -736,11 +747,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     }
     // If data is already available (from SSR initialPayload or local cache), refresh silently without blocking UI
     loadPortalAll(hasSnapshot);
-  }, [portalCode]);
+  }, [portalCode, isPortalAuthenticated]);
 
   // LiveKit active-call banner — light polling so the client sees a call the moment the therapist opens it
   useEffect(() => {
-    if (!portalCode) return undefined;
+    if (!portalCode || !isPortalAuthenticated) return undefined;
 
     let cancelled = false;
     let interval: number | undefined;
@@ -765,7 +776,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       cancelled = true;
       if (interval) window.clearInterval(interval);
     };
-  }, [portalCode]);
+  }, [portalCode, isPortalAuthenticated]);
 
   useEffect(() => {
     if (activeTab !== 'content' || !featuredContentId || !data?.content?.length) return undefined;
@@ -1393,30 +1404,6 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
     setActiveTab('insights');
     setIsNewInsightOpen(true);
   };
-
-  // Guided breathing loop
-  useEffect(() => {
-    let interval = null;
-    if (breathingRunning) {
-      interval = setInterval(() => {
-        setBreathingCountdown(prev => {
-          if (prev > 1) return prev - 1;
-          // Switch phase
-          if (breathingPhase.startsWith('שאף')) {
-            setBreathingPhase('החזק (7 שניות)');
-            return 7;
-          } else if (breathingPhase.startsWith('החזק')) {
-            setBreathingPhase('נשוף לאט (8 שניות)');
-            return 8;
-          } else {
-            setBreathingPhase('שאף (4 שניות)');
-            return 4;
-          }
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [breathingRunning, breathingPhase]);
 
   // Hebrew time-based greeting calculation
   const getGreetingData = () => {
@@ -2158,19 +2145,34 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             )}
           </button>
 
-          <button 
+          <button
             className={`nav-item ${activeTab === 'breathing' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('breathing');
               setMobileMenuOpen(false);
             }}
-            style={{ 
+            style={{
               color: activeTab === 'breathing' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
               background: activeTab === 'breathing' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
             }}
           >
             <Wind size={19} />
             <span>הרפיה ונשימה מונחית</span>
+          </button>
+
+          <button
+            className={`nav-item ${activeTab === 'songs' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('songs');
+              setMobileMenuOpen(false);
+            }}
+            style={{
+              color: activeTab === 'songs' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
+              background: activeTab === 'songs' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
+            }}
+          >
+            <Music size={19} />
+            <span>השירים שלי</span>
           </button>
 
           {!portalInfo.isSelfCare && (
@@ -2428,6 +2430,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
               <button
                 type="button"
                 onClick={() => {
+                  // Leave no patient session behind on the admin's browser
+                  try {
+                    localStorage.removeItem(`wisecare_portal_auth_${portalCode}`);
+                    localStorage.removeItem(portalTokenKey(portalCode));
+                    localStorage.removeItem('wisecare_client_token');
+                    localStorage.removeItem(`wisecare_portal_cache_${portalCode}`);
+                  } catch {}
                   window.location.href = '/superadmin';
                 }}
                 style={{
@@ -3694,85 +3703,17 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 3: מרחב הרפיה ונשימה מונחית (4-7-8)                                   */}
+          {/* TAB 3: מרחב נשימה — ספריית טכניקות מונחית (BreathingModule)              */}
           {/* ========================================================================= */}
           {activeTab === 'breathing' && (
-            <div style={{ maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
-              <div className="page-header" style={{ justifyContent: 'center', textAlign: 'center' }}>
-                <div className="page-title-group">
-                  <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                    תרגול נשימה וויסות רגשי (4-7-8)
-                  </h2>
-                  <p style={{ color: '#64748b', fontSize: '0.92rem', marginTop: '4px' }}>
-                    טכניקה קלינית להפחתת מתח מיידית, הרגעת מערכת העצבים והחזרת השקט הפנימי
-                  </p>
-                </div>
-              </div>
+            <BreathingModule portalCode={portalCode} />
+          )}
 
-              <div className="card-table" style={{ padding: '48px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', borderRadius: '20px' }}>
-                {/* Breathing Circle */}
-                <div style={{
-                  width: '230px',
-                  height: '230px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--primary-light, var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))) 0%, var(--primary-glow, color-mix(in srgb, var(--primary) 30%, white)) 100%)',
-                  border: '8px solid var(--primary, var(--primary))',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: breathingRunning ? '0 0 45px var(--primary-glow, color-mix(in srgb, var(--primary) 45%, transparent))' : 'var(--shadow-md)',
-                  transform: breathingRunning && breathingPhase.startsWith('שאף') ? 'scale(1.18)' : 'scale(1)',
-                  transition: 'all 3.5s ease-in-out',
-                  marginBottom: '32px'
-                }}>
-                  <Wind size={40} color="var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))" />
-                  <div style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))', marginTop: '8px' }}>
-                    {breathingRunning ? breathingPhase : 'מוכן לתרגול'}
-                  </div>
-                  {breathingRunning && (
-                    <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary, var(--primary))', marginTop: '4px' }}>
-                      {breathingCountdown}
-                    </div>
-                  )}
-                </div>
-
-                <div style={{ display: 'flex', gap: '14px', marginBottom: '28px' }}>
-                  <button 
-                    onClick={() => {
-                      setBreathingRunning(!breathingRunning);
-                      if (!breathingRunning) {
-                        setBreathingPhase('שאף (4 שניות)');
-                        setBreathingCountdown(4);
-                      }
-                    }}
-                    className={`btn ${breathingRunning ? 'btn-danger' : 'btn-primary'}`}
-                    style={{ padding: '12px 32px', fontSize: '1.1rem', fontWeight: 700 }}
-                  >
-                    {breathingRunning ? 'עצור תרגול' : 'התחל תרגול נשימות 🌿'}
-                  </button>
-                </div>
-
-                <div style={{
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  borderRadius: '16px',
-                  padding: '20px 24px',
-                  textAlign: 'right',
-                  width: '100%',
-                  fontSize: '0.92rem',
-                  lineHeight: 1.7,
-                  color: '#475569'
-                }}>
-                  <strong style={{ color: '#0f172a', fontSize: '0.98rem' }}>הוראות ביצוע שלב אחר שלב:</strong>
-                  <ul style={{ paddingRight: '22px', marginTop: '8px', marginBottom: 0 }}>
-                    <li><strong>שאף/י:</strong> שאיפה איטית ועמוקה דרך האף במשך 4 שניות – הרגש/י את הבטן מתמלאת.</li>
-                    <li><strong>החזק/י:</strong> עצור/י את האוויר בעדינות וברוגע למשך 7 שניות.</li>
-                    <li><strong>נשוף/י:</strong> שחרר/י את האוויר לאט, ברכות ובשקט דרך הפה במשך 8 שניות.</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+          {/* ========================================================================= */}
+          {/* TAB 3.5: השירים שלי — רשימת שירים אישית + נגן רקע (SongsManager)         */}
+          {/* ========================================================================= */}
+          {activeTab === 'songs' && (
+            <SongsManager portalCode={portalCode} />
           )}
 
           {/* ========================================================================= */}

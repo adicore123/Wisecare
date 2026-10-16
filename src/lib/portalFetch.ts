@@ -11,7 +11,24 @@
  * carry one. The server picks whichever candidate session matches the requested portal.
  */
 
-const PORTAL_API_RE = /^\/api\/(?:livekit\/)?portal\/[^/?#]+/;
+const PORTAL_API_RE = /^\/api\/(?:livekit\/)?portal\/([^/?#]+)/;
+
+/** Token key of ONE portal — sessions of different portals never overwrite
+ *  each other (the shared global key does get overwritten, e.g. by every /join). */
+export const portalTokenKey = (portalCode: string): string =>
+  `wisecare_portal_token_${portalCode}`;
+
+/** Read this tab's best token for the given portal: its own session first,
+ *  then the legacy shared key, then a staff (CRM) token. */
+export function portalTokenFor(portalCode: string): string | null {
+  if (typeof window === 'undefined') return null;
+  return (
+    localStorage.getItem(portalTokenKey(portalCode)) ||
+    localStorage.getItem('wisecare_portal_token') ||
+    localStorage.getItem('wisecare_token') ||
+    localStorage.getItem('wisecare_admin_token')
+  );
+}
 
 let installed = false;
 
@@ -34,11 +51,9 @@ export function installPortalAuthFetch() {
 
   window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
     const path = resolvePath(input);
-    if (path && PORTAL_API_RE.test(path)) {
-      const token =
-        localStorage.getItem('wisecare_portal_token') ||
-        localStorage.getItem('wisecare_token') ||
-        localStorage.getItem('wisecare_admin_token');
+    const portalMatch = path && PORTAL_API_RE.exec(path);
+    if (portalMatch) {
+      const token = portalTokenFor(decodeURIComponent(portalMatch[1]));
       if (token) {
         const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined));
         if (!headers.has('Authorization')) {
