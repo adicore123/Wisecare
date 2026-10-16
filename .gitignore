@@ -55,3 +55,4 @@ server/data/wisecare_db.json
 
 # security-scan tool output (never publish findings to the public repo)
 .mimosa/
+output/

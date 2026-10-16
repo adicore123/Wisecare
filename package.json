@@ -8,12 +8,7 @@
     "start": "next start -p 3000",
     "next:dev": "next dev -p 3000",
     "next:build": "next build",
-    "next:start": "next start -p 3000",
-    "legacy:dev": "concurrently \"npm run legacy:server\" \"npm run legacy:client\"",
-    "legacy:server": "npm --prefix server run dev",
-    "legacy:client": "npm --prefix client run dev",
-    "server": "npm --prefix server start",
-    "server:dev": "npm --prefix server run dev"
+    "next:start": "next start -p 3000"
   },
   "keywords": [
     "crm",
