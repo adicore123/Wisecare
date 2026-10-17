@@ -7224,9 +7224,9 @@ table.quotes-table {
 }
 .song-mini-spin { animation: songSpin 3.5s linear infinite; }
 
-/* ── ניווט קטגוריות — כפתורים ייעודיים בשפת העיצוב של המרחב ──── */
-/* נגישות: טקסט כהה-קריא בכל מצב לא-פעיל, וגרדיאנט פעיל שנקצה לכהות
-   מובטחת (ערבוב עם נייבי) כדי שטקסט לבן יעמוד בניגודיות WCAG בכל פלטה. */
+/* ── ניווט קטגוריות — כפתורים מלאים בצבע הנבחר עם טקסט לבן ────── */
+/* כמו btn-primary של המערכת: מילוי var(--primary), לבן מודגש + צל טקסט
+   עדין; הצ'יפ הפעיל מקבל גרדיאנט שנחתך לכהות מובטחת לקריאות מלאה. */
 
 .song-cat-bar {
   display: flex;
@@ -7247,94 +7247,90 @@ table.quotes-table {
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  background: color-mix(in srgb, var(--primary) 11%, white);
-  border: 1.5px solid color-mix(in srgb, var(--primary) 32%, white);
+  background: var(--primary);
+  border: none;
   border-radius: 999px;
   padding: 3px 5px 3px 3px;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 28%, transparent);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
 .song-cat-tab-wrap:hover {
   transform: translateY(-1.5px);
-  border-color: color-mix(in srgb, var(--primary) 55%, white);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 18%, transparent);
+  background: var(--primary-hover, var(--primary));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 38%, transparent);
 }
 /* המחלקה הפעילה מופיעה גם על ווראפ קטגוריה וגם ישירות על כפתור (הכול / המלצות) */
 .song-cat-tab-wrap.song-cat-tab-active,
 .song-cat-tab.song-cat-tab-active {
   background: linear-gradient(135deg,
     var(--primary) 0%,
-    color-mix(in srgb, var(--primary) 72%, #0b1220) 100%);
-  border-color: transparent;
-  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 42%, transparent);
+    color-mix(in srgb, var(--primary) 68%, #0b1220) 100%);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 46%, transparent);
 }
 .song-cat-tab-wrap.song-cat-tab-active:hover,
 .song-cat-tab.song-cat-tab-active:hover {
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 52%, transparent);
-}
-.song-cat-tab.song-cat-tab-active {
-  color: #ffffff;
-  cursor: default;
-  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.25);
-}
-.song-cat-tab.song-cat-tab-active svg { color: #ffffff; }
-.song-cat-tab.song-cat-tab-active .song-cat-count {
-  background: rgba(255, 255, 255, 0.26);
-  color: #ffffff;
+  background: linear-gradient(135deg,
+    var(--primary) 0%,
+    color-mix(in srgb, var(--primary) 68%, #0b1220) 100%);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 56%, transparent);
 }
 
+/* הכפתור עצמו — לבן על הצבע הנבחר, גם כשהוא עומד בפני עצמו (הכול / המלצות) */
 .song-cat-tab {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   min-height: 38px;
   border: none;
-  background: transparent;
+  background: var(--primary);
   font-family: inherit;
   font-size: 0.88rem;
   font-weight: 800;
   letter-spacing: 0.2px;
-  color: #0f172a;
-  padding: 6px 11px;
+  color: #ffffff;
+  padding: 6px 13px;
   border-radius: 999px;
   cursor: pointer;
-  transition: color 0.15s ease;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 28%, transparent);
+  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.30);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
-.song-cat-tab:hover { color: color-mix(in srgb, var(--primary) 60%, #0f172a); }
-.song-cat-tab svg { color: color-mix(in srgb, var(--primary) 55%, #0f172a); transition: color 0.15s ease; }
-.song-cat-tab-wrap.song-cat-tab-active .song-cat-tab { color: #ffffff; text-shadow: 0 1px 2px rgba(7, 20, 38, 0.25); }
-.song-cat-tab-wrap.song-cat-tab-active .song-cat-tab svg { color: #ffffff; }
+.song-cat-tab:hover {
+  background: var(--primary-hover, var(--primary));
+  transform: translateY(-1px);
+}
+.song-cat-tab svg { color: #ffffff; }
+
+.song-cat-tab.song-cat-tab-active {
+  cursor: default;
+  transform: none;
+}
+/* בתוך ווראפ פעיל הכפתור שקוף — הגרדיאנט יושב על הווראפ; עצמאי (הכול/המלצות) הגרדיאנט עליו */
+.song-cat-tab-wrap .song-cat-tab.song-cat-tab-active { background: transparent; box-shadow: none; }
+.song-cat-tab-wrap .song-cat-tab.song-cat-tab-active:hover { background: transparent; }
 
 .song-cat-tab .song-cat-count {
-  background: #ffffff;
-  color: #0f172a;
+  background: rgba(255, 255, 255, 0.26);
+  color: #ffffff;
   font-size: 0.69rem;
   font-weight: 800;
   border-radius: 999px;
   padding: 2px 8px;
   min-width: 24px;
   text-align: center;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 18%, white);
   transition: all 0.15s ease;
 }
-.song-cat-tab-wrap.song-cat-tab-active .song-cat-count {
-  background: rgba(255, 255, 255, 0.26);
-  color: #ffffff;
-  box-shadow: none;
-}
 
-/* כפתורי עריכה/מחיקה מיני — מתלבשים גם על הגרדיאנט הפעיל */
-.song-cat-tab-wrap .song-icon-btn { width: 30px; height: 30px; border-radius: 9px; color: #334155; }
+/* כפתורי עריכה/מחיקה מיני — לבנים על המילוי הצבעוני */
+.song-cat-tab-wrap .song-icon-btn { width: 30px; height: 30px; border-radius: 9px; color: #ffffff; }
 .song-cat-tab-wrap .song-icon-btn svg { width: 12.5px; height: 12.5px; }
-.song-cat-tab-wrap .song-icon-btn:hover { background: #ffffff; color: var(--primary-hover, var(--primary)); }
-.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn { color: #ffffff; }
-.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn:hover { background: rgba(255, 255, 255, 0.22); color: #ffffff; }
-.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn-danger:hover { background: rgba(255, 255, 255, 0.22); color: #ffe4e6; }
+.song-cat-tab-wrap .song-icon-btn:hover { background: rgba(255, 255, 255, 0.22); color: #ffffff; }
+.song-cat-tab-wrap .song-icon-btn-danger:hover { background: rgba(255, 255, 255, 0.22); color: #ffe4e6; }
 
 .song-cat-rename {
-  border: 1.5px solid color-mix(in srgb, var(--primary) 32%, white);
+  border: 2px solid #ffffff;
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 5px 13px;
   font-family: inherit;
   font-size: 0.86rem;
   font-weight: 800;
@@ -7342,30 +7338,24 @@ table.quotes-table {
   width: 140px;
   color: #0f172a;
   background: #ffffff;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: box-shadow 0.15s ease;
 }
-.song-cat-rename:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
-}
+.song-cat-rename:focus { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55); }
 
-/* שדה הוספת קטגוריה — באותה שפה, עם כפתור + ממולא */
+/* שדה הוספת קטגוריה — לבן עם כפתור + בצבע הנבחר */
 .song-cat-add-inline {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #ffffff;
-  border: 1.5px dashed color-mix(in srgb, var(--primary) 40%, white);
+  border: 2px solid var(--primary);
   border-radius: 999px;
-  padding: 4px 5px 4px 14px;
-  color: color-mix(in srgb, var(--primary) 55%, #0f172a);
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
-  transition: border-color 0.16s ease, box-shadow 0.16s ease, border-style 0.16s ease;
+  padding: 3px 4px 3px 14px;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 20%, transparent);
+  transition: box-shadow 0.16s ease;
 }
 .song-cat-add-inline:focus-within {
-  border-style: solid;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 13%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
 }
 .song-cat-add-inline input {
   border: none;
@@ -7378,17 +7368,17 @@ table.quotes-table {
   width: 155px;
   min-height: 34px;
 }
-.song-cat-add-inline input::placeholder { color: color-mix(in srgb, var(--primary) 48%, #475569); font-weight: 600; }
+.song-cat-add-inline input::placeholder { color: #475569; font-weight: 600; }
 .song-cat-add-inline .song-icon-btn {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, #0b1220));
+  background: var(--primary);
   color: #ffffff;
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 34%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 34%, transparent);
 }
 .song-cat-add-inline .song-icon-btn:hover {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 72%, #0b1220), var(--primary));
+  background: var(--primary-hover, var(--primary));
   color: #ffffff;
   transform: translateY(-1px);
 }
@@ -7414,28 +7404,26 @@ table.quotes-table {
   align-items: center;
   gap: 6px;
   min-height: 38px;
-  border: 1.5px solid color-mix(in srgb, var(--primary) 32%, white);
-  background: color-mix(in srgb, var(--primary) 11%, white);
-  color: #0f172a;
+  border: none;
+  background: var(--primary);
+  color: #ffffff;
   border-radius: 999px;
   padding: 8px 16px;
   font-size: 0.84rem;
   font-weight: 800;
   font-family: inherit;
   cursor: pointer;
+  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.30);
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 26%, transparent);
   transition: all 0.15s ease;
 }
 .song-cat-picker .space-goal-chip:hover {
-  border-color: color-mix(in srgb, var(--primary) 55%, white);
+  background: var(--primary-hover, var(--primary));
   transform: translateY(-1px);
-  box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 .song-cat-picker .space-goal-chip-active {
-  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 72%, #0b1220));
-  border-color: transparent;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.25);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 36%, transparent);
+  background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 68%, #0b1220));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 /* ── כפתור-ענק: המלצות הצוות ──────────────────────────────────── */
