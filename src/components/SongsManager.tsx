@@ -12,6 +12,41 @@ import SongEditModal from './SongEditModal';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useMusicPlayer, isDirectAudioUrl, isStreamingUrl, type PlayerSong } from './MusicPlayerProvider';
 
+/** כותרת מעוצבת של הקטגוריה הנבחרת — מעל גריד השירים */
+function CategoryHeading({ name, count, onPlayAll, playAllDisabled }: {
+  name: string;
+  count: number;
+  onPlayAll?: () => void;
+  playAllDisabled?: boolean;
+}) {
+  return (
+    <div className="song-cat-heading">
+      <span className="song-cat-heading-icon" aria-hidden="true">
+        {onPlayAll ? <Gift size={19} /> : <Folder size={19} />}
+      </span>
+      <div style={{ minWidth: 0 }}>
+        <h3>{name}</h3>
+        <div className="song-cat-heading-meta">
+          <span className="song-cat-heading-count">
+            {count === 1 ? 'שיר אחד' : `${count} שירים`}
+          </span>
+          {onPlayAll && (
+            <button
+              type="button"
+              className="song-cat-heading-play"
+              onClick={onPlayAll}
+              disabled={playAllDisabled}
+            >
+              <Play size={12} aria-hidden="true" />
+              נגן את הקטגוריה
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** שיתוף ידני בוואטספ — פותח את וואטספ עם טקסט מוכן; המשתמש שולח בעצמו */
 const waShareHref = (title: string, url: string) =>
   `https://wa.me/?text=${encodeURIComponent(`${title}\n${url}`)}`;
@@ -416,12 +451,27 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
             </div>
           )}
 
+          {/* כותרת הקטגוריה הנבחרת */}
+          {!loading && selectedCat && (() => {
+            const cat = myCategories.find((c) => c.id === selectedCat);
+            if (!cat) return null;
+            const catSongs = songs.filter((s) => (s.categoryId || null) === selectedCat);
+            const catPlayable = catSongs.filter((s) => isDirectAudioUrl(s.url));
+            return (
+              <CategoryHeading
+                name={cat.name}
+                count={catSongs.length}
+                onPlayAll={catPlayable.length ? () => player.playSong(playerSong(catPlayable[0]), catPlayable.map(playerSong)) : undefined}
+              />
+            );
+          })()}
+
           {loading ? (
             <div className="song-empty">טוען שירים...</div>
           ) : filtered.length === 0 ? (
             <div className="song-empty">
               <Music size={36} />
-              <p>{songs.length === 0 ? 'עדיין לא הוספת שירים — אילו שירים עושים לך טוב?' : 'אין תוצאות לחיפוש.'}</p>
+              <p>{songs.length === 0 ? 'עדיין לא הוספת שירים — אילו שירים עושים לך טוב?' : 'אין שירים בקטגוריה זו.'}</p>
               {songs.length === 0 && (
                 <button type="button" className="btn btn-primary" onClick={openAdd}>
                   <Plus size={15} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />
@@ -517,6 +567,19 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                     </button>
                   ))}
                 </div>
+
+                <CategoryHeading
+                  name={active.name}
+                  count={active.songs.length}
+                  onPlayAll={
+                    active.songs.some((s) => isDirectAudioUrl(s.url))
+                      ? () => {
+                          const playableRecs = active.songs.filter((s) => isDirectAudioUrl(s.url));
+                          player.playSong(playerSong(playableRecs[0]), playableRecs.map(playerSong));
+                        }
+                      : undefined
+                  }
+                />
 
                 <div className="song-grid">
                   {active.songs.map((song) => {
