@@ -25,6 +25,7 @@ import {
   Search,
   Wind,
   Music,
+  Brain,
   Phone,
   HelpCircle,
   FileText,
@@ -73,6 +74,7 @@ import { applyTheme } from '@/lib/theme';
 import ThemePalettePicker from './ThemePalettePicker';
 import BreathingModule from './BreathingModule';
 import SongsManager from './SongsManager';
+import KnowledgeModule from './KnowledgeModule';
 
 const HEBREW_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -2175,6 +2177,21 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
             <span>השירים שלי</span>
           </button>
 
+          <button
+            className={`nav-item ${activeTab === 'knowledge' ? 'active' : ''}`}
+            onClick={() => {
+              setActiveTab('knowledge');
+              setMobileMenuOpen(false);
+            }}
+            style={{
+              color: activeTab === 'knowledge' ? 'var(--sidebar-active-color, color-mix(in srgb, var(--primary) 65%, white))' : 'var(--primary-light, color-mix(in srgb, var(--primary) 15%, white))',
+              background: activeTab === 'knowledge' ? 'var(--bg-sidebar-active, rgba(255, 255, 255, 0.12))' : 'transparent'
+            }}
+          >
+            <Brain size={19} />
+            <span>הבנת הנפש</span>
+          </button>
+
           {!portalInfo.isSelfCare && (
             <button 
               className={`nav-item ${activeTab === 'forms' ? 'active' : ''}`}
@@ -3714,6 +3731,13 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
           {/* ========================================================================= */}
           {activeTab === 'songs' && (
             <SongsManager portalCode={portalCode} />
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 3.6: הבנת הנפש — מאמרים פסיכולוגיים מבוססי-מחקר (KnowledgeModule)   */}
+          {/* ========================================================================= */}
+          {activeTab === 'knowledge' && (
+            <KnowledgeModule portalCode={portalCode} />
           )}
 
           {/* ========================================================================= */}
