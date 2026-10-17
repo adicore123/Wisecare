@@ -96,6 +96,7 @@ const defaultData = {
   songs: [],
   songCategories: [],
   recommendedSongs: [],
+  clientSongCategories: [],
   settings: {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
@@ -130,7 +131,8 @@ const ENTITY_COLLECTIONS = [
   'quoteTemplates',
   'songs',
   'songCategories',
-  'recommendedSongs'
+  'recommendedSongs',
+  'clientSongCategories'
 ];
 
 export class Database {

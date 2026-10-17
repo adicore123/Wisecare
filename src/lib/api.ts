@@ -1002,7 +1002,7 @@ export const api = {
     return res.json();
   },
 
-  createPortalSong: async (portalCode: string, payload: { title: string; url: string; note?: string; thumbnailUrl?: string }) => {
+  createPortalSong: async (portalCode: string, payload: { title: string; url: string; note?: string; thumbnailUrl?: string; categoryId?: string | null }) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/songs`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1015,7 +1015,7 @@ export const api = {
     return res.json();
   },
 
-  updatePortalSong: async (portalCode: string, songId: string, payload: { title?: string; url?: string; note?: string; thumbnailUrl?: string }) => {
+  updatePortalSong: async (portalCode: string, songId: string, payload: { title?: string; url?: string; note?: string; thumbnailUrl?: string; categoryId?: string | null }) => {
     const res = await fetch(`${API_BASE}/portal/${portalCode}/songs/${encodeURIComponent(songId)}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -1035,6 +1035,53 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה במחיקת השיר');
+    }
+    return res.json();
+  },
+
+  // Patient's own song categories (קטגוריות אישיות)
+  getPortalSongCategories: async (portalCode: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-categories`, { cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת הקטגוריות');
+    }
+    return res.json();
+  },
+
+  createPortalSongCategory: async (portalCode: string, name: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-categories`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  updatePortalSongCategory: async (portalCode: string, id: string, name: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-categories/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון הקטגוריה');
+    }
+    return res.json();
+  },
+
+  deletePortalSongCategory: async (portalCode: string, id: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-categories/${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הקטגוריה');
     }
     return res.json();
   },

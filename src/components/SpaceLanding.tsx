@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   HeartHandshake, Wind, Music, BookHeart, Clapperboard, CheckSquare, ShieldCheck,
-  ChevronDown, Loader2, Eye, EyeOff, User, Phone, Mail, Lock, Sparkles, LogIn, CheckCircle2
+  Loader2, Eye, EyeOff, User, Phone, Mail, Lock, LogIn, CheckCircle2,
+  ChevronDown, ChevronLeft, X, Sparkles, Home, ListTodo, LockKeyhole, ArrowLeft
 } from 'lucide-react';
 import IntroSplash from './IntroSplash';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
@@ -11,49 +12,45 @@ import WhatsAppIcon from './WhatsAppIcon';
 
 const SPACE_INTRO_KEY = 'wisecare-space-intro-seen';
 
-const FEATURES = [
-  {
-    icon: Wind,
-    title: 'ספריית נשימות מונחית',
-    text: '14 טכניקות נשימה מהעולם המבוסס-מחקר של המיינדפולנס — להרגעה מיידית, מיקוד ושינה, עם נגן מונחה מעוצב.'
-  },
-  {
-    icon: Music,
-    title: 'השירים שלי 🎵',
-    text: 'רשימת השירים שעושים לך טוב, עם נגן שממשיך להתנגן ברקע — גם בזמן נהיגה, כולל ההמלצות של הצוות שלנו.'
-  },
-  {
-    icon: BookHeart,
-    title: 'יומן תובנות ומצב-רוח',
-    text: "צ׳ק-אין יומי קצר עם מצבי-רוח, יומן אישי פרטי ומעקב חזותי אחרי ההתקדמות שלך."
-  },
-  {
-    icon: Clapperboard,
-    title: 'תוכן נבחר בשבילך',
-    text: 'סרטונים, מאמרים ותרגולים שנאספו בקפידה — כל מה שנכנס למרחב שלך נבחר בשביל המסע האישי שלך.'
-  },
-  {
-    icon: CheckSquare,
-    title: 'משימות אישיות לתרגול',
-    text: 'התקדמות בקצב שלך: משימות קטנות ומדידות שמלוות אותך בין השימושים ובונות מומנטום.'
-  },
-  {
-    icon: ShieldCheck,
-    title: 'פרטיות ברמה הגבוהה',
-    text: 'המרחב שלך שלך בלבד — נעילת PIN מהירה, הצפנה וגישה אישית עם קישור ייחודי ופרטי כניסה משלך.'
-  }
+const NAV_LINKS = [
+  { href: '#features', label: 'המרחב שלך' },
+  { href: '#how-it-works', label: 'איך זה עובד' },
+  { href: '#faq', label: 'שאלות נפוצות' }
+];
+
+const STATS = [
+  { n: '14', label: 'טכניקות נשימה מונחות' },
+  { n: '🎵', label: 'נגן מוזיקה שממשיך ברקע' },
+  { n: 'יומי', label: 'יומן מצב-רוח אישי' },
+  { n: '100%', label: 'פרטי ומאובטח' }
+];
+
+const CAPABILITIES = [
+  { icon: Music, title: 'המוזיקה שלי', text: 'רשימה אישית עם השירים שעושים לך טוב — ונגן שממשיך להתנגן גם כשעוברים אפליקציה.' },
+  { icon: BookHeart, title: 'יומן ומצב-רוח', text: "צ'ק-אין קצר שמאפשר לראות תהליך לאורך זמן — ולהבין מה עוזר לך באמת." },
+  { icon: Clapperboard, title: 'תוכן שנבחר עבורך', text: 'מאמרים, סרטונים ותרגולים שמתאימים לדרך שלך, כולל ההמלצות של הצוות.' },
+  { icon: CheckSquare, title: 'משימות אישיות', text: 'צעדים קטנים וברורים שבונים תחושת התקדמות אמיתית.' },
+  { icon: ShieldCheck, title: 'פרטיות כברירת מחדל', text: 'פרטי כניסה אישיים, נעילת PIN מהירה ומרחב ששייך רק לך.' }
 ];
 
 const STEPS = [
-  { n: '1', title: 'נרשמים בדקה', text: 'מלא/י את הפרטים — והמרחב האישי שלך נפתח מיד, עם כל הכלים בפנים.' },
-  { n: '2', title: 'מקבלים את הקישור שלך', text: 'שולחים לך לוואטספ את הקישור האישי ופרטי הכניסה — המרחב זמין לך מכל מכשיר.' },
-  { n: '3', title: 'מתחילים לתרגל', text: 'נשימה, שירים, יומן ומשימות — שתי דקות ביום שמורגשות טוב יותר.' }
+  { n: '01', title: 'נרשמים בדקה', text: 'ממלאים כמה פרטים — והמרחב האישי נפתח מיד, עם כל הכלים בפנים.' },
+  { n: '02', title: 'מקבלים גישה אישית', text: 'הקישור הפרטי ופרטי הכניסה מגיעים ישר לוואטספ — זמין מכל מכשיר.' },
+  { n: '03', title: 'מתחילים בדרך שלך', text: 'שתי דקות ביום: נשימה, שיר, כתיבה קצרה — בקצב שנכון לך.' }
+];
+
+const FAQS = [
+  { q: 'האם פתיחת המרחב עולה כסף?', a: 'לא. פתיחת המרחב והשימוש בכלים הם ללא תשלום וללא התחייבות. לא מבקשים כרטיס אשראי.' },
+  { q: 'אפשר להשתמש במרחב גם מהטלפון?', a: 'כן. המרחב מותאם לטלפון, לטאבלט ולמחשב — נכנסים אליו מכל מכשיר בלי להתקין כלום.' },
+  { q: 'מה קורה עם המידע האישי שלי?', a: 'הגישה למרחב אישית. פרטי הכניסה והמידע נשמרים בהתאם למדיניות הפרטיות ולמנגנוני האבטחה של המערכת.' },
+  { q: 'כמה זמן צריך להקדיש בכל יום?', a: 'אין זמן חובה. אפשר להתחיל גם בשתי דקות של נשימה, כתיבה קצרה או שיר אחד שעושה טוב.' },
+  { q: 'האם זה מחליף טיפול?', a: 'לא. המרחב הוא כלי להעצמה אישית ולשיפור מצב הרוח ביום-יום — אינו טיפול פסיכולוגי ואינו תחליף לייעוץ מקצועי.' }
 ];
 
 const GOALS = [
   { id: 'calm', label: 'להרגיש רגוע/ה יותר', emoji: '🌿' },
-  { id: 'habits', label: 'לבנות הרגלים בריאים', emoji: '✨' },
   { id: 'mood', label: 'לשפר את מצב הרוח', emoji: '☀️' },
+  { id: 'habits', label: 'לבנות הרגלים בריאים', emoji: '✨' },
   { id: 'growth', label: 'התפתחות אישית', emoji: '🌱' }
 ];
 
@@ -66,7 +63,35 @@ interface RegisterForm {
   confirmPassword: string;
 }
 
+/** Reveal-on-scroll — מופעל על ילדים עם data-reveal */
+function useReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root) return;
+    const items = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal]'));
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !('IntersectionObserver' in window)) {
+      items.forEach((el) => el.classList.add('is-visible'));
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    items.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
 export default function SpaceLanding() {
+  const [regOpen, setRegOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [form, setForm] = useState<RegisterForm>({
     fullName: '', phone: '', email: '', username: '', password: '', confirmPassword: ''
   });
@@ -76,13 +101,44 @@ export default function SpaceLanding() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState<any | null>(null);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
+  const rootRef = useReveal();
 
   const set = (key: keyof RegisterForm) => (e: React.ChangeEvent<HTMLInputElement>) =>
     setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const scrollToRegister = () => {
-    document.getElementById('register')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const openRegister = () => {
+    setError('');
+    setMenuOpen(false);
+    setRegOpen(true);
+    if (typeof window !== 'undefined' && window.location.hash !== '#register') {
+      window.history.replaceState(null, '', '#register');
+    }
   };
+
+  const closeRegister = () => {
+    if (success) return;
+    setRegOpen(false);
+    if (typeof window !== 'undefined' && window.location.hash === '#register') {
+      window.history.replaceState(null, '', window.location.pathname);
+    }
+  };
+
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === '#register') setRegOpen(true);
+    };
+    onHash();
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
+  useEffect(() => {
+    if (!regOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeRegister(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [regOpen, success]);
 
   const validate = (): string | null => {
     if (!form.fullName.trim()) return 'נא להזין שם מלא';
@@ -117,8 +173,6 @@ export default function SpaceLanding() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'שגיאה בהרשמה');
-
-      // same session bootstrap as the existing /join flow
       if (data.portalCode) {
         try {
           localStorage.setItem('wisecare_last_portal', data.portalCode);
@@ -141,148 +195,353 @@ export default function SpaceLanding() {
   };
 
   return (
-    <div className="space-shell">
+    <div className="space-page" ref={rootRef}>
       <IntroSplash
         storageKey={SPACE_INTRO_KEY}
         tagline="המרחב האישי החכם שלך — להתפתחות ולשיפור מצב הרוח"
         onDone={() => {}}
       />
 
-      {/* aurora + orbs backdrop */}
-      <div className="space-aurora" aria-hidden="true">
-        <div className="space-orb space-orb-a" />
-        <div className="space-orb space-orb-b" />
-        <div className="space-orb space-orb-c" />
-      </div>
+      <a className="space-skip-link" href="#main">דלג לתוכן</a>
 
-      {/* topbar */}
-      <header className="space-topbar">
-        <div className="space-brand">
-          <span className="space-brand-mark" aria-hidden="true"><HeartHandshake size={20} /></span>
-          <span className="space-brand-name">Wisecare <small>מרחב אישי</small></span>
+      {/* ═══ HEADER ═══ */}
+      <header className="space-header">
+        <div className="space-container space-header-inner">
+          <a className="space-brand" href="#top" aria-label="WiseCare — חזרה לראש העמוד">
+            <span className="space-brand-mark" aria-hidden="true"><HeartHandshake size={26} /></span>
+            <span>Wise<em>Care</em></span>
+          </a>
+
+          <nav className={`space-nav${menuOpen ? ' is-open' : ''}`} aria-label="ניווט ראשי">
+            {NAV_LINKS.map((l) => (
+              <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a>
+            ))}
+            <a className="space-login-link" href="/join?view=login" onClick={() => setMenuOpen(false)}>
+              <LogIn size={14} /> יש לי מרחב
+            </a>
+            <button type="button" className="space-btn space-btn-primary space-nav-cta" onClick={openRegister}>
+              פתיחת מרחב
+            </button>
+          </nav>
+
+          <button
+            type="button"
+            className={`space-menu-toggle${menuOpen ? ' is-open' : ''}`}
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'סגירת התפריט' : 'פתיחת התפריט'}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span /><span /><span />
+          </button>
         </div>
-        <a className="space-login-link" href="/join?view=login">
-          <LogIn size={15} />
-          יש לי כבר מרחב
-        </a>
       </header>
 
-      <main className="space-main">
-        {/* HERO */}
-        <section className="space-hero">
-          <div className="space-hero-badge space-rise-1">
-            <Sparkles size={14} />
-            להתפתחות אישית • שיפור מצב רוח • בקצב שלך
+      <main id="main">
+        {/* ═══ HERO ═══ */}
+        <section className="space-hero" id="top">
+          <div className="space-container space-hero-grid">
+            <div className="space-hero-copy" data-reveal>
+              <h1>מרחב אישי שעוזר לך <span>להרגיש טוב יותר.</span></h1>
+              <p className="space-hero-lead">
+                נשימות מונחות, מוזיקה, יומן ומשימות אישיות — במקום אחד פרטי, פשוט ונגיש.
+              </p>
+              <div className="space-hero-actions">
+                <button type="button" className="space-btn space-btn-primary space-btn-lg" onClick={openRegister}>
+                  פתיחת המרחב שלי
+                  <ChevronLeft size={18} aria-hidden="true" />
+                </button>
+                <a className="space-text-link" href="#features">מה יש בפנים<ChevronDown size={15} aria-hidden="true" /></a>
+              </div>
+              <p className="space-trust-line">
+                <CheckCircle2 size={15} aria-hidden="true" />
+                דקה אחת להרשמה • בלי כרטיס אשראי • המרחב נפתח מיד
+              </p>
+            </div>
+
+            {/* חלון-מוצר: תצוגה מקדימה של המרחב האמיתי */}
+            <div className="space-product-window" data-reveal aria-label="תצוגה מקדימה של המרחב האישי">
+              <div className="space-product-screen">
+                <div className="space-product-topbar">
+                  <span className="space-mini-brand">
+                    <span className="space-mini-brand-dot" aria-hidden="true" />
+                    WiseCare
+                  </span>
+                  <span className="space-user-chip">
+                    <span className="space-user-avatar" aria-hidden="true"><HeartHandshake size={14} /></span>
+                    המרחב שלי
+                  </span>
+                </div>
+                <div className="space-product-body">
+                  <div className="space-product-rail" aria-hidden="true">
+                    <span className="space-rail-item active"><Home size={17} /></span>
+                    <span className="space-rail-item"><Wind size={17} /></span>
+                    <span className="space-rail-item"><Music size={17} /></span>
+                    <span className="space-rail-item"><BookHeart size={17} /></span>
+                    <span className="space-rail-item"><ListTodo size={17} /></span>
+                    <span className="space-rail-item"><LockKeyhole size={17} /></span>
+                  </div>
+                  <div className="space-dashboard">
+                    <div className="space-dashboard-head">
+                      <div>
+                        <h2>טוב לראות אותך שוב</h2>
+                        <p>איך את/ה מרגיש/ה היום?</p>
+                      </div>
+                      <span className="space-dashboard-date">היום</span>
+                    </div>
+                    <div className="space-tool-grid">
+                      <div className="space-tool-card t-teal">
+                        <Wind size={19} aria-hidden="true" />
+                        <h3>נשימה</h3>
+                        <p>תרגול מונחה להרגעה מיידית</p>
+                        <span className="space-tool-arrow" aria-hidden="true"><ChevronLeft size={13} /></span>
+                      </div>
+                      <div className="space-tool-card t-blue">
+                        <Music size={19} aria-hidden="true" />
+                        <h3>המוזיקה שלי</h3>
+                        <p>השירים שעושים לי טוב</p>
+                        <span className="space-tool-arrow" aria-hidden="true"><ChevronLeft size={13} /></span>
+                      </div>
+                      <div className="space-tool-card t-rose">
+                        <BookHeart size={19} aria-hidden="true" />
+                        <h3>יומן אישי</h3>
+                        <p>מצב-רוח ותובנות</p>
+                        <span className="space-tool-arrow" aria-hidden="true"><ChevronLeft size={13} /></span>
+                      </div>
+                      <div className="space-tool-card t-sand">
+                        <ListTodo size={19} aria-hidden="true" />
+                        <h3>המשימות שלי</h3>
+                        <p>צעדים קטנים קדימה</p>
+                        <span className="space-tool-arrow" aria-hidden="true"><ChevronLeft size={13} /></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="space-hero-title space-rise-2">
-            מרחב אישי דיגיטלי<br />
-            <span className="space-hero-accent">שמרגיש רק טוב</span>
-          </h1>
-          <p className="space-hero-sub space-rise-3">
-            נשימות מונחות, השירים שמרימים לך את היום, יומן מצב-רוח ומשימות אישיות —
-            הכול במקום אחד פרטי, שנפתח בדקה ומלווה אותך בכל יום.
-          </p>
-          <div className="space-hero-actions space-rise-4">
-            <button type="button" className="space-btn-primary" onClick={scrollToRegister}>
-              פתח/י את המרחב שלך — בדקה
-            </button>
-            <a className="space-btn-glass" href="#features">
-              מה יש בפנים
-              <ChevronDown size={15} />
-            </a>
-          </div>
-          <div className="space-hero-note space-rise-5">ללא תשלום • ללא התחייבות • הפרטים שלך נשארים שלך</div>
         </section>
 
-        {/* FEATURES */}
-        <section className="space-section" id="features">
-          <h2 className="space-section-title">מה יש במרחב שלך</h2>
-          <p className="space-section-sub">כלים אמיתיים, מהמוצר עצמו — לא הבטחות</p>
-          <div className="space-features">
-            {FEATURES.map((f) => (
-              <div className="space-feature-card" key={f.title}>
-                <span className="space-feature-icon" aria-hidden="true"><f.icon size={22} /></span>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
+        {/* ═══ STATS ═══ */}
+        <section className="space-stats-band" aria-label="המרחב במספרים">
+          <div className="space-container space-stats">
+            {STATS.map((s) => (
+              <div className="space-stat" key={s.label} data-reveal>
+                <span className="space-stat-n">{s.n}</span>
+                <span className="space-stat-label">{s.label}</span>
               </div>
             ))}
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
-        <section className="space-section">
-          <h2 className="space-section-title">איך זה עובד</h2>
-          <div className="space-steps">
-            {STEPS.map((s) => (
-              <div className="space-step" key={s.n}>
-                <span className="space-step-n" aria-hidden="true">{s.n}</span>
-                <h3>{s.title}</h3>
-                <p>{s.text}</p>
+        {/* ═══ FEATURES ═══ */}
+        <section className="space-section space-features" id="features">
+          <div className="space-container">
+            <header className="space-section-head center" data-reveal>
+              <span className="space-kicker">המרחב שלך</span>
+              <h2 className="space-title">כל מה שצריך כדי להתקדם, <span>בקצב שלך</span></h2>
+              <p className="space-subtitle">כלים שימושיים שבאמת משתלבים ביום-יום.</p>
+            </header>
+
+            <div className="space-features-layout">
+              <article className="space-breathing-panel" data-reveal>
+                <div className="space-breathing-copy">
+                  <span className="space-feature-icon"><Wind size={22} aria-hidden="true" /></span>
+                  <h3>נשימות מונחות</h3>
+                  <p>14 טכניקות מהעולם המבוסס-מחקר של המיינדפולנס, עם נגן מונחה מעוצב — להרגעה מיידית, מיקוד ושינה.</p>
+                </div>
+                <div className="space-breathing-visual" aria-hidden="true">
+                  <div className="space-breathing-ring">
+                    <div>
+                      <strong>4-7-8</strong>
+                      <small>שאיפה · החזקה · נשיפה</small>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <div className="space-capability-list" data-reveal>
+                {CAPABILITIES.map((c) => (
+                  <div className="space-capability" key={c.title}>
+                    <span className="space-capability-icon"><c.icon size={20} aria-hidden="true" /></span>
+                    <div>
+                      <h3>{c.title}</h3>
+                      <p>{c.text}</p>
+                    </div>
+                    <ChevronLeft size={16} aria-hidden="true" />
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            <p className="space-privacy-note" data-reveal>
+              <ShieldCheck size={17} aria-hidden="true" />
+              המרחב שלך פרטי. שום דבר שכתוב בו לא משותף עם אף אחד.
+              <button type="button" className="space-text-link" onClick={() => setIsPrivacyOpen(true)}>איך שומרים על הפרטיות</button>
+            </p>
           </div>
         </section>
 
-        {/* REGISTER */}
-        <section className="space-section" id="register">
-          <div className="space-register-card">
+        {/* ═══ HOW IT WORKS ═══ */}
+        <section className="space-section" id="how-it-works">
+          <div className="space-container">
+            <header className="space-section-head center" data-reveal>
+              <span className="space-kicker">איך זה עובד</span>
+              <h2 className="space-title">שלוש דקות להתחלה. <span>כמה דקות ביום לעצמך.</span></h2>
+            </header>
+            <div className="space-steps">
+              {STEPS.map((s) => (
+                <article className="space-step" key={s.n} data-reveal>
+                  <span className="space-step-n" aria-hidden="true">{s.n}</span>
+                  <h3>{s.title}</h3>
+                  <p>{s.text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ REGISTER CTA ═══ */}
+        <section className="space-section space-register-section" id="register">
+          <div className="space-container space-register-grid">
+            <div className="space-register-copy" data-reveal>
+              <span className="space-kicker">מוכנ/ה?</span>
+              <h2 className="space-title">המרחב האישי שלך <span>מחכה.</span></h2>
+              <p className="space-subtitle">
+                דקה אחת של הקלדה — ונפתח לך מרחב שלם עם נשימות, מוזיקה, יומן ומשימות.
+                בלי תשלום, בלי התחייבות, עם ההמלצות של הצוות שלנו בפנים.
+              </p>
+            </div>
+            <div className="space-cta-card" data-reveal>
+              <span className="space-cta-card-icon" aria-hidden="true"><Sparkles size={24} /></span>
+              <h3>פתיחת מרחב אישי</h3>
+              <p>הפרטים נשמרים באופן פרטי ומאובטח, ופרטי הכניסה מגיעים ישר לוואטספ שלך.</p>
+              <ul>
+                <li><CheckCircle2 size={15} aria-hidden="true" /> דקה אחת, בלי כרטיס אשראי</li>
+                <li><CheckCircle2 size={15} aria-hidden="true" /> המרחב נפתח מיד לאחר ההרשמה</li>
+                <li><CheckCircle2 size={15} aria-hidden="true" /> ניתן לצאת ולמחוק בכל רגע</li>
+              </ul>
+              <button type="button" className="space-btn space-btn-primary space-btn-lg space-btn-block" onClick={openRegister}>
+                פתיחת המרחב שלי
+                <ChevronLeft size={18} aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ FAQ ═══ */}
+        <section className="space-section space-faq-section" id="faq">
+          <div className="space-container space-faq-layout">
+            <header className="space-faq-intro" data-reveal>
+              <span className="space-kicker">שאלות</span>
+              <h2 className="space-title">שאלות נפוצות</h2>
+              <p>כל מה שכדאי לדעת לפני שפותחים מרחב אישי.</p>
+            </header>
+            <div className="space-faq-list" data-reveal>
+              {FAQS.map((f, i) => (
+                <details key={f.q} open={i === 0}>
+                  <summary>{f.q}<ChevronDown size={17} className="space-faq-chevron" aria-hidden="true" /></summary>
+                  <p>{f.a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* ═══ FOOTER ═══ */}
+      <footer className="space-footer">
+        <div className="space-container space-footer-inner">
+          <a className="space-brand" href="#top" aria-label="WiseCare — חזרה לראש העמוד">
+            <span className="space-brand-mark" aria-hidden="true"><HeartHandshake size={24} /></span>
+            <span>Wise<em>Care</em></span>
+          </a>
+          <div className="space-footer-links">
+            <button type="button" className="space-text-link" onClick={() => setIsPrivacyOpen(true)}>מדיניות פרטיות</button>
+            <span className="space-sep" aria-hidden="true">•</span>
+            <span>© 2026 WiseCare. כל הזכויות שמורות.</span>
+          </div>
+        </div>
+      </footer>
+
+      {/* ═══ REGISTRATION MODAL ═══ */}
+      {regOpen && (
+        <div
+          className="space-reg-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="פתיחת מרחב אישי"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) closeRegister(); }}
+        >
+          <div className="space-reg-modal">
             {!success ? (
               <>
-                <h2 className="space-section-title">פתח/י את המרחב האישי שלך</h2>
-                <p className="space-section-sub">דקה אחת, והכול שלך</p>
+                <button type="button" className="space-reg-close" onClick={closeRegister} aria-label="סגירה">
+                  <X size={18} />
+                </button>
+                <div className="space-reg-head">
+                  <h2>פתיחת מרחב אישי 🌿</h2>
+                  <p>דקה אחת — והמרחב שלך נפתח</p>
+                </div>
+
+                <div className="space-reg-trust" aria-hidden="true">
+                  <span><ShieldCheck size={13} /> פרטיות מלאה</span>
+                  <span><WhatsAppIcon size={13} /> הפרטים מגיעים בוואטספ</span>
+                  <span>⏱ דקה אחת</span>
+                </div>
 
                 <form className="space-form" onSubmit={submit} noValidate>
-                  <label className="space-field">
-                    <span>שם מלא *</span>
-                    <div className="space-input-wrap">
-                      <User size={16} aria-hidden="true" />
-                      <input type="text" value={form.fullName} onChange={set('fullName')} placeholder="איך לקרוא לך?" autoComplete="name" />
-                    </div>
-                  </label>
+                  <div className="space-form-grid">
+                    <label className="space-field">
+                      <span>שם מלא *</span>
+                      <div className="space-input-wrap">
+                        <User size={16} aria-hidden="true" />
+                        <input type="text" value={form.fullName} onChange={set('fullName')} placeholder="איך לקרוא לך?" autoComplete="name" autoFocus />
+                      </div>
+                    </label>
 
-                  <label className="space-field">
-                    <span>מספר וואטספ *</span>
-                    <div className="space-input-wrap">
-                      <Phone size={16} aria-hidden="true" />
-                      <input type="tel" dir="ltr" value={form.phone} onChange={set('phone')} placeholder="050-0000000" autoComplete="tel" />
-                    </div>
-                    <small>לשם נשלח לך את הקישור האישי ופרטי הכניסה</small>
-                  </label>
+                    <label className="space-field">
+                      <span>מספר וואטספ *</span>
+                      <div className="space-input-wrap">
+                        <Phone size={16} aria-hidden="true" />
+                        <input type="tel" dir="ltr" value={form.phone} onChange={set('phone')} placeholder="050-0000000" autoComplete="tel" />
+                      </div>
+                    </label>
 
-                  <label className="space-field">
-                    <span>אימייל *</span>
-                    <div className="space-input-wrap">
-                      <Mail size={16} aria-hidden="true" />
-                      <input type="email" dir="ltr" value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
-                    </div>
-                  </label>
+                    <label className="space-field">
+                      <span>אימייל *</span>
+                      <div className="space-input-wrap">
+                        <Mail size={16} aria-hidden="true" />
+                        <input type="email" dir="ltr" value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
+                      </div>
+                    </label>
 
-                  <label className="space-field">
-                    <span>שם משתמש *</span>
-                    <div className="space-input-wrap">
-                      <User size={16} aria-hidden="true" />
-                      <input type="text" dir="ltr" value={form.username} onChange={set('username')} placeholder="לפחות 3 תווים" autoComplete="username" />
-                    </div>
-                  </label>
+                    <label className="space-field">
+                      <span>שם משתמש *</span>
+                      <div className="space-input-wrap">
+                        <User size={16} aria-hidden="true" />
+                        <input type="text" dir="ltr" value={form.username} onChange={set('username')} placeholder="לפחות 3 תווים" autoComplete="username" />
+                      </div>
+                    </label>
 
-                  <label className="space-field">
-                    <span>סיסמה *</span>
-                    <div className="space-input-wrap">
-                      <Lock size={16} aria-hidden="true" />
-                      <input type={showPassword ? 'text' : 'password'} dir="ltr" value={form.password} onChange={set('password')} placeholder="לפחות 8 תווים" autoComplete="new-password" />
-                      <button type="button" className="space-eye" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'הסתרת סיסמה' : 'הצגת סיסמה'}>
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </label>
+                    <label className="space-field">
+                      <span>סיסמה *</span>
+                      <div className="space-input-wrap">
+                        <Lock size={16} aria-hidden="true" />
+                        <input type={showPassword ? 'text' : 'password'} dir="ltr" value={form.password} onChange={set('password')} placeholder="לפחות 8 תווים" autoComplete="new-password" />
+                        <button type="button" className="space-eye" onClick={() => setShowPassword((v) => !v)} aria-label={showPassword ? 'הסתרת סיסמה' : 'הצגת סיסמה'}>
+                          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                        </button>
+                      </div>
+                    </label>
 
-                  <label className="space-field">
-                    <span>אימות סיסמה *</span>
-                    <div className="space-input-wrap">
-                      <Lock size={16} aria-hidden="true" />
-                      <input type={showPassword ? 'text' : 'password'} dir="ltr" value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="שוב אותה סיסמה" autoComplete="new-password" />
-                    </div>
-                  </label>
+                    <label className="space-field">
+                      <span>אימות סיסמה *</span>
+                      <div className="space-input-wrap">
+                        <Lock size={16} aria-hidden="true" />
+                        <input type={showPassword ? 'text' : 'password'} dir="ltr" value={form.confirmPassword} onChange={set('confirmPassword')} placeholder="שוב אותה סיסמה" autoComplete="new-password" />
+                      </div>
+                    </label>
+                  </div>
 
                   <fieldset className="space-goal-fieldset">
                     <legend>מה היית רוצה להעצים?</legend>
@@ -303,14 +562,15 @@ export default function SpaceLanding() {
 
                   {error && <div className="space-form-error" role="alert">{error}</div>}
 
-                  <button type="submit" className="space-btn-primary space-btn-block" disabled={submitting}>
+                  <button type="submit" className="space-btn space-btn-primary space-btn-lg space-btn-block" disabled={submitting}>
                     {submitting ? <Loader2 size={17} className="space-spin" /> : null}
-                    {submitting ? 'פותחים את המרחב שלך...' : 'קדימה — פתח/י לי מרחב 🌿'}
+                    {submitting ? 'פותחים את המרחב שלך...' : 'פתיחת המרחב שלי'}
+                    {!submitting && <ChevronLeft size={17} aria-hidden="true" />}
                   </button>
 
-                  <p className="space-form-privacy">
-                    בהרשמה אני מאשר/ת את{' '}
-                    <button type="button" className="space-link" onClick={() => setIsPrivacyOpen(true)}>מדיניות הפרטיות</button>
+                  <p className="space-consent">
+                    בלחיצה על הכפתור אני מאשר/ת את{' '}
+                    <button type="button" className="space-text-link" onClick={() => setIsPrivacyOpen(true)}>מדיניות הפרטיות</button>.
                   </p>
                 </form>
               </>
@@ -330,23 +590,18 @@ export default function SpaceLanding() {
                 </div>
                 <button
                   type="button"
-                  className="space-btn-primary"
+                  className="space-btn space-btn-primary space-btn-lg"
                   onClick={() => success.portalCode && window.location.replace(`/portal/${encodeURIComponent(success.portalCode)}`)}
                 >
                   כניסה למרחב שלי עכשיו
+                  <ArrowLeft size={17} aria-hidden="true" />
                 </button>
                 <small className="space-success-auto">מעבירים אותך אוטומטית בעוד רגע...</small>
               </div>
             )}
           </div>
-        </section>
-      </main>
-
-      <footer className="space-footer">
-        <button type="button" className="space-link" onClick={() => setIsPrivacyOpen(true)}>מדיניות פרטיות</button>
-        <span>•</span>
-        <span>© WiseCare — המרחב האישי שלך</span>
-      </footer>
+        </div>
+      )}
 
       <PrivacyPolicyModal isOpen={isPrivacyOpen} onClose={() => setIsPrivacyOpen(false)} />
     </div>

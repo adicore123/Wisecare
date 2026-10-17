@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Music, Plus, Play, Pause, Pencil, Trash2, ExternalLink, Search, Info, ListMusic, Gift, PlusCircle, ChevronLeft
+  Music, Plus, Play, Pause, Pencil, Trash2, ExternalLink, Search, Info, ListMusic, Gift, PlusCircle,
+  ChevronLeft, FolderPlus, Folder, Check, X
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -21,6 +22,13 @@ interface Song {
   url: string;
   note?: string;
   thumbnailUrl?: string;
+  categoryId?: string | null;
+  createdAt: string;
+}
+
+interface MyCategory {
+  id: string;
+  name: string;
   createdAt: string;
 }
 
@@ -43,8 +51,19 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [search, setSearch] = useState('');
 
-  // staff recommendations
+  // my categories (patient-owned) — chip navigation + management
+  const [myCategories, setMyCategories] = useState<MyCategory[]>([]);
+  const [selectedCat, setSelectedCat] = useState<string | null>(null); // null = הכול
+  const [newCatName, setNewCatName] = useState('');
+  const [addingCat, setAddingCat] = useState(false);
+  const [renamingCatId, setRenamingCatId] = useState<string | null>(null);
+  const [renameCatValue, setRenameCatValue] = useState('');
+  const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
+  const [deletingCat, setDeletingCat] = useState(false);
+
+  // staff recommendations — chip navigation too
   const [categories, setCategories] = useState<RecommendedCategory[]>([]);
+  const [recSelectedCat, setRecSelectedCat] = useState<string | null>(null);
   const [recLoading, setRecLoading] = useState(false);
 
   // add / edit modal
@@ -78,6 +97,13 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
     }
   }, [portalCode]);
 
+  const loadCategories = useCallback(async () => {
+    try {
+      const list = await api.getPortalSongCategories(portalCode);
+      setMyCategories(Array.isArray(list) ? list : []);
+    } catch {} // כישלון שקט — הקטגוריות הן שיפור חוויה
+  }, [portalCode]);
+
   const loadRecommendations = useCallback(async () => {
     try {
       setRecLoading(true);
@@ -91,7 +117,55 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
   }, [portalCode]);
 
   useEffect(() => { loadSongs(); }, [loadSongs]);
+  useEffect(() => { loadCategories(); }, [loadCategories]);
   useEffect(() => { if (view === 'recommended') loadRecommendations(); }, [view, loadRecommendations]);
+
+  const addCategory = async () => {
+    const name = newCatName.trim();
+    if (!name || addingCat) return;
+    try {
+      setAddingCat(true);
+      const cat = await api.createPortalSongCategory(portalCode, name);
+      setNewCatName('');
+      setSelectedCat(cat.id);
+      showToast(`הקטגוריה "${name}" נוצרה 📂`);
+      await loadCategories();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה ביצירת הקטגוריה', 'error');
+    } finally {
+      setAddingCat(false);
+    }
+  };
+
+  const saveRenameCategory = async () => {
+    if (!renamingCatId) return;
+    const name = renameCatValue.trim();
+    if (!name) return;
+    try {
+      await api.updatePortalSongCategory(portalCode, renamingCatId, name);
+      setRenamingCatId(null);
+      showToast('שם הקטגוריה עודכן ✏️');
+      await loadCategories();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בעדכון', 'error');
+    }
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!deleteCatId) return;
+    try {
+      setDeletingCat(true);
+      await api.deletePortalSongCategory(portalCode, deleteCatId);
+      if (selectedCat === deleteCatId) setSelectedCat(null);
+      setDeleteCatId(null);
+      showToast('הקטגוריה נמחקה — השירים שבתוכה נשארו אצלך 🗑️');
+      await Promise.all([loadCategories(), loadSongs()]);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה במחיקה', 'error');
+    } finally {
+      setDeletingCat(false);
+    }
+  };
 
   const openAdd = () => {
     setEditingId(null);
@@ -105,7 +179,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
     setEditorOpen(true);
   };
 
-  const saveSong = async (payload: { title: string; url: string; note: string; thumbnailUrl: string }) => {
+  const saveSong = async (payload: { title: string; url: string; note: string; thumbnailUrl: string; categoryId?: string | null }) => {
     if (saving) return;
     try {
       setSaving(true);
@@ -162,11 +236,12 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
   };
 
   const playable = songs.filter((s) => isDirectAudioUrl(s.url));
-  const filtered = search.trim()
-    ? songs.filter((s) =>
-        s.title.toLowerCase().includes(search.trim().toLowerCase()) ||
-        (s.note || '').toLowerCase().includes(search.trim().toLowerCase()))
-    : songs;
+  const filtered = songs
+    .filter((s) => (selectedCat ? (s.categoryId || null) === selectedCat : true))
+    .filter((s) => !search.trim()
+      ? true
+      : s.title.toLowerCase().includes(search.trim().toLowerCase()) ||
+        (s.note || '').toLowerCase().includes(search.trim().toLowerCase()));
 
   const isCurrent = (id: string) => player.current?.id === id;
 
@@ -244,6 +319,68 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
               <Plus size={16} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />
               הוספת שיר
             </button>
+          </div>
+
+          {/* ניווט קטגוריות אישיות — כפתורים ייעודיים, לא בלוקים פרוסים */}
+          <div className="song-cat-bar" role="tablist" aria-label="קטגוריות השירים שלי">
+            <button
+              type="button"
+              className={`song-cat-tab${selectedCat === null ? ' song-cat-tab-active' : ''}`}
+              onClick={() => setSelectedCat(null)}
+              role="tab"
+              aria-selected={selectedCat === null}
+            >
+              <Music size={14} /> הכול <span className="song-cat-count">{songs.length}</span>
+            </button>
+            {myCategories.map((cat) => {
+              const count = songs.filter((s) => (s.categoryId || null) === cat.id).length;
+              return (
+                <div key={cat.id} className={`song-cat-tab-wrap${selectedCat === cat.id ? ' song-cat-tab-active' : ''}`}>
+                  {renamingCatId === cat.id ? (
+                    <>
+                      <input
+                        type="text"
+                        className="song-cat-rename"
+                        value={renameCatValue}
+                        autoFocus
+                        onChange={(e) => setRenameCatValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') saveRenameCategory(); if (e.key === 'Escape') setRenamingCatId(null); }}
+                        aria-label="שינוי שם קטגוריה"
+                      />
+                      <button type="button" className="song-icon-btn" onClick={saveRenameCategory} title="שמירה" aria-label="שמירת שם הקטגוריה"><Check size={13} /></button>
+                      <button type="button" className="song-icon-btn" onClick={() => setRenamingCatId(null)} title="ביטול" aria-label="ביטול שינוי שם"><X size={13} /></button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className="song-cat-tab"
+                        onClick={() => setSelectedCat(selectedCat === cat.id ? null : cat.id)}
+                        role="tab"
+                        aria-selected={selectedCat === cat.id}
+                      >
+                        <Folder size={14} /> {cat.name} <span className="song-cat-count">{count}</span>
+                      </button>
+                      <button type="button" className="song-icon-btn" onClick={() => { setRenamingCatId(cat.id); setRenameCatValue(cat.name); }} title="שינוי שם" aria-label={`שינוי שם הקטגוריה ${cat.name}`}><Pencil size={12} /></button>
+                      <button type="button" className="song-icon-btn song-icon-btn-danger" onClick={() => setDeleteCatId(cat.id)} title="מחיקת קטגוריה" aria-label={`מחיקת הקטגוריה ${cat.name}`}><Trash2 size={12} /></button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+            <div className="song-cat-add-inline">
+              <FolderPlus size={15} />
+              <input
+                type="text"
+                value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') addCategory(); }}
+                placeholder="קטגוריה חדשה שלי..."
+                aria-label="שם קטגוריה חדשה"
+                disabled={addingCat}
+              />
+              <button type="button" className="song-icon-btn" onClick={addCategory} disabled={addingCat || !newCatName.trim()} title="הוספת קטגוריה" aria-label="הוספת קטגוריה"><Plus size={14} /></button>
+            </div>
           </div>
 
           <div className="song-tip">
@@ -360,19 +497,36 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
               <Gift size={36} />
               <p>עדיין אין המלצות צוות — המלצות שירים שהצוות יבחר יופיעו כאן 🎁</p>
             </div>
-          ) : (
-            categories.filter((c) => c.songs.length > 0).map((cat) => (
-              <div key={cat.id} className="song-cat-block">
-                <div className="song-cat-title">{cat.name}</div>
+          ) : (() => {
+            const available = categories.filter((c) => c.songs.length > 0);
+            const active = available.find((c) => c.id === recSelectedCat) || available[0];
+            return (
+              <>
+                {/* ניווט קטגוריות המלצות — כפתורים ייעודיים */}
+                <div className="song-cat-bar" role="tablist" aria-label="קטגוריות ההמלצות">
+                  {available.map((cat) => (
+                    <button
+                      type="button"
+                      key={cat.id}
+                      className={`song-cat-tab${active.id === cat.id ? ' song-cat-tab-active' : ''}`}
+                      onClick={() => setRecSelectedCat(cat.id)}
+                      role="tab"
+                      aria-selected={active.id === cat.id}
+                    >
+                      <Gift size={14} /> {cat.name} <span className="song-cat-count">{cat.songs.length}</span>
+                    </button>
+                  ))}
+                </div>
+
                 <div className="song-grid">
-                  {cat.songs.map((song) => {
+                  {active.songs.map((song) => {
                     const direct = isDirectAudioUrl(song.url);
                     const streaming = isStreamingUrl(song.url);
-                    const active = isCurrent(song.id);
+                    const isActive = isCurrent(song.id);
                     const inMyList = songs.some((s) => s.url === song.url);
                     return (
-                      <div key={song.id} className={`song-card${active ? ' song-card-active' : ''}`}>
-                        <SongThumb song={song} active={active} />
+                      <div key={song.id} className={`song-card${isActive ? ' song-card-active' : ''}`}>
+                        <SongThumb song={song} active={isActive} />
                         <div className="song-card-body">
                           <div className="song-card-title" title={song.title}>{song.title}</div>
                           {song.note && <div className="song-card-note" title={song.note}>{song.note}</div>}
@@ -384,16 +538,16 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                           {direct ? (
                             <button
                               type="button"
-                              className={active ? 'song-play-btn song-play-btn-active' : 'song-play-btn'}
+                              className={isActive ? 'song-play-btn song-play-btn-active' : 'song-play-btn'}
                               onClick={() =>
-                                active
+                                isActive
                                   ? player.togglePlay()
-                                  : player.playSong(playerSong(song), cat.songs.filter((s) => isDirectAudioUrl(s.url)).map(playerSong))
+                                  : player.playSong(playerSong(song), active.songs.filter((s) => isDirectAudioUrl(s.url)).map(playerSong))
                               }
-                              title={active && player.isPlaying ? 'השהיה' : 'נגן'}
-                              aria-label={active && player.isPlaying ? `השהיית ${song.title}` : `נגינת ${song.title}`}
+                              title={isActive && player.isPlaying ? 'השהיה' : 'נגן'}
+                              aria-label={isActive && player.isPlaying ? `השהיית ${song.title}` : `נגינת ${song.title}`}
                             >
-                              {active && player.isPlaying ? <Pause size={17} /> : <Play size={17} />}
+                              {isActive && player.isPlaying ? <Pause size={17} /> : <Play size={17} />}
                             </button>
                           ) : (
                             <a
@@ -423,9 +577,9 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                     );
                   })}
                 </div>
-              </div>
-            ))
-          )}
+              </>
+            );
+          })()}
         </>
       )}
 
@@ -434,19 +588,34 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
         onClose={() => setEditorOpen(false)}
         onSave={saveSong}
         metaEndpoint={`/api/portal/${encodeURIComponent(portalCode)}/songs/meta`}
+        categories={myCategories}
         initial={
           editingId
             ? {
                 title: songs.find((s) => s.id === editingId)?.title,
                 url: songs.find((s) => s.id === editingId)?.url,
                 note: songs.find((s) => s.id === editingId)?.note,
-                thumbnailUrl: songs.find((s) => s.id === editingId)?.thumbnailUrl
+                thumbnailUrl: songs.find((s) => s.id === editingId)?.thumbnailUrl,
+                categoryId: songs.find((s) => s.id === editingId)?.categoryId || null
               }
-            : undefined
+            : selectedCat
+              ? { categoryId: selectedCat }
+              : undefined
         }
         isEdit={Boolean(editingId)}
         saving={saving}
         error={editorError}
+      />
+
+      <ConfirmModal
+        isOpen={Boolean(deleteCatId)}
+        onClose={() => setDeleteCatId(null)}
+        onConfirm={confirmDeleteCategory}
+        title="מחיקת קטגוריה"
+        message={`למחוק את "${myCategories.find((c) => c.id === deleteCatId)?.name || 'הקטגוריה'}"? השירים שבתוכה לא יימחקו — הם יישארו ב״הכול״.`}
+        confirmLabel="מחיקה"
+        isDanger
+        loading={deletingCat}
       />
 
       <ConfirmModal

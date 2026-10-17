@@ -56,3 +56,9 @@ server/data/wisecare_db.json
 # security-scan tool output (never publish findings to the public repo)
 .mimosa/
 output/
+
+# Local design references and generated landing copies
+sapce/
+html-myspace/
+space-landing.html
+space-landing-preview.png

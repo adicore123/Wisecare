@@ -9,6 +9,7 @@ export interface SongEditPayload {
   url: string;
   note: string;
   thumbnailUrl: string;
+  categoryId?: string | null;
 }
 
 interface SongEditModalProps {
@@ -17,7 +18,9 @@ interface SongEditModalProps {
   onSave: (payload: SongEditPayload) => void;
   /** נקודת ה-meta למילוי האוטומטי — שונה בין הפורטל לסופראדמין */
   metaEndpoint: string;
-  initial?: { title?: string; url?: string; note?: string; thumbnailUrl?: string };
+  initial?: { title?: string; url?: string; note?: string; thumbnailUrl?: string; categoryId?: string | null };
+  /** קטגוריות אישיות של המטופל (אופציונלי — רק בפורטל) */
+  categories?: Array<{ id: string; name: string }>;
   isEdit?: boolean;
   saving: boolean;
   error: string | null;
@@ -29,9 +32,10 @@ interface SongEditModalProps {
  * השם אופציונלי — השרת גוזר אותו מהקישור אם נשאר ריק.
  */
 export default function SongEditModal({
-  isOpen, onClose, onSave, metaEndpoint, initial, isEdit, saving, error
+  isOpen, onClose, onSave, metaEndpoint, initial, categories, isEdit, saving, error
 }: SongEditModalProps) {
   const [form, setForm] = useState({ title: '', url: '', note: '' });
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [metaThumb, setMetaThumb] = useState('');
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [localError, setLocalError] = useState('');
@@ -40,6 +44,7 @@ export default function SongEditModal({
   useEffect(() => {
     if (isOpen) {
       setForm({ title: initial?.title || '', url: initial?.url || '', note: initial?.note || '' });
+      setCategoryId(initial?.categoryId || null);
       setMetaThumb(initial?.thumbnailUrl || '');
       setLocalError('');
       titleTouchedRef.current = Boolean(initial?.title);
@@ -84,7 +89,8 @@ export default function SongEditModal({
       title: form.title.trim(),
       url: form.url.trim(),
       note: form.note.trim(),
-      thumbnailUrl: metaThumb
+      thumbnailUrl: metaThumb,
+      categoryId
     });
   };
 
@@ -143,6 +149,32 @@ export default function SongEditModal({
             placeholder="אופציונלי"
           />
         </label>
+        {categories && categories.length > 0 && (
+          <fieldset className="space-goal-fieldset song-cat-fieldset">
+            <legend>קטגוריה אישית</legend>
+            <div className="space-goal-chips song-cat-picker">
+              <button
+                type="button"
+                className={`space-goal-chip${categoryId === null ? ' space-goal-chip-active' : ''}`}
+                onClick={() => setCategoryId(null)}
+                aria-pressed={categoryId === null}
+              >
+                ללא קטגוריה
+              </button>
+              {categories.map((c) => (
+                <button
+                  type="button"
+                  key={c.id}
+                  className={`space-goal-chip${categoryId === c.id ? ' space-goal-chip-active' : ''}`}
+                  onClick={() => setCategoryId(c.id)}
+                  aria-pressed={categoryId === c.id}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
         {shownError && <div className="song-form-error">{shownError}</div>}
         <div className="song-modal-actions">
           <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>

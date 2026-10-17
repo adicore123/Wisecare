@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 /** השם אופציונלי — אם לא הוזן נגזר אוטומטית מהקישור; התמונה נשמרת אם הוזנה */
-function normalizeSongFields(body: Record<string, any>, existing?: Record<string, any>) {
+function normalizeSongFields(body: Record<string, any>, existing?: Record<string, any>, clientId?: string) {
   const title = String(body.title ?? existing?.title ?? '').trim().slice(0, 120);
   const url = String(body.url ?? existing?.url ?? '').trim().slice(0, 2000);
   const note = String(body.note ?? existing?.note ?? '').trim().slice(0, 300);
@@ -20,10 +20,20 @@ function normalizeSongFields(body: Record<string, any>, existing?: Record<string
     thumbnailUrl = '';
   }
 
+  // קטגוריה אישית — חייבת להיות שייכת לאותו מטופל
+  let categoryId = body.categoryId === null || body.categoryId === undefined || body.categoryId === ''
+    ? null
+    : String(body.categoryId);
+  if (categoryId) {
+    const cat = clientId ? db.collection('clientSongCategories').findById(categoryId) : null;
+    if (!cat || cat.clientId !== clientId) categoryId = null;
+  }
+
   return {
     title: title || deriveSongTitleFromUrl(url),
     url,
     note,
+    categoryId,
     // תמונה מיידית ליוטיוב גם אם הלקוח לא שלח (המזהה מספיק, בלי קריאת רשת)
     thumbnailUrl: thumbnailUrl || instantThumbnailFor(url) || ''
   };
@@ -81,7 +91,7 @@ export async function POST(
 
     const body = await request.json().catch(() => ({}));
 
-    const fields = normalizeSongFields(body);
+    const fields = normalizeSongFields(body, undefined, client.id);
     if ('error' in fields) {
       return NextResponse.json({ error: fields.error }, { status: 400 });
     }

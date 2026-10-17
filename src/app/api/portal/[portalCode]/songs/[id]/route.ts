@@ -45,10 +45,20 @@ export async function PUT(
       thumbnailUrl = '';
     }
 
+    // קטגוריה אישית — חייבת להיות שייכת לאותו מטופל
+    let categoryId = body.categoryId === null || body.categoryId === undefined || body.categoryId === ''
+      ? null
+      : String(body.categoryId);
+    if (categoryId) {
+      const cat = db.collection('clientSongCategories').findById(categoryId);
+      if (!cat || cat.clientId !== client.id) categoryId = null;
+    }
+
     const updated = songs.updateById(id, {
       title: title || deriveSongTitleFromUrl(url),
       url,
       note,
+      categoryId,
       thumbnailUrl: thumbnailUrl || instantThumbnailFor(url) || '',
       updatedAt: new Date().toISOString()
     });
