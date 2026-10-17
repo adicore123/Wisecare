@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Music, Plus, Play, Pause, Pencil, Trash2, ExternalLink, Search, Info, ListMusic, Gift, PlusCircle,
   ChevronLeft, FolderPlus, Folder, Check, X, Dices
@@ -251,13 +251,43 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
     }
   };
 
-  /** "הפתע אותי" — הגרלת שיר אקראי מכל הרשימה (כל הקטגוריות):
-   *  אודיו ישיר מתנגן מיד עם תור מעורבב; קישור חיצוני נפתח בטאב חדש */
-  const surpriseFrom = (list: Array<{ id: string; title: string; url: string; note?: string }>) => {
+  /** "הפתע אותי" — מודל הגרלה: גלגול → הצצה → בחירה (נגן/פתח או הגרל שוב) */
+  const [surprisePick, setSurprisePick] = useState<{ id: string; title: string; url: string; note?: string; thumbnailUrl?: string } | null>(null);
+  const [surpriseSource, setSurpriseSource] = useState<Array<{ id: string; title: string; url: string; note?: string; thumbnailUrl?: string }>>([]);
+  const [surpriseRolling, setSurpriseRolling] = useState(false);
+  const surpriseTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const rollSurprise = useCallback((list: Array<{ id: string; title: string; url: string }>) => {
     if (!list.length) return;
-    const pick = list[Math.floor(Math.random() * list.length)];
+    setSurpriseRolling(true);
+    const duration = 900;
+    const startTime = Date.now();
+    const tick = () => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= duration) {
+        setSurprisePick(list[Math.floor(Math.random() * list.length)]);
+        setSurpriseRolling(false);
+        return;
+      }
+      setSurprisePick(list[Math.floor(Math.random() * list.length)]);
+      surpriseTimerRef.current = setTimeout(tick, 70 + (elapsed / duration) * 130);
+    };
+    tick();
+  }, []);
+
+  const openSurprise = (list: Array<{ id: string; title: string; url: string; note?: string; thumbnailUrl?: string }>) => {
+    if (!list.length) return;
+    setSurpriseSource(list);
+    setSurprisePick(null);
+    rollSurprise(list);
+  };
+
+  const confirmSurprise = () => {
+    if (!surprisePick) return;
+    const pick = surprisePick;
+    closeSurprise();
     if (isDirectAudioUrl(pick.url)) {
-      const playableAll = list.filter((s) => isDirectAudioUrl(s.url));
+      const playableAll = surpriseSource.filter((s) => isDirectAudioUrl(s.url));
       const rest = playableAll.filter((s) => s.id !== pick.id);
       for (let i = rest.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -270,6 +300,15 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
       showToast(`🎲 נפתח בשבילך: ${pick.title}`);
     }
   };
+
+  const closeSurprise = () => {
+    if (surpriseTimerRef.current) clearTimeout(surpriseTimerRef.current);
+    setSurprisePick(null);
+    setSurpriseSource([]);
+    setSurpriseRolling(false);
+  };
+
+  useEffect(() => { return () => { if (surpriseTimerRef.current) clearTimeout(surpriseTimerRef.current); }; }, []);
 
   const allRecommendationSongs = categories.flatMap((c) => c.songs);
 
@@ -379,7 +418,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
             <button
               type="button"
               className="song-surprise-btn"
-              onClick={() => surpriseFrom(songs)}
+              onClick={() => openSurprise(songs)}
               disabled={!songs.length}
               title="הגרלת שיר אקראי מכל הרשימה — מכל הקטגוריות"
             >
@@ -618,7 +657,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                   <button
                     type="button"
                     className="song-surprise-btn"
-                    onClick={() => surpriseFrom(allRecommendationSongs)}
+                    onClick={() => openSurprise(allRecommendationSongs)}
                     disabled={!allRecommendationSongs.length}
                     title="הגרלת שיר אקראי מכל ההמלצות — מכל הקטגוריות"
                   >
@@ -715,6 +754,65 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
         saving={saving}
         error={editorError}
       />
+
+      {/* מודל הגרלה — "הפתע אותי" */}
+      {surpriseSource.length > 0 && (
+        <div
+          className="song-surprise-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label="הגרלת שיר"
+          onMouseDown={(e) => { if (e.target === e.currentTarget) closeSurprise(); }}
+        >
+          <div className="song-surprise-modal">
+            <button type="button" className="song-surprise-close" onClick={closeSurprise} aria-label="סגירה">
+              <X size={18} />
+            </button>
+
+            <div className="song-surprise-title">
+              <Dices size={22} className={surpriseRolling ? 'song-surprise-dice-rolling' : ''} aria-hidden="true" />
+              הפתע אותי
+            </div>
+
+            {surpriseRolling ? (
+              <div className="song-surprise-card song-surprise-rolling">
+                <Music size={38} className="song-mini-spin" aria-hidden="true" />
+                <div className="song-surprise-card-title">מגלגל...</div>
+                <div className="song-surprise-card-sub">בוחר שיר בשבילך</div>
+              </div>
+            ) : surprisePick ? (
+              <>
+                <div className="song-surprise-card" key={surprisePick.id}>
+                  {surprisePick.thumbnailUrl ? (
+                    <div className="song-surprise-thumb">
+                      <img src={surprisePick.thumbnailUrl} alt={surprisePick.title} />
+                    </div>
+                  ) : (
+                    <div className="song-surprise-thumb song-surprise-thumb-icon">
+                      <Music size={30} aria-hidden="true" />
+                    </div>
+                  )}
+                  <div className="song-surprise-card-title" title={surprisePick.title}>{surprisePick.title}</div>
+                  {surprisePick.note && <div className="song-surprise-card-sub">{surprisePick.note}</div>}
+                  <div className="song-surprise-card-type">
+                    {isDirectAudioUrl(surprisePick.url) ? '🔊 ניגון ברקע' : '▶ פתיחה באפליקציה'}
+                  </div>
+                </div>
+
+                <div className="song-surprise-actions">
+                  <button type="button" className="btn btn-primary" onClick={confirmSurprise} style={{ flex: 1, padding: '13px 20px', fontSize: '0.95rem' }}>
+                    {isDirectAudioUrl(surprisePick.url) ? <><Play size={16} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />נגן</> : <><ExternalLink size={16} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />פתח</>}
+                  </button>
+                  <button type="button" className="song-surprise-reroll" onClick={() => rollSurprise(surpriseSource)}>
+                    <Dices size={17} aria-hidden="true" />
+                    הגרל שוב
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={Boolean(deleteCatId)}
