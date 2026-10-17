@@ -7355,6 +7355,48 @@ table.quotes-table {
 .song-cat-tab-wrap .song-icon-btn-danger:hover { background: rgba(255, 255, 255, 0.22); color: #ffe4e6; }
 
 /* כותרת הקטגוריה הנבחרת — מעל גריד השירים */
+
+/* כפתור "הפתע אותי" 🎲 — הגרלת שיר מכל הרשימה */
+.song-surprise-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: inherit;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 65%, #0b1220) 100%);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--primary) 36%, transparent);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.song-surprise-btn svg {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.song-surprise-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 46%, transparent);
+}
+.song-surprise-btn:hover svg {
+  transform: rotate(-20deg) scale(1.15);
+}
+.song-surprise-btn:active { transform: translateY(0); }
+.song-surprise-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+.song-surprise-btn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.song-surprise-btn { margin-top: 6px; }
+
 .song-cat-heading {
   display: flex;
   align-items: center;

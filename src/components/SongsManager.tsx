@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   Music, Plus, Play, Pause, Pencil, Trash2, ExternalLink, Search, Info, ListMusic, Gift, PlusCircle,
-  ChevronLeft, FolderPlus, Folder, Check, X
+  ChevronLeft, FolderPlus, Folder, Check, X, Dices
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -251,6 +251,28 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
     }
   };
 
+  /** "הפתע אותי" — הגרלת שיר אקראי מכל הרשימה (כל הקטגוריות):
+   *  אודיו ישיר מתנגן מיד עם תור מעורבב; קישור חיצוני נפתח בטאב חדש */
+  const surpriseFrom = (list: Array<{ id: string; title: string; url: string; note?: string }>) => {
+    if (!list.length) return;
+    const pick = list[Math.floor(Math.random() * list.length)];
+    if (isDirectAudioUrl(pick.url)) {
+      const playableAll = list.filter((s) => isDirectAudioUrl(s.url));
+      const rest = playableAll.filter((s) => s.id !== pick.id);
+      for (let i = rest.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [rest[i], rest[j]] = [rest[j], rest[i]];
+      }
+      player.playSong(playerSong(pick), [pick, ...rest].map(playerSong));
+      showToast(`🎲 הפתעה: ${pick.title}`);
+    } else {
+      window.open(pick.url, '_blank', 'noopener,noreferrer');
+      showToast(`🎲 נפתח בשבילך: ${pick.title}`);
+    }
+  };
+
+  const allRecommendationSongs = categories.flatMap((c) => c.songs);
+
   const addRecommendedToMine = async (song: RecommendedCategory['songs'][number]) => {
     if (addingRecId) return;
     try {
@@ -349,10 +371,20 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
 
       {view === 'mine' && (
         <>
-          <div className="page-actions" style={{ justifyContent: 'center', display: 'flex', marginBottom: '14px' }}>
+          <div className="page-actions" style={{ justifyContent: 'center', display: 'flex', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
             <button type="button" className="btn btn-primary" onClick={openAdd}>
               <Plus size={16} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />
               הוספת שיר
+            </button>
+            <button
+              type="button"
+              className="song-surprise-btn"
+              onClick={() => surpriseFrom(songs)}
+              disabled={!songs.length}
+              title="הגרלת שיר אקראי מכל הרשימה — מכל הקטגוריות"
+            >
+              <Dices size={17} aria-hidden="true" />
+              הפתע אותי
             </button>
           </div>
 
@@ -568,18 +600,32 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                   ))}
                 </div>
 
-                <CategoryHeading
-                  name={active.name}
-                  count={active.songs.length}
-                  onPlayAll={
-                    active.songs.some((s) => isDirectAudioUrl(s.url))
-                      ? () => {
-                          const playableRecs = active.songs.filter((s) => isDirectAudioUrl(s.url));
-                          player.playSong(playerSong(playableRecs[0]), playableRecs.map(playerSong));
-                        }
-                      : undefined
-                  }
-                />
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <CategoryHeading
+                      name={active.name}
+                      count={active.songs.length}
+                      onPlayAll={
+                        active.songs.some((s) => isDirectAudioUrl(s.url))
+                          ? () => {
+                              const playableRecs = active.songs.filter((s) => isDirectAudioUrl(s.url));
+                              player.playSong(playerSong(playableRecs[0]), playableRecs.map(playerSong));
+                            }
+                          : undefined
+                      }
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="song-surprise-btn"
+                    onClick={() => surpriseFrom(allRecommendationSongs)}
+                    disabled={!allRecommendationSongs.length}
+                    title="הגרלת שיר אקראי מכל ההמלצות — מכל הקטגוריות"
+                  >
+                    <Dices size={17} aria-hidden="true" />
+                    הפתע אותי
+                  </button>
+                </div>
 
                 <div className="song-grid">
                   {active.songs.map((song) => {
