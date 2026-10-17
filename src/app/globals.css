@@ -7254,11 +7254,20 @@ table.quotes-table {
   box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 28%, transparent);
   transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
 }
+/* מעבר עכבר = היפוך ברור: לבן עם טקסט כמעט-שחור */
 .song-cat-tab-wrap:hover {
   transform: translateY(-1.5px);
-  background: var(--primary-hover, var(--primary));
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 38%, transparent);
+  background: #ffffff;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 24%, transparent);
 }
+.song-cat-tab-wrap:hover .song-cat-tab { color: #0f172a; text-shadow: none; }
+.song-cat-tab-wrap:hover .song-cat-tab svg { color: var(--primary-hover, var(--primary)); }
+.song-cat-tab-wrap:hover .song-cat-count {
+  background: color-mix(in srgb, var(--primary) 12%, white);
+  color: #0f172a;
+}
+.song-cat-tab-wrap:hover .song-icon-btn { color: #334155; }
+.song-cat-tab-wrap:hover .song-icon-btn:hover { background: color-mix(in srgb, var(--primary) 12%, white); color: var(--primary-hover, var(--primary)); }
 /* המחלקה הפעילה מופיעה גם על ווראפ קטגוריה וגם ישירות על כפתור (הכול / המלצות) */
 .song-cat-tab-wrap.song-cat-tab-active,
 .song-cat-tab.song-cat-tab-active {
@@ -7267,11 +7276,21 @@ table.quotes-table {
     color-mix(in srgb, var(--primary) 68%, #0b1220) 100%);
   box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 46%, transparent);
 }
-.song-cat-tab-wrap.song-cat-tab-active:hover,
-.song-cat-tab.song-cat-tab-active:hover {
+/* הנבחר נשאר צבעוני-לבן גם במעבר עכבר — ההיפוך רק ללא-נבחרים */
+.song-cat-tab-wrap.song-cat-tab-active:hover {
   background: linear-gradient(135deg,
     var(--primary) 0%,
     color-mix(in srgb, var(--primary) 68%, #0b1220) 100%);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 56%, transparent);
+}
+.song-cat-tab-wrap.song-cat-tab-active:hover .song-cat-tab { color: #ffffff; text-shadow: 0 1px 2px rgba(7, 20, 38, 0.30); }
+.song-cat-tab-wrap.song-cat-tab-active:hover .song-cat-tab svg { color: #ffffff; }
+.song-cat-tab-wrap.song-cat-tab-active:hover .song-cat-count {
+  background: rgba(255, 255, 255, 0.26);
+  color: #ffffff;
+}
+.song-cat-tab-wrap.song-cat-tab-active:hover .song-icon-btn { color: #ffffff; }
+.song-cat-tab.song-cat-tab-active:hover {
   box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 56%, transparent);
 }
 
@@ -7296,14 +7315,33 @@ table.quotes-table {
   transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 .song-cat-tab:hover {
-  background: var(--primary-hover, var(--primary));
+  background: #ffffff;
+  color: #0f172a;
+  text-shadow: none;
   transform: translateY(-1px);
+}
+.song-cat-tab:hover svg { color: var(--primary-hover, var(--primary)); }
+.song-cat-tab:hover .song-cat-count {
+  background: color-mix(in srgb, var(--primary) 12%, white);
+  color: #0f172a;
 }
 .song-cat-tab svg { color: #ffffff; }
 
 .song-cat-tab.song-cat-tab-active {
   cursor: default;
   transform: none;
+}
+.song-cat-tab.song-cat-tab-active:hover {
+  background: linear-gradient(135deg,
+    var(--primary) 0%,
+    color-mix(in srgb, var(--primary) 68%, #0b1220) 100%);
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.30);
+}
+.song-cat-tab.song-cat-tab-active:hover svg { color: #ffffff; }
+.song-cat-tab.song-cat-tab-active:hover .song-cat-count {
+  background: rgba(255, 255, 255, 0.26);
+  color: #ffffff;
 }
 /* בתוך ווראפ פעיל הכפתור שקוף — הגרדיאנט יושב על הווראפ; עצמאי (הכול/המלצות) הגרדיאנט עליו */
 .song-cat-tab-wrap .song-cat-tab.song-cat-tab-active { background: transparent; box-shadow: none; }
@@ -7418,11 +7456,17 @@ table.quotes-table {
   transition: all 0.15s ease;
 }
 .song-cat-picker .space-goal-chip:hover {
-  background: var(--primary-hover, var(--primary));
+  background: #ffffff;
+  color: #0f172a;
+  text-shadow: none;
   transform: translateY(-1px);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 16%, transparent);
 }
-.song-cat-picker .space-goal-chip-active {
+.song-cat-picker .space-goal-chip-active,
+.song-cat-picker .space-goal-chip-active:hover {
   background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 68%, #0b1220));
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(7, 20, 38, 0.30);
   box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
