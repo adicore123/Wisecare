@@ -7224,14 +7224,21 @@ table.quotes-table {
 }
 .song-mini-spin { animation: songSpin 3.5s linear infinite; }
 
-/* ── ניווט קטגוריות — כפתורים ייעודיים (לא בלוקים פרוסים) ──────── */
+/* ── ניווט קטגוריות — כפתורים ייעודיים בשפת העיצוב של המרחב ──── */
 
 .song-cat-bar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  background:
+    radial-gradient(420px 120px at 90% -40%, color-mix(in srgb, var(--primary) 7%, transparent), transparent 70%),
+    color-mix(in srgb, var(--primary) 3.5%, white);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, #e2e8f0);
+  border-radius: 20px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .song-cat-tab-wrap {
@@ -7239,88 +7246,158 @@ table.quotes-table {
   align-items: center;
   gap: 2px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 16%, white);
   border-radius: 999px;
-  padding: 3px 6px 3px 4px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  padding: 3px 5px 3px 3px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease;
 }
-.song-cat-tab-wrap:hover { border-color: var(--primary, #94a3b8); }
-.song-cat-tab-wrap.song-cat-tab-active {
-  border-color: var(--primary);
-  background: color-mix(in srgb, var(--primary) 7%, white);
+.song-cat-tab-wrap:hover {
+  transform: translateY(-1.5px);
+  border-color: color-mix(in srgb, var(--primary) 38%, white);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 16%, transparent);
+}
+/* המחלקה הפעילה מופיעה גם על ווראפ קטגוריה וגם ישירות על כפתור (הכול / המלצות) */
+.song-cat-tab-wrap.song-cat-tab-active,
+.song-cat-tab.song-cat-tab-active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover, var(--primary)) 100%);
+  border-color: transparent;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 38%, transparent);
+}
+.song-cat-tab-wrap.song-cat-tab-active:hover,
+.song-cat-tab.song-cat-tab-active:hover {
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--primary) 48%, transparent);
+}
+.song-cat-tab.song-cat-tab-active {
+  color: #ffffff;
+  cursor: default;
+}
+.song-cat-tab.song-cat-tab-active svg { color: rgba(255, 255, 255, 0.92); }
+.song-cat-tab.song-cat-tab-active .song-cat-count {
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
 }
 
 .song-cat-tab {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  min-height: 38px;
   border: none;
   background: transparent;
   font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.86rem;
+  font-weight: 800;
   color: #334155;
-  padding: 7px 10px;
+  padding: 6px 11px;
   border-radius: 999px;
   cursor: pointer;
   transition: color 0.15s ease;
 }
-.song-cat-tab-wrap.song-cat-tab-active .song-cat-tab { color: var(--primary-hover, var(--primary)); }
-.song-cat-tab:hover { color: #0f172a; }
+.song-cat-tab:hover { color: var(--primary-hover, var(--primary)); }
+.song-cat-tab svg { color: var(--primary-hover, var(--primary)); transition: color 0.15s ease; }
+.song-cat-tab-wrap.song-cat-tab-active .song-cat-tab { color: #ffffff; }
+.song-cat-tab-wrap.song-cat-tab-active .song-cat-tab svg { color: rgba(255, 255, 255, 0.92); }
 
 .song-cat-tab .song-cat-count {
-  background: #f1f5f9;
-  color: #64748b;
+  background: color-mix(in srgb, var(--primary) 10%, white);
+  color: var(--primary-hover, var(--primary));
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 800;
   border-radius: 999px;
-  padding: 1px 7px;
+  padding: 2px 8px;
+  min-width: 24px;
+  text-align: center;
+  transition: all 0.15s ease;
 }
 .song-cat-tab-wrap.song-cat-tab-active .song-cat-count {
-  background: color-mix(in srgb, var(--primary) 15%, white);
-  color: var(--primary-hover, var(--primary));
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
 }
 
-.song-cat-tab-wrap .song-icon-btn { width: 26px; height: 26px; border-radius: 8px; }
-.song-cat-tab-wrap .song-icon-btn svg { width: 12px; height: 12px; }
+/* כפתורי עריכה/מחיקה מיני — מתלבשים גם על הגרדיאנט הפעיל */
+.song-cat-tab-wrap .song-icon-btn { width: 30px; height: 30px; border-radius: 9px; }
+.song-cat-tab-wrap .song-icon-btn svg { width: 12.5px; height: 12.5px; }
+.song-cat-tab-wrap .song-icon-btn:hover { background: color-mix(in srgb, var(--primary) 10%, white); color: var(--primary-hover, var(--primary)); }
+.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn { color: rgba(255, 255, 255, 0.85); }
+.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn:hover { background: rgba(255, 255, 255, 0.18); color: #ffffff; }
+.song-cat-tab-wrap.song-cat-tab-active .song-icon-btn-danger:hover { background: rgba(255, 255, 255, 0.18); color: #ffe4e6; }
 
 .song-cat-rename {
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 30%, white);
   border-radius: 999px;
-  padding: 5px 12px;
+  padding: 6px 14px;
   font-family: inherit;
-  font-size: 0.84rem;
+  font-size: 0.85rem;
   font-weight: 700;
   outline: none;
-  width: 130px;
+  width: 140px;
   color: #0f172a;
+  background: #ffffff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-.song-cat-rename:focus { border-color: var(--primary); }
+.song-cat-rename:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
+}
 
+/* שדה הוספת קטגוריה — באותה שפה, עם כפתור + ממולא */
 .song-cat-add-inline {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  background: #f8fafc;
-  border: 1.5px dashed #cbd5e1;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px dashed color-mix(in srgb, var(--primary) 34%, white);
   border-radius: 999px;
-  padding: 4px 6px 4px 12px;
-  color: #94a3b8;
-  transition: border-color 0.15s ease;
+  padding: 4px 5px 4px 14px;
+  color: var(--primary-hover, var(--primary));
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, border-style 0.16s ease;
 }
-.song-cat-add-inline:focus-within { border-color: var(--primary); color: var(--primary); }
+.song-cat-add-inline:focus-within {
+  border-style: solid;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 13%, transparent);
+}
 .song-cat-add-inline input {
   border: none;
   outline: none;
   background: transparent;
   font-family: inherit;
-  font-size: 0.84rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: #0f172a;
-  width: 150px;
+  width: 155px;
+  min-height: 34px;
 }
-.song-cat-add-inline input::placeholder { color: #94a3b8; }
+.song-cat-add-inline input::placeholder { color: color-mix(in srgb, var(--primary) 42%, #94a3b8); font-weight: 600; }
+.song-cat-add-inline .song-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover, var(--primary)));
+  color: #ffffff;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 32%, transparent);
+}
+.song-cat-add-inline .song-icon-btn:hover {
+  background: linear-gradient(135deg, var(--primary-hover, var(--primary)), var(--primary));
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+.song-cat-add-inline .song-icon-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  box-shadow: none;
+  transform: none;
+  cursor: not-allowed;
+}
 
-/* בורר קטגוריה בתוך המודל — עצמאי (ללא תלות בטוקנים של /space) */
+@media (max-width: 480px) {
+  .song-cat-add-inline { width: 100%; }
+  .song-cat-add-inline input { flex: 1; width: auto; }
+}
+
+/* בורר קטגוריה בתוך המודל — אותה שפה בדיוק */
 .song-cat-fieldset { border: none; padding: 0; margin: 2px 0 0; }
 .song-cat-fieldset legend { font-size: 0.8rem; font-weight: 700; color: #2c4559; margin-bottom: 8px; padding: 0; }
 .song-cat-picker { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -7328,23 +7405,28 @@ table.quotes-table {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1.5px solid #dce9ec;
+  min-height: 38px;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 18%, white);
   background: #ffffff;
   color: #35516a;
   border-radius: 999px;
-  padding: 8px 15px;
+  padding: 8px 16px;
   font-size: 0.82rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.song-cat-picker .space-goal-chip:hover { border-color: var(--primary); }
-.song-cat-picker .space-goal-chip-active {
-  background: var(--primary);
+.song-cat-picker .space-goal-chip:hover {
   border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--primary) 14%, transparent);
+}
+.song-cat-picker .space-goal-chip-active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover, var(--primary)));
+  border-color: transparent;
   color: #ffffff;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--primary) 35%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 32%, transparent);
 }
 
 /* ── כפתור-ענק: המלצות הצוות ──────────────────────────────────── */
