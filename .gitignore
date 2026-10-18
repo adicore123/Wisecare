@@ -58,7 +58,9 @@ server/data/wisecare_db.json
 output/
 
 # Local design references and generated landing copies
-sapce/
+# (sapce/space-landing.html is tracked — the GPT landing copy; test artifacts stay local)
+sapce/*
+!sapce/space-landing.html
 html-myspace/
-space-landing.html
-space-landing-preview.png
+/space-landing.html
+/space-landing-preview.png
