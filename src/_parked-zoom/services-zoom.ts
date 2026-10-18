@@ -1,5 +1,5 @@
 import axios from 'axios';
-import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { db } from '@/lib/db';
 
 /**
@@ -346,6 +346,14 @@ export function generateSdkSignature(meetingNumber: string, role: 0 | 1): { sdkK
   const iat = Math.floor(Date.now() / 1000) - 30;
   const exp = iat + 60 * 60 * 2;
   const payload = { appKey: sdkKey, iat, exp, tpc: meetingNumber, role };
-  const signature = jwt.sign(payload, sdkSecret, { algorithm: 'HS256', header: { alg: 'HS256', typ: 'JWT' } });
+  // Zoom's Meeting SDK mandates this exact JWT shape (header alg HS256,
+  // base64url segments, HMAC-SHA256) — built explicitly with node:crypto.
+  const b64url = (data: string) => Buffer.from(data, 'utf8').toString('base64url');
+  const header = b64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+  const body = b64url(JSON.stringify(payload));
+  const signature = crypto
+    .createHmac('sha256', sdkSecret)
+    .update(`${header}.${body}`)
+    .digest('base64url');
   return { sdkKey, signature };
 }

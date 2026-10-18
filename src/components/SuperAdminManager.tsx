@@ -41,12 +41,14 @@ import {
   X,
   Trash2,
   FileText,
-  Music
+  Music,
+  Video
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import SuperadminSongsManager from './SuperadminSongsManager';
+import SuperadminContentManager from './SuperadminContentManager';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -369,7 +371,7 @@ export default function SuperAdminPage({
     setCurrentAdmin(null);
   };
 
-  const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings'
+  const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings' | 'songs' | 'contentRecs'
   const [stats, setStats] = useState(null);
   const [therapists, setTherapists] = useState([]);
   const [clients, setClients] = useState([]);
@@ -1405,10 +1407,36 @@ export default function SuperAdminPage({
           <Music size={18} />
           <span>המלצות שירים</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('contentRecs')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            borderBottom: activeTab === 'contentRecs' ? '3px solid #7c3aed' : '3px solid transparent',
+            color: activeTab === 'contentRecs' ? '#6d28d9' : '#64748b',
+            marginBottom: '-2px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Video size={18} />
+          <span>המלצות תוכן</span>
+        </button>
       </div>
 
       {/* Songs Recommendations Tab Content */}
       {activeTab === 'songs' && <SuperadminSongsManager />}
+
+      {/* Content Recommendations Tab Content */}
+      {activeTab === 'contentRecs' && <SuperadminContentManager />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (

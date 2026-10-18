@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import ClientPortalPage from '@/components/ClientPortalManager';
 import MusicPlayerProvider from '@/components/MusicPlayerProvider';
-import { getPortalPayload } from '@/app/api/portal/[portalCode]/route';
+import { getPortalPayload } from '@/lib/portalPayload';
 import { verifyToken, type ClientPayload } from '@/lib/auth';
 import { THEME_PALETTES, paletteToCssVars } from '@/lib/theme';
 import type { Metadata } from 'next';

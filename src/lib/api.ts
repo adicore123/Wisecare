@@ -1171,6 +1171,129 @@ export const api = {
     return res.json();
   },
 
+  // Staff content recommendations (המלצות תוכן הצוות) — superadmin management
+  getContentCategories: async () => {
+    const res = await fetch(`${API_BASE}/content-categories`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת הקטגוריות');
+    }
+    return res.json();
+  },
+
+  createContentCategory: async (name: string) => {
+    const res = await fetch(`${API_BASE}/content-categories`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  updateContentCategory: async (id: string, name: string) => {
+    const res = await fetch(`${API_BASE}/content-categories/${encodeURIComponent(id)}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון הקטגוריה');
+    }
+    return res.json();
+  },
+
+  deleteContentCategory: async (id: string) => {
+    const res = await fetch(`${API_BASE}/content-categories/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  getRecommendedContent: async () => {
+    const res = await fetch(`${API_BASE}/recommended-content`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת התוכן המומלץ');
+    }
+    return res.json();
+  },
+
+  createRecommendedContent: async (payload: {
+    categoryId: string;
+    url: string;
+    type?: string;
+    title?: string;
+    description?: string;
+    sourceName?: string;
+    thumbnailUrl?: string;
+    shared?: boolean;
+  }) => {
+    const res = await fetch(`${API_BASE}/recommended-content`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בהוספת התוכן');
+    }
+    return res.json();
+  },
+
+  updateRecommendedContent: async (id: string, payload: {
+    categoryId?: string;
+    url?: string;
+    type?: string;
+    title?: string;
+    description?: string;
+    sourceName?: string;
+    thumbnailUrl?: string;
+    shared?: boolean;
+  }) => {
+    const res = await fetch(`${API_BASE}/recommended-content/${encodeURIComponent(id)}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון התוכן');
+    }
+    return res.json();
+  },
+
+  deleteRecommendedContent: async (id: string) => {
+    const res = await fetch(`${API_BASE}/recommended-content/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת התוכן');
+    }
+    return res.json();
+  },
+
+  importPortalContentToRecommendations: async (portalCode: string) => {
+    const res = await fetch(`${API_BASE}/recommended-content/import`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ portalCode })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בייבוא התוכן');
+    }
+    return res.json() as Promise<{ imported: number; skipped: number; total: number }>;
+  },
+
+  getPortalContentRecommendations: async (portalCode: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/content-recommendations`, { cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת ההמלצות');
+    }
+    return res.json();
+  },
+
   // Quote templates (תבניות הצעות מחיר)
   getQuoteTemplates: async () => {
     const res = await fetch(`${API_BASE}/quote-templates`, { headers: authHeaders(), cache: 'no-store' });

@@ -26,6 +26,7 @@ import {
   Wind,
   Music,
   Brain,
+  Gift,
   Phone,
   HelpCircle,
   FileText,
@@ -70,6 +71,7 @@ import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import SignatureCanvas from './SignatureCanvas';
+import PortalContentRecommendations from './PortalContentRecommendations';
 import { applyTheme } from '@/lib/theme';
 import ThemePalettePicker from './ThemePalettePicker';
 import BreathingModule from './BreathingModule';
@@ -146,6 +148,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [isSuperAdminImpersonating, setIsSuperAdminImpersonating] = useState(false);
   const [activeTab, setActiveTab] = useState('tasks');
   const [contentSubTab, setContentSubTab] = useState<'all' | 'media' | 'posts' | 'articles'>('all');
+  const [contentRecView, setContentRecView] = useState(false);
   const [readingArticle, setReadingArticle] = useState<any | null>(null);
 
   useEffect(() => {
@@ -2915,6 +2918,41 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 </div>
               </div>
 
+              {!contentRecView && (
+                <button
+                  type="button"
+                  className="song-rec-hero"
+                  onClick={() => setContentRecView(true)}
+                  style={{ marginBottom: '20px' }}
+                >
+                  <span className="song-rec-hero-icon" aria-hidden="true"><Gift size={24} /></span>
+                  <span className="song-rec-hero-texts">
+                    <span className="song-rec-hero-title">ההמלצות של הצוות 🎁</span>
+                    <span className="song-rec-hero-sub">סרטונים, פוסטים ומאמרים שהצוות בחר במיוחד — לצפייה ולשמירה בספרייה שלך</span>
+                  </span>
+                </button>
+              )}
+
+              {contentRecView && (
+                <button
+                  type="button"
+                  onClick={() => setContentRecView(false)}
+                  className="btn btn-secondary"
+                  style={{ marginBottom: '18px', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.88rem' }}
+                >
+                  <ArrowRight size={15} />
+                  <span>חזרה לספרייה שלי</span>
+                </button>
+              )}
+
+              {contentRecView ? (
+                <PortalContentRecommendations
+                  portalCode={portalCode}
+                  myContentUrls={new Set((content || []).map((c: any) => c.url).filter(Boolean))}
+                  onAdopted={() => loadPortalAll(true)}
+                />
+              ) : (
+                <>
               {content.length > 0 && (
                 <div style={{
                   display: 'flex',
@@ -3294,6 +3332,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     );
                   })}
                 </div>
+              )}
+                </>
               )}
             </section>
           )}
