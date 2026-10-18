@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   HeartHandshake, Wind, Music, BookHeart, Clapperboard, CheckSquare, ShieldCheck,
   Loader2, Eye, EyeOff, User, Phone, Mail, Lock, LogIn, CheckCircle2,
-  ChevronDown, ChevronLeft, X, Sparkles, Home, ListTodo, LockKeyhole, ArrowLeft
+  ChevronDown, ChevronLeft, X, Menu, Sparkles, Home, ListTodo, LockKeyhole, ArrowLeft
 } from 'lucide-react';
 import spaceHeroImage from '../../public/images/space-hero-2026.png';
 import IntroSplash from './IntroSplash';
@@ -214,7 +214,7 @@ export default function SpaceLanding() {
             <span>Wise<em>Care</em></span>
           </a>
 
-          <nav className={`space-nav${menuOpen ? ' is-open' : ''}`} aria-label="ניווט ראשי">
+          <nav id="space-mobile-nav" className={`space-nav${menuOpen ? ' is-open' : ''}`} aria-label="ניווט ראשי">
             {NAV_LINKS.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setMenuOpen(false)}>{l.label}</a>
             ))}
@@ -229,11 +229,14 @@ export default function SpaceLanding() {
           <button
             type="button"
             className={`space-menu-toggle${menuOpen ? ' is-open' : ''}`}
+            aria-controls="space-mobile-nav"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? 'סגירת התפריט' : 'פתיחת התפריט'}
             onClick={() => setMenuOpen((v) => !v)}
           >
-            <span /><span /><span />
+            {menuOpen
+              ? <X size={22} strokeWidth={2} aria-hidden="true" />
+              : <Menu size={22} strokeWidth={2} aria-hidden="true" />}
           </button>
         </div>
       </header>
@@ -508,7 +511,7 @@ export default function SpaceLanding() {
 
                 <div className="space-reg-trust" aria-hidden="true">
                   <span><ShieldCheck size={13} /> פרטיות מלאה</span>
-                  <span><WhatsAppIcon size={13} /> הפרטים מגיעים בוואטספ</span>
+                  <span><WhatsAppIcon size={13} /> הפרטים מגיעים בוואטסאפ ובמייל</span>
                   <span><CheckCircle2 size={13} /> דקה אחת</span>
                 </div>
 
@@ -602,15 +605,31 @@ export default function SpaceLanding() {
                 <CheckCircle2 size={52} aria-hidden="true" />
                 <h2>{form.fullName.trim().split(' ')[0]} — המרחב שלך מוכן!</h2>
                 <p>
-                  שלחנו את הקישור האישי ואת פרטי הכניסה לוואטספ
-                  {success.whatsappSent ? ' בהצלחה' : ' (יישלח ברגע)'}.
+                  {success.emailSent ? (
+                    <>
+                      כל פרטי המשתמש שלך נשלחו למייל{' '}
+                      <strong dir="ltr">{form.email}</strong> 📧
+                    </>
+                  ) : (
+                    <>
+                      שלחנו את הקישור האישי ואת פרטי הכניסה לוואטספ
+                      {success.whatsappSent ? ' בהצלחה' : ' (יישלח ברגע)'}.
+                    </>
+                  )}
                   <br />
                   שם המשתמש שלך: <strong dir="ltr">{success.client?.username || form.username}</strong>
                 </p>
-                <div className="space-success-wa">
-                  <WhatsAppIcon size={16} />
-                  שמור/י את ההודעה — היא הדרך שלך חזרה למרחב
-                </div>
+                {success.emailSent ? (
+                  <div className="space-success-mail">
+                    <Mail size={16} aria-hidden="true" />
+                    שמור/י את המייל — הוא הדרך שלך חזרה למרחב
+                  </div>
+                ) : (
+                  <div className="space-success-wa">
+                    <WhatsAppIcon size={16} />
+                    שמור/י את ההודעה — היא הדרך שלך חזרה למרחב
+                  </div>
+                )}
                 <button
                   type="button"
                   className="space-btn space-btn-primary space-btn-lg"

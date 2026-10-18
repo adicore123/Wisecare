@@ -50,7 +50,11 @@ export async function PUT(request: NextRequest) {
       'greenApiInstanceId',
       'greenApiToken',
       'greenApiUrl',
-      'clinicName'
+      'clinicName',
+      'emailFromAddress',
+      'emailAppPassword',
+      'emailFromName',
+      'autoSendLoginEmail'
     ];
 
     const updates: Record<string, any> = {};

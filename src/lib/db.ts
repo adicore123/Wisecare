@@ -110,6 +110,10 @@ const defaultData = {
     selfCareRegistrationNotificationTemplate: '🌟 רישום חדש במרחב האישי!\n\n👤 שם: {{fullName}}\n📱 וואטספ: {{phone}}\n✉️ אימייל: {{email}}\n🔑 שם משתמש: {{username}}\n🎯 יעד: {{goal}}\n🔗 המרחב: {{portalUrl}}',
     therapistInviteMessageTemplate: 'שלום {{name}} יקר/ה,\nברוך/ה הבא/ה למערכת ניהול הקליניקה והמרחב הטיפולי WiseCare! 🌿\n\nלהלן פרטי הגישה האישיים שלך למערכת:\n🔗 קישור כניסה ייחודי למרחב שלך:\n{{loginUrl}}\n\n👤 שם משתמש: {{username}}\n🔑 סיסמה ראשונית: {{password}}\n\nכתובת ישירה למרחב העבודה (CRM):\n{{crmUrl}}\n\nבברכה,\nהנהלת המערכת WiseCare',
     autoSendContentNotificationWhatsApp: true,
+    emailFromAddress: process.env.GMAIL_USER || '',
+    emailAppPassword: process.env.GMAIL_APP_PASSWORD || '',
+    emailFromName: 'WiseCare — המרחב האישי שלך',
+    autoSendLoginEmail: true,
     articleNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך מאמר חדש לקריאה במרחב האישי של WiseCare:\n📖 *{{title}}*\n\nלקריאת המאמר במרחב הטיפולי שלך:\n{{portalUrl}}\n\nקריאה מעשירה ויום נעים! 🌿',
     mediaNotificationTemplate: 'שלום {{firstName}} יקר/ה,\nשותף איתך תוכן חדש (סרטון / פוסט) במרחב האישי של WiseCare:\n🎬 *{{title}}*\n\nלצפייה בתוכן במרחב הטיפולי שלך:\n{{portalUrl}}\n\nצפייה מהנה ויום נפלא! ✨',
     formInviteMessageTemplate: 'שלום {{firstName}} יקר/ה,\nלפני הפגישה הראשונה שלנו, נדרשת חתימתך על המסמך הבא:\n📄 *{{formName}}*\n\nהחתימה מתבצעת בקלות מהנייד, דרך המרחב האישי המאובטח שלך:\n{{portalUrl}}\n\nתודה וברכה,\n{{therapistName}}'

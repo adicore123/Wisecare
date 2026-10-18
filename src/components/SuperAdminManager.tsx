@@ -638,10 +638,16 @@ export default function SuperAdminPage({
 צפייה מהנה ויום נפלא! ✨`,
     greenApiInstanceId: '',
     greenApiToken: '',
-    clinicName: 'WiseCare'
+    clinicName: 'WiseCare',
+    emailFromAddress: '',
+    emailAppPassword: '',
+    emailFromName: 'WiseCare — המרחב האישי שלך',
+    autoSendLoginEmail: true
   });
   const [greenApiStatus, setGreenApiStatus] = useState(null);
   const [savingSettings, setSavingSettings] = useState(false);
+  const [testEmailTo, setTestEmailTo] = useState('');
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -2586,6 +2592,172 @@ export default function SuperAdminPage({
                       placeholder="מוגדר מראש משרת ה-Backend"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Email (Gmail SMTP) Settings Card */}
+              <div style={{
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                padding: '24px',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+              }}>
+                <h3 style={{ margin: '0 0 6px', fontSize: '1rem', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  הגדרות אימייל — שליחת פרטי התחברות לנרשמים 📧
+                </h3>
+                <p style={{ margin: '0 0 16px', fontSize: '0.83rem', color: '#64748b', lineHeight: 1.5 }}>
+                  כל נרשם חדש למרחב האישי מקבל את הקישור, שם המשתמש והסיסמה שלו למייל — חינם דרך Gmail.
+                  הגדרה חד-פעמית: בגוגל → אבטחה → אימות דו-שלבי → "סיסמאות אפליקציה" → צרו קוד בן 16 תווים והדביקו אותו כאן.
+                </p>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>כתובת Gmail שולחת</label>
+                    <input
+                      type="email"
+                      dir="ltr"
+                      className="form-control"
+                      value={superadminSettings.emailFromAddress || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        emailFromAddress: e.target.value
+                      })}
+                      placeholder="your.email@gmail.com"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>סיסמת אפליקציה של Google (16 תווים)</label>
+                    <input
+                      type="password"
+                      dir="ltr"
+                      className="form-control"
+                      value={superadminSettings.emailAppPassword || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        emailAppPassword: e.target.value
+                      })}
+                      placeholder="abcd efgh ijkl mnop"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>שם השולח (מוצג אצל המקבל)</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={superadminSettings.emailFromName || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        emailFromName: e.target.value
+                      })}
+                      placeholder="WiseCare — המרחב האישי שלך"
+                    />
+                  </div>
+
+                  <div className="form-group" style={{ display: 'flex', alignItems: 'flex-end', gap: '10px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label>מייל ניסיון — לאן לשלוח?</label>
+                      <input
+                        type="email"
+                        dir="ltr"
+                        className="form-control"
+                        value={testEmailTo}
+                        onChange={e => setTestEmailTo(e.target.value)}
+                        placeholder="your.email@gmail.com"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      disabled={sendingTestEmail || !testEmailTo.trim() || !(superadminSettings.emailFromAddress || '').trim() || !(superadminSettings.emailAppPassword || '').trim()}
+                      onClick={async () => {
+                        try {
+                          setSendingTestEmail(true);
+                          const token = localStorage.getItem('wisecare_token');
+                          // שולחים קודם את ההגדרות הנוכחיות כדי שהבדיקה תריץ אותן
+                          await api.updateSuperadminSettings({
+                            emailFromAddress: superadminSettings.emailFromAddress,
+                            emailAppPassword: superadminSettings.emailAppPassword,
+                            emailFromName: superadminSettings.emailFromName
+                          });
+                          const res = await fetch('/api/settings/test-email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                            body: JSON.stringify({ to: testEmailTo.trim() })
+                          });
+                          const data = await res.json().catch(() => ({}));
+                          if (res.ok && data.success) {
+                            showToast('מייל הניסיון נשלח בהצלחה! בדוק/י את תיבת הדואר 📬');
+                          } else {
+                            showToast(data.error || 'שליחת מייל הניסיון נכשלה — בדוק/י את ההגדרות', 'error');
+                          }
+                        } catch (err: any) {
+                          showToast(err.message || 'שגיאה בשליחת מייל הניסיון', 'error');
+                        } finally {
+                          setSendingTestEmail(false);
+                        }
+                      }}
+                    >
+                      {sendingTestEmail ? 'שולח...' : 'מייל ניסיון'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Auto-send toggle */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  padding: '12px 14px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  flexWrap: 'wrap'
+                }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }}>
+                      שליחה אוטומטית בהרשמה
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                      כשמופעל — כל נרשם חדש מקבל מייל עם פרטי הכניסה שלו
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSuperadminSettings({
+                      ...superadminSettings,
+                      autoSendLoginEmail: !superadminSettings.autoSendLoginEmail
+                    })}
+                    style={{
+                      width: '52px',
+                      height: '28px',
+                      borderRadius: '999px',
+                      border: 'none',
+                      cursor: 'pointer',
+                      position: 'relative',
+                      transition: 'background 0.2s ease',
+                      background: superadminSettings.autoSendLoginEmail ? '#059669' : '#cbd5e1',
+                      flexShrink: 0
+                    }}
+                    aria-pressed={Boolean(superadminSettings.autoSendLoginEmail)}
+                    aria-label="שליחה אוטומטית בהרשמה"
+                  >
+                    <span style={{
+                      position: 'absolute',
+                      top: '3px',
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: 'white',
+                      transition: 'right 0.2s ease',
+                      right: superadminSettings.autoSendLoginEmail ? '3px' : '27px'
+                    }} />
+                  </button>
                 </div>
               </div>
 

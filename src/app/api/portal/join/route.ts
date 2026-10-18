@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { sendLoginDetailsEmail } from '@/services/email';
 import { hashPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
@@ -110,6 +111,28 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // מייל עם פרטי ההתחברות לנרשם — לפי הגדרות Gmail SMTP בסופראדמין.
+    // כישלון לא חוסם: הוואטסאפ למעלה מכסה, והמצב מוחזר להצגה בפופאפ.
+    let emailSent = false;
+    let emailError: string | null = null;
+    try {
+      const settings: any = db.getSettings();
+      if (settings?.autoSendLoginEmail !== false && client.email) {
+        const result = await sendLoginDetailsEmail({
+          to: client.email,
+          firstName: client.firstName,
+          username: client.username,
+          password,
+          portalUrl
+        });
+        emailSent = result.sent;
+        emailError = result.error || null;
+      }
+    } catch (err: any) {
+      console.warn('[Login Email Warning]', err.message);
+      emailError = err.message;
+    }
+
     // התראת רישום חדש למנהל — לפי הגדרות הסופראדמין. כישלון שקט: לא חוסם רישום.
     let registrationNotifySent = false;
     try {
@@ -150,6 +173,8 @@ export async function POST(request: NextRequest) {
       token,
       whatsappSent,
       whatsappError,
+      emailSent,
+      emailError,
       registrationNotifySent,
       client: {
         id: client.id,
