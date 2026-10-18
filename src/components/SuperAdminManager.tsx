@@ -42,13 +42,15 @@ import {
   Trash2,
   FileText,
   Music,
-  Video
+  Video,
+  CheckSquare
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import SuperadminSongsManager from './SuperadminSongsManager';
 import SuperadminContentManager from './SuperadminContentManager';
+import SuperadminTasksManager from './SuperadminTasksManager';
 import AdminShareModal, { AdminSharePrefill } from './AdminShareModal';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
@@ -1593,6 +1595,29 @@ export default function SuperAdminPage({
           <Video size={18} />
           <span>המלצות תוכן</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('tasks')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 18px',
+            fontSize: '0.95rem',
+            fontWeight: 700,
+            border: 'none',
+            background: 'none',
+            cursor: 'pointer',
+            borderBottom: activeTab === 'tasks' ? '3px solid #059669' : '3px solid transparent',
+            color: activeTab === 'tasks' ? '#047857' : '#64748b',
+            marginBottom: '-2px',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <CheckSquare size={18} />
+          <span>משימות למרחבים</span>
+        </button>
       </div>
 
       {/* Songs Recommendations Tab Content */}
@@ -1600,6 +1625,9 @@ export default function SuperAdminPage({
 
       {/* Content Recommendations Tab Content */}
       {activeTab === 'contentRecs' && <SuperadminContentManager key={`content-${shareRefreshKey}`} />}
+
+      {/* Tasks to Personal Spaces Tab Content */}
+      {activeTab === 'tasks' && <SuperadminTasksManager />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (

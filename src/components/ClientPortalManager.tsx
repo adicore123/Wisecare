@@ -2792,7 +2792,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                 ✨ הושלם על ידך!
                               </span>
                             )}
-                            {task.isSelfCreated || portalInfo.isSelfCare ? (
+                            {task.isSelfCreated ? (
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
                                 <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700, background: 'var(--primary-faint)', padding: '2px 8px', borderRadius: '6px' }}>
                                   🌱 תרגול אישי
@@ -2802,6 +2802,21 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                                   onClick={() => setPendingDeleteTaskId(task.id)}
                                   className="btn-icon"
                                   title="מחק משימה זו"
+                                  style={{ padding: '4px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            ) : task.assignedBy === 'superadmin' || portalInfo.isSelfCare ? (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: 'auto' }}>
+                                <span style={{ fontSize: '0.75rem', color: '#6d28d9', fontWeight: 700, background: '#ede9fe', padding: '2px 8px', borderRadius: '6px' }}>
+                                  📋 משימה שקיבלתי
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setPendingDeleteTaskId(task.id)}
+                                  className="btn-icon"
+                                  title="הסרת המשימה מהמרחב שלי"
                                   style={{ padding: '4px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#ef4444' }}
                                 >
                                   <Trash2 size={16} />

@@ -108,7 +108,11 @@ export async function getPortalPayload(portalCode: string, options: { includePri
       completed: !!t.completed,
       completedAt: t.completedAt,
       clientNotes: t.clientNotes || '',
-      isSelfCreated: Boolean(t.isSelfCreated || client.isSelfCare || !client.therapistId),
+      // הערך השמור הוא אמת המידה: משימה שנשלחה מהפאנל הראשי (isSelfCreated:false
+      // + assignedBy) מוצגת כ"משימה שקיבלתי" גם במרחב עצמאי. משימות ישנות ללא
+      // השדה נחשבות אישיות — תאימות לאחור עם כל הרשומות הקיימות.
+      isSelfCreated: t.isSelfCreated === false ? false : Boolean(t.isSelfCreated),
+      assignedBy: t.assignedBy || null,
       createdAt: t.createdAt
     })),
     content: clientContent,

@@ -99,6 +99,7 @@ const defaultData = {
   clientSongCategories: [],
   contentCategories: [],
   recommendedContent: [],
+  taskCategories: [],
   settings: {
     greenApiToken: process.env.GREEN_API_TOKEN || '',
     greenApiInstanceId: process.env.GREEN_API_INSTANCE_ID || '',
@@ -140,7 +141,8 @@ const ENTITY_COLLECTIONS = [
   'recommendedSongs',
   'clientSongCategories',
   'contentCategories',
-  'recommendedContent'
+  'recommendedContent',
+  'taskCategories'
 ];
 
 export class Database {

@@ -270,7 +270,20 @@ export const api = {
     return res.json();
   },
 
-  // Tasks (Therapist)
+  // Tasks (Therapist / Superadmin)
+  getTasks: async (filters: { clientId?: string; therapistId?: string } = {}) => {
+    const q = new URLSearchParams();
+    if (filters.clientId) q.set('clientId', filters.clientId);
+    if (filters.therapistId) q.set('therapistId', filters.therapistId);
+    const qs = q.toString();
+    const res = await fetch(`${API_BASE}/tasks${qs ? `?${qs}` : ''}`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת המשימות');
+    }
+    return res.json();
+  },
+
   createTask: async (taskData) => {
     const res = await fetch(`${API_BASE}/tasks`, {
       method: 'POST',
@@ -1290,6 +1303,49 @@ export const api = {
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.error || 'שגיאה בטעינת ההמלצות');
+    }
+    return res.json();
+  },
+
+  // Staff task categories (קטגוריות משימה) — superadmin management
+  getTaskCategories: async () => {
+    const res = await fetch(`${API_BASE}/task-categories`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת הקטגוריות');
+    }
+    return res.json();
+  },
+
+  createTaskCategory: async (name: string) => {
+    const res = await fetch(`${API_BASE}/task-categories`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה ביצירת הקטגוריה');
+    }
+    return res.json();
+  },
+
+  updateTaskCategory: async (id: string, name: string) => {
+    const res = await fetch(`${API_BASE}/task-categories/${encodeURIComponent(id)}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify({ name })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיעה בעדכון הקטגוריה');
+    }
+    return res.json();
+  },
+
+  deleteTaskCategory: async (id: string) => {
+    const res = await fetch(`${API_BASE}/task-categories/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הקטגוריה');
     }
     return res.json();
   },

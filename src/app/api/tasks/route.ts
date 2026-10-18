@@ -58,6 +58,9 @@ export async function POST(request: NextRequest) {
     const therapistId = auth.role === 'superadmin' ? (body.therapistId || client.therapistId || auth.userId) : auth.userId;
 
     const tasks = db.collection('tasks');
+    // משימה שנשלחת מהפאנל הראשי למרחב עצמאי מסומנת כ"קיבלתי" (לא אישית) —
+    // כך הפורטל מציג אותה עם תג "משימה שקיבלתי" במקום "תרגול אישי"
+    const isSuperadminSent = auth.role === 'superadmin';
     const newTask = tasks.insertOne({
       clientId,
       therapistId,
@@ -67,7 +70,8 @@ export async function POST(request: NextRequest) {
       dueDate: dueDate || null,
       completed: false,
       completedAt: null,
-      clientNotes: ''
+      clientNotes: '',
+      ...(isSuperadminSent ? { isSelfCreated: false, assignedBy: 'superadmin' } : {})
     });
 
     await db.flush();
