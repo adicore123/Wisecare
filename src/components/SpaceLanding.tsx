@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   HeartHandshake, Wind, Music, BookHeart, Clapperboard, CheckSquare, ShieldCheck,
   Loader2, Eye, EyeOff, User, Phone, Mail, Lock, LogIn, CheckCircle2,
   ChevronDown, ChevronLeft, X, Sparkles, Home, ListTodo, LockKeyhole, ArrowLeft
 } from 'lucide-react';
+import spaceHeroImage from '../../public/images/space-hero-2026.png';
 import IntroSplash from './IntroSplash';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -19,10 +21,10 @@ const NAV_LINKS = [
 ];
 
 const STATS = [
-  { n: '14', label: 'טכניקות נשימה מונחות' },
-  { n: '🎵', label: 'נגן מוזיקה שממשיך ברקע' },
-  { n: 'יומי', label: 'יומן מצב-רוח אישי' },
-  { n: '100%', label: 'פרטי ומאובטח' }
+  { icon: Wind, n: '14', label: 'טכניקות נשימה מונחות' },
+  { icon: Music, n: 'רציף', label: 'נגן מוזיקה שממשיך ברקע' },
+  { icon: BookHeart, n: 'יומי', label: 'יומן מצב-רוח אישי' },
+  { icon: ShieldCheck, n: '100%', label: 'פרטי ומאובטח' }
 ];
 
 const CAPABILITIES = [
@@ -48,10 +50,10 @@ const FAQS = [
 ];
 
 const GOALS = [
-  { id: 'calm', label: 'להרגיש רגוע/ה יותר', emoji: '🌿' },
-  { id: 'mood', label: 'לשפר את מצב הרוח', emoji: '☀️' },
-  { id: 'habits', label: 'לבנות הרגלים בריאים', emoji: '✨' },
-  { id: 'growth', label: 'התפתחות אישית', emoji: '🌱' }
+  { id: 'calm', label: 'להרגיש רגוע/ה יותר', icon: Wind },
+  { id: 'mood', label: 'לשפר את מצב הרוח', icon: HeartHandshake },
+  { id: 'habits', label: 'לבנות הרגלים בריאים', icon: CheckSquare },
+  { id: 'growth', label: 'התפתחות אישית', icon: Sparkles }
 ];
 
 interface RegisterForm {
@@ -239,27 +241,47 @@ export default function SpaceLanding() {
       <main id="main">
         {/* ═══ HERO ═══ */}
         <section className="space-hero" id="top">
+          <div className="space-hero-media" aria-hidden="true">
+            <Image
+              className="space-hero-image"
+              src={spaceHeroImage}
+              alt=""
+              fill
+              sizes="100vw"
+              placeholder="blur"
+              preload
+            />
+          </div>
           <div className="space-container space-hero-grid">
             <div className="space-hero-copy" data-reveal>
-              <h1>מרחב אישי שעוזר לך <span>להרגיש טוב יותר.</span></h1>
+              <div className="space-hero-eyebrow">
+                <ShieldCheck size={16} aria-hidden="true" />
+                <span>WISECARE SPACE</span>
+                <i aria-hidden="true" />
+                מרחב דיגיטלי פרטי
+              </div>
+              <h1>מרחב אישי חכם. <span>להרגיש טוב יותר, בכל יום.</span></h1>
               <p className="space-hero-lead">
-                נשימות מונחות, מוזיקה, יומן ומשימות אישיות — במקום אחד פרטי, פשוט ונגיש.
+                נשימות מונחות, מוזיקה, יומן ומשימות אישיות — מעטפת דיגיטלית רגועה, פרטית ונגישה שנבנתה סביבך.
               </p>
               <div className="space-hero-actions">
-                <button type="button" className="space-btn space-btn-primary space-btn-lg" onClick={openRegister}>
-                  פתיחת המרחב שלי
+                <button type="button" className="space-btn space-btn-primary space-btn-lg space-btn-premium" onClick={openRegister}>
+                  <span>פתיחת המרחב שלי</span>
+                  <strong>בחינם</strong>
                   <ChevronLeft size={18} aria-hidden="true" />
                 </button>
-                <a className="space-text-link" href="#features">מה יש בפנים<ChevronDown size={15} aria-hidden="true" /></a>
+                <a className="space-text-link space-hero-secondary" href="#features">לצפייה במה שיש בפנים<ChevronDown size={15} aria-hidden="true" /></a>
               </div>
-              <p className="space-trust-line">
-                <CheckCircle2 size={15} aria-hidden="true" />
-                דקה אחת להרשמה • בלי כרטיס אשראי • המרחב נפתח מיד
-              </p>
+              <div className="space-trust-line" aria-label="יתרונות ההרשמה">
+                <span><ShieldCheck size={15} aria-hidden="true" /> פרטי ומאובטח</span>
+                <span><CheckCircle2 size={15} aria-hidden="true" /> נפתח מיד</span>
+                <span><CheckCircle2 size={15} aria-hidden="true" /> בלי כרטיס אשראי</span>
+              </div>
             </div>
 
             {/* חלון-מוצר: תצוגה מקדימה של המרחב האמיתי */}
             <div className="space-product-window" data-reveal aria-label="תצוגה מקדימה של המרחב האישי">
+              <span className="space-product-proof"><ShieldCheck size={14} aria-hidden="true" /> סביבת רווחה אישית, פרטית ומאובטחת</span>
               <div className="space-product-screen">
                 <div className="space-product-topbar">
                   <span className="space-mini-brand">
@@ -326,6 +348,7 @@ export default function SpaceLanding() {
           <div className="space-container space-stats">
             {STATS.map((s) => (
               <div className="space-stat" key={s.label} data-reveal>
+                <span className="space-stat-icon" aria-hidden="true"><s.icon size={18} /></span>
                 <span className="space-stat-n">{s.n}</span>
                 <span className="space-stat-label">{s.label}</span>
               </div>
@@ -479,14 +502,14 @@ export default function SpaceLanding() {
                   <X size={18} />
                 </button>
                 <div className="space-reg-head">
-                  <h2>פתיחת מרחב אישי 🌿</h2>
+                  <h2>פתיחת מרחב אישי</h2>
                   <p>דקה אחת — והמרחב שלך נפתח</p>
                 </div>
 
                 <div className="space-reg-trust" aria-hidden="true">
                   <span><ShieldCheck size={13} /> פרטיות מלאה</span>
                   <span><WhatsAppIcon size={13} /> הפרטים מגיעים בוואטספ</span>
-                  <span>⏱ דקה אחת</span>
+                  <span><CheckCircle2 size={13} /> דקה אחת</span>
                 </div>
 
                 <form className="space-form" onSubmit={submit} noValidate>
@@ -554,7 +577,7 @@ export default function SpaceLanding() {
                           onClick={() => setGoal(g.id)}
                           aria-pressed={goal === g.id}
                         >
-                          <span aria-hidden="true">{g.emoji}</span> {g.label}
+                          <g.icon size={14} aria-hidden="true" /> {g.label}
                         </button>
                       ))}
                     </div>
@@ -577,10 +600,10 @@ export default function SpaceLanding() {
             ) : (
               <div className="space-success">
                 <CheckCircle2 size={52} aria-hidden="true" />
-                <h2>{form.fullName.trim().split(' ')[0]} — המרחב שלך מוכן! 🌿</h2>
+                <h2>{form.fullName.trim().split(' ')[0]} — המרחב שלך מוכן!</h2>
                 <p>
                   שלחנו את הקישור האישי ואת פרטי הכניסה לוואטספ
-                  {success.whatsappSent ? ' ✅' : ' (יישלח ברגע)'}.
+                  {success.whatsappSent ? ' בהצלחה' : ' (יישלח ברגע)'}.
                   <br />
                   שם המשתמש שלך: <strong dir="ltr">{success.client?.username || form.username}</strong>
                 </p>
