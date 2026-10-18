@@ -49,7 +49,6 @@ import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import SuperadminSongsManager from './SuperadminSongsManager';
 import SuperadminContentManager from './SuperadminContentManager';
-import QuickShareModal from './QuickShareModal';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -310,6 +309,10 @@ export default function SuperAdminPage({
   const [loginUsername, setLoginUsername] = useState('adicore123');
   const [loginPassword, setLoginPassword] = useState('');
   const [showLoginPassword, setShowLoginPassword] = useState(false);
+  // "שמור סיסמה" — ברירת מחדל מסומן אם כבר נשמרו פרטים במכשיר זה
+  const [rememberPassword, setRememberPassword] = useState(() => {
+    try { return Boolean(localStorage.getItem('wisecare_sa_remember_login')); } catch { return false; }
+  });
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
@@ -321,23 +324,103 @@ export default function SuperAdminPage({
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return undefined;
+
+    let cancelled = false;
+
+    const restoreSession = async () => {
       const token = localStorage.getItem('wisecare_token');
+      let user: any = null;
       const uStr = localStorage.getItem('wisecare_user');
-      let user = null;
       if (uStr) {
         try { user = JSON.parse(uStr); } catch {}
       }
+
+      // סשן תקף — נכנסים ישר
       if (token && user && user.role === 'superadmin') {
         setCurrentAdmin(user);
-      } else if (initialAdmin && initialAdmin.role === 'superadmin') {
-        setCurrentAdmin(initialAdmin);
-      } else {
-        setCurrentAdmin(null);
+        setAuthChecked(true);
+        return;
       }
-      setAuthChecked(true);
-    }
+      if (!cancelled && initialAdmin && initialAdmin.role === 'superadmin') {
+        setCurrentAdmin(initialAdmin);
+        setAuthChecked(true);
+        return;
+      }
+
+      // שאריות Impersonation: הטוקן שלנו הוחלף בטוקן מטפל ואז נמחק —
+      // משחזרים את טוקן האדמין שנשמר בצד
+      const adminToken = localStorage.getItem('wisecare_admin_token');
+      if (adminToken) {
+        try {
+          const meRes = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${adminToken}` }
+          });
+          if (meRes.ok) {
+            const me = await meRes.json();
+            if (!cancelled && me?.user?.role === 'superadmin') {
+              localStorage.setItem('wisecare_token', adminToken);
+              localStorage.setItem('wisecare_user', JSON.stringify(me.user));
+              localStorage.removeItem('wisecare_admin_token');
+              localStorage.removeItem('wisecare_is_impersonating');
+              setCurrentAdmin(me.user);
+              setAuthChecked(true);
+              return;
+            }
+          }
+        } catch {}
+      }
+
+      // "שמור סיסמה" — התחברות אוטומטית שקטה; אם הסיסמה השתנתה מפסיקים לנסות
+      const saved = readSavedSaLogin();
+      if (saved?.username && saved?.password) {
+        setLoginUsername(saved.username);
+        try {
+          const res = await api.login(saved.username, saved.password, { adminPortal: true });
+          if (!cancelled && res.user?.role === 'superadmin' && res.token) {
+            localStorage.setItem('wisecare_user', JSON.stringify(res.user));
+            localStorage.setItem('wisecare_token', res.token);
+            setCurrentAdmin(res.user);
+            setAuthChecked(true);
+            return;
+          }
+        } catch {
+          clearSavedSaLogin();
+          setRememberPassword(false);
+        }
+      }
+
+      if (!cancelled) {
+        setCurrentAdmin(null);
+        setAuthChecked(true);
+      }
+    };
+
+    restoreSession();
+    return () => { cancelled = true; };
   }, [initialAdmin]);
+
+  // "שמור סיסמה" — הפרטים נשמרים במכשיר זה בלבד (base64 נגד קריאה מזדמנת)
+  // ומאפשרים התחברות אוטומטית בכניסה הבאה לפאנל.
+  const SAVED_SA_LOGIN_KEY = 'wisecare_sa_remember_login';
+  const readSavedSaLogin = (): { username: string; password: string } | null => {
+    try {
+      const raw = localStorage.getItem(SAVED_SA_LOGIN_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(atob(raw));
+      return parsed?.username && parsed?.password ? parsed : null;
+    } catch {
+      return null;
+    }
+  };
+  const writeSavedSaLogin = (username: string, password: string) => {
+    try {
+      localStorage.setItem(SAVED_SA_LOGIN_KEY, btoa(JSON.stringify({ username, password })));
+    } catch {}
+  };
+  const clearSavedSaLogin = () => {
+    try { localStorage.removeItem(SAVED_SA_LOGIN_KEY); } catch {}
+  };
 
   const handleSuperAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -354,6 +437,11 @@ export default function SuperAdminPage({
       }
       localStorage.setItem('wisecare_user', JSON.stringify(res.user));
       localStorage.setItem('wisecare_token', res.token);
+      if (rememberPassword) {
+        writeSavedSaLogin(loginUsername.trim(), loginPassword.trim());
+      } else {
+        clearSavedSaLogin();
+      }
       setCurrentAdmin(res.user);
       setLoginPassword('');
     } catch (err: any) {
@@ -369,13 +457,14 @@ export default function SuperAdminPage({
     } catch {
       // Ignore
     }
+    // התנתקות מוחלטת — גם הסיסמה השמורה נמחקת, אחרת ההתחברות האוטומטית
+    // הייתה מחזירה אותנו פנימה מיד
+    clearSavedSaLogin();
+    setRememberPassword(false);
     setCurrentAdmin(null);
   };
 
   const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings' | 'songs' | 'contentRecs'
-  const [quickShareOpen, setQuickShareOpen] = useState(false);
-  // בכל שיתוף מוצלח מהשיתוף המהיר — המנהלים הפתוחים מתרעננים (remount זול)
-  const [shareRefreshKey, setShareRefreshKey] = useState(0);
   const [stats, setStats] = useState(null);
   const [therapists, setTherapists] = useState([]);
   const [clients, setClients] = useState([]);
@@ -1113,6 +1202,8 @@ export default function SuperAdminPage({
               <div style={{ position: 'relative' }}>
                 <input
                   type="text"
+                  name="username"
+                  autoComplete="username"
                   value={loginUsername}
                   onChange={e => setLoginUsername(e.target.value)}
                   placeholder="הזן שם משתמש (למשל adicore123)"
@@ -1140,6 +1231,8 @@ export default function SuperAdminPage({
               <div style={{ position: 'relative' }}>
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
+                  name="current-password"
+                  autoComplete="current-password"
                   value={loginPassword}
                   onChange={e => setLoginPassword(e.target.value)}
                   placeholder="הזן סיסמת SuperAdmin"
@@ -1177,6 +1270,29 @@ export default function SuperAdminPage({
                 </button>
               </div>
             </div>
+
+            <label
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '18px',
+                cursor: 'pointer',
+                userSelect: 'none',
+                fontSize: '0.85rem',
+                fontWeight: 700,
+                color: '#334155'
+              }}
+              title="הפרטים נשמרים במכשיר זה בלבד ומחברים אותך אוטומטית בכניסה הבאה"
+            >
+              <input
+                type="checkbox"
+                checked={rememberPassword}
+                onChange={e => setRememberPassword(e.target.checked)}
+                style={{ width: '16px', height: '16px', accentColor: '#6366f1', cursor: 'pointer' }}
+              />
+              <span>שמור סיסמה במכשיר זה 🔐 <span style={{ fontWeight: 500, color: '#94a3b8' }}>(התחברות אוטומטית בכניסה הבאה)</span></span>
+            </label>
 
             <button
               type="submit"
@@ -1245,14 +1361,6 @@ export default function SuperAdminPage({
         </div>
 
         <div className="superadmin-header-actions">
-          <button
-            className="btn btn-primary quickshare-btn"
-            onClick={() => setQuickShareOpen(true)}
-          >
-            <Share2 size={18} />
-            <span>שיתוף מהיר 🎁</span>
-          </button>
-
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -1445,10 +1553,10 @@ export default function SuperAdminPage({
       </div>
 
       {/* Songs Recommendations Tab Content */}
-      {activeTab === 'songs' && <SuperadminSongsManager key={`songs-${shareRefreshKey}`} />}
+      {activeTab === 'songs' && <SuperadminSongsManager />}
 
       {/* Content Recommendations Tab Content */}
-      {activeTab === 'contentRecs' && <SuperadminContentManager key={`content-${shareRefreshKey}`} />}
+      {activeTab === 'contentRecs' && <SuperadminContentManager />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (
@@ -4518,13 +4626,6 @@ export default function SuperAdminPage({
       <PrivacyPolicyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
-      />
-
-      {/* Quick Share — שיתוף סרטון/שיר להמלצות הצוות */}
-      <QuickShareModal
-        isOpen={quickShareOpen}
-        onClose={() => setQuickShareOpen(false)}
-        onSaved={() => setShareRefreshKey((k) => k + 1)}
       />
     </div>
   );
