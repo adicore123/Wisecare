@@ -546,6 +546,15 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         throw new Error(resData.error || 'פרטי התחברות שגויים');
       }
 
+      // פרטי סופראדמין בשער המרחב — מעבר ישיר לפאנל הניהול הראשי
+      if (resData.superadminSession) {
+        localStorage.setItem('wisecare_token', resData.token);
+        localStorage.setItem('wisecare_user', JSON.stringify(resData.user));
+        showToast('נכנסת כמנהל מערכת ראשי — מעביר לפאנל הניהול… 🔐');
+        setTimeout(() => { window.location.href = '/superadmin'; }, 600);
+        return;
+      }
+
       sessionStorage.setItem(authSessionKey, 'true');
       if (resData.token) {
         localStorage.setItem(portalTokenKey(portalCode), resData.token);

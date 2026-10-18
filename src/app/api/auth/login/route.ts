@@ -47,15 +47,8 @@ export async function POST(request: Request) {
     });
 
     if (user) {
-      // SuperAdmin credentials may only be used through the dedicated /superadmin
-      // login form (it sends adminPortal: true). The regular /login form keeps
-      // receiving the dedicated-route message.
-      if (user.role === 'superadmin' && body.adminPortal !== true) {
-        return NextResponse.json({
-          error: 'גישת מנהל מערכת ראשי (SuperAdmin) מבוצעת אך ורק דרך הכתובת הייעודית המאובטחת: /superadmin'
-        }, { status: 403 });
-      }
-
+      // SuperAdmin credentials work from every login surface (/login,
+      // /superadmin, portal gates) — the client routes the admin to the panel.
       if (!verifyPassword(password, user.password)) {
         const failureStatus = recordFailedLogin(cleanLower);
         db.logAudit({

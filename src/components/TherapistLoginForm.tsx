@@ -115,7 +115,12 @@ export default function TherapistLoginForm({ loginCode, onSuccess }: TherapistLo
       // 2. Role is Therapist / Staff
       if (response && response.user) {
         if (response.user.role === 'superadmin') {
-          setAuthError('גישת מנהל מערכת ראשי (SuperAdmin) מבוצעת אך ורק דרך הכתובת הייעודית המאובטחת: /superadmin');
+          // SuperAdmin can sign in from any login form — straight to the panel
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('wisecare_user', JSON.stringify(response.user));
+            localStorage.setItem('wisecare_token', response.token);
+          }
+          router.push('/superadmin');
           return;
         }
 

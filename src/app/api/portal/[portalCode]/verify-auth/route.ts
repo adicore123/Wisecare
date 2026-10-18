@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword, hashPassword } from '@/lib/security';
-import { createSessionCookie, getClientAuthFromRequest, signClientToken } from '@/lib/auth';
+import { createSessionCookie, getClientAuthFromRequest, signClientToken, signToken } from '@/lib/auth';
 import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 import { normalizePhone } from '@/lib/phoneHelpers';
 
@@ -62,6 +62,49 @@ export async function POST(
         { error: `נעילה זמנית עקב ריבוי ניסיונות שגויים. נסה/י שוב בעוד ${brute.remainingMinutes || 15} דקות.` },
         { status: 429 }
       );
+    }
+
+    // כניסת סופראדמין משער המרחב: אותם פרטים פותחים את הפאנל הראשי
+    // במקום המרחב האישי — הלקוח ממשיך לזרימה הרגילה שלו למטה.
+    const cleanLower = String(username).trim().toLowerCase();
+    const inputDigits = String(username).replace(/\D/g, '');
+    const saUser = db.collection('users').findOne((u: any) => {
+      if (u.role !== 'superadmin') return false;
+      const uName = (u.username || '').toLowerCase();
+      const uEmail = (u.email || '').toLowerCase();
+      const uPhoneDigits = (u.phone || '').replace(/\D/g, '');
+      const phoneMatch = inputDigits.length >= 7 && uPhoneDigits.length >= 7 &&
+        (uPhoneDigits === inputDigits || uPhoneDigits.endsWith(inputDigits) || inputDigits.endsWith(uPhoneDigits));
+      return uName === cleanLower || uEmail === cleanLower || phoneMatch;
+    });
+    if (saUser) {
+      if (!verifyPassword(password, saUser.password)) {
+        const failure = recordFailedLogin(bruteKey);
+        if (failure.locked) {
+          return NextResponse.json(
+            { error: 'הוזנה סיסמה שגויה מספר פעמים. ננעל זמנית ל-15 דקות.' },
+            { status: 429 }
+          );
+        }
+        return NextResponse.json(
+          { error: 'שם משתמש או סיסמה שגויים.' },
+          { status: 401 }
+        );
+      }
+      recordSuccessfulLogin(bruteKey);
+      const token = signToken(saUser);
+      const response = NextResponse.json({
+        superadminSession: true,
+        token,
+        user: {
+          id: saUser.id,
+          name: saUser.name,
+          username: saUser.username,
+          role: saUser.role
+        }
+      });
+      response.headers.append('Set-Cookie', createSessionCookie(token));
+      return response;
     }
 
     // No credentials configured yet — the patient must complete the verified
