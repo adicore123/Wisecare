@@ -49,6 +49,7 @@ import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import SuperadminSongsManager from './SuperadminSongsManager';
 import SuperadminContentManager from './SuperadminContentManager';
+import QuickShareModal from './QuickShareModal';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -372,6 +373,9 @@ export default function SuperAdminPage({
   };
 
   const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings' | 'songs' | 'contentRecs'
+  const [quickShareOpen, setQuickShareOpen] = useState(false);
+  // בכל שיתוף מוצלח מהשיתוף המהיר — המנהלים הפתוחים מתרעננים (remount זול)
+  const [shareRefreshKey, setShareRefreshKey] = useState(0);
   const [stats, setStats] = useState(null);
   const [therapists, setTherapists] = useState([]);
   const [clients, setClients] = useState([]);
@@ -1241,6 +1245,14 @@ export default function SuperAdminPage({
         </div>
 
         <div className="superadmin-header-actions">
+          <button
+            className="btn btn-primary quickshare-btn"
+            onClick={() => setQuickShareOpen(true)}
+          >
+            <Share2 size={18} />
+            <span>שיתוף מהיר 🎁</span>
+          </button>
+
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -1433,10 +1445,10 @@ export default function SuperAdminPage({
       </div>
 
       {/* Songs Recommendations Tab Content */}
-      {activeTab === 'songs' && <SuperadminSongsManager />}
+      {activeTab === 'songs' && <SuperadminSongsManager key={`songs-${shareRefreshKey}`} />}
 
       {/* Content Recommendations Tab Content */}
-      {activeTab === 'contentRecs' && <SuperadminContentManager />}
+      {activeTab === 'contentRecs' && <SuperadminContentManager key={`content-${shareRefreshKey}`} />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (
@@ -4506,6 +4518,13 @@ export default function SuperAdminPage({
       <PrivacyPolicyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
+      />
+
+      {/* Quick Share — שיתוף סרטון/שיר להמלצות הצוות */}
+      <QuickShareModal
+        isOpen={quickShareOpen}
+        onClose={() => setQuickShareOpen(false)}
+        onSaved={() => setShareRefreshKey((k) => k + 1)}
       />
     </div>
   );
