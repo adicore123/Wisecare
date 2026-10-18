@@ -11,7 +11,8 @@ import {
   ArrowLeft,
   User,
   BookOpen,
-  HeartHandshake
+  HeartHandshake,
+  ShieldCheck
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -123,6 +124,40 @@ function ShareTargetContent() {
       const token = localStorage.getItem('wisecare_token');
       const lastPortal = localStorage.getItem('wisecare_last_portal');
 
+      // Case A0: This device belongs to the SuperAdmin — shares (e.g. from the
+      // YouTube app) go straight to the admin panel. Covers: stored admin user,
+      // impersonation leftovers (therapist token replaced ours) and the
+      // saved-password auto-login — all mean the admin is the real owner here.
+      let isAdminDevice = false;
+      try {
+        const u = storedUserStr ? JSON.parse(storedUserStr) : null;
+        isAdminDevice = Boolean(
+          (u && u.role === 'superadmin') ||
+          localStorage.getItem('wisecare_admin_token') ||
+          localStorage.getItem('wisecare_sa_remember_login')
+        );
+      } catch {}
+      if (isAdminDevice && (detectedUrl || cleanTitle || cleanDesc)) {
+        try {
+          localStorage.setItem('wisecare_pending_sa_share', JSON.stringify({
+            url: detectedUrl, title: cleanTitle, description: cleanDesc
+          }));
+        } catch {}
+
+        setRedirectingMessage('מעביר אותך לפאנל הניהול (SuperAdmin)...');
+
+        const timer = setTimeout(() => {
+          const q = new URLSearchParams();
+          q.set('share', '1');
+          if (detectedUrl) q.set('url', detectedUrl);
+          if (cleanTitle) q.set('title', cleanTitle);
+          if (cleanDesc) q.set('text', cleanDesc);
+          router.replace(`/superadmin?${q.toString()}`);
+        }, 500);
+
+        return () => clearTimeout(timer);
+      }
+
       // Case A: Therapist is logged in
       if (storedUserStr && token) {
         const user = JSON.parse(storedUserStr);
@@ -176,6 +211,15 @@ function ShareTargetContent() {
     if (shareData.title) q.set('title', shareData.title);
     if (shareData.description) q.set('text', shareData.description);
     router.push(`/login?returnUrl=${encodeURIComponent(`/crm-share?${q.toString()}`)}`);
+  };
+
+  const handleSuperAdminClick = () => {
+    const q = new URLSearchParams();
+    q.set('share', '1');
+    if (shareData.url) q.set('url', shareData.url);
+    if (shareData.title) q.set('title', shareData.title);
+    if (shareData.description) q.set('text', shareData.description);
+    router.push(`/superadmin?${q.toString()}`);
   };
 
   const handlePortalSubmit = (e: React.FormEvent) => {
@@ -265,6 +309,28 @@ function ShareTargetContent() {
                 לאן תרצה/י לשמור את התוכן?
               </p>
             </div>
+
+            {/* Option 0: SuperAdmin panel */}
+            <button
+              type="button"
+              onClick={handleSuperAdminClick}
+              className="w-full flex items-center justify-between p-4 rounded-xl border-2 border-indigo-500 bg-indigo-50/50 hover:bg-indigo-50 text-indigo-900 transition-all font-medium group text-right shadow-sm"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md">
+                  <ShieldCheck size={20} />
+                </div>
+                <div>
+                  <div className="font-bold text-sm text-slate-900 group-hover:text-indigo-700">
+                    שמור לפאנל הניהול (SuperAdmin)
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    המלצות שירים ותוכן לכל המטופלים
+                  </div>
+                </div>
+              </div>
+              <ArrowLeft size={16} className="text-indigo-600 transform group-hover:-translate-x-1 transition-transform" />
+            </button>
 
             {/* Option 1: Therapist CRM */}
             <button

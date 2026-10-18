@@ -7935,7 +7935,27 @@ table.quotes-table {
   pointer-events: none;
 }
 
-/* שיתוף מהיר — הוסר (הכפתור בוטל); המחלקות נשארו ריקות בכוונה */
+/* קבלת שיתוף בפאנל הניהול — מצב הצלחה */
+.quickshare-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 22px 8px 8px;
+  text-align: center;
+}
+
+.quickshare-success svg { color: #059669; }
+
+.quickshare-success p {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.5;
+}
+
+.quickshare-success .song-modal-actions { width: 100%; }
 
 .song-cat-toolbar { margin-bottom: 2px; }
 

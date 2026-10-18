@@ -49,6 +49,7 @@ import { portalTokenKey } from '@/lib/portalFetch';
 import { applyTheme, SUPERADMIN_THEME } from '@/lib/theme';
 import SuperadminSongsManager from './SuperadminSongsManager';
 import SuperadminContentManager from './SuperadminContentManager';
+import AdminShareModal, { AdminSharePrefill } from './AdminShareModal';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -400,6 +401,38 @@ export default function SuperAdminPage({
     return () => { cancelled = true; };
   }, [initialAdmin]);
 
+  // תוכן ששותף מחוץ למערכת (יוטיוב וכו') והועבר לכאן — נפתח בקבלה אוטומטית
+  // רק אחרי שהסשן אומת (כולל התחברות אוטומטית מסיסמה שמורה)
+  useEffect(() => {
+    if (!currentAdmin || currentAdmin.role !== 'superadmin') return;
+
+    let prefill: AdminSharePrefill | null = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('share') === '1' && (params.get('url') || params.get('title') || params.get('text'))) {
+        prefill = {
+          url: params.get('url') || '',
+          title: params.get('title') || '',
+          description: params.get('text') || ''
+        };
+        // מנקים את השאילתה כדי שרענון לא יפתח שוב
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      if (!prefill) {
+        const stored = localStorage.getItem('wisecare_pending_sa_share');
+        if (stored) {
+          prefill = JSON.parse(stored);
+          localStorage.removeItem('wisecare_pending_sa_share');
+        }
+      }
+    } catch {}
+
+    if (prefill && (prefill.url || prefill.title)) {
+      setAdminSharePrefill(prefill);
+      setAdminShareOpen(true);
+    }
+  }, [currentAdmin]);
+
   // "שמור סיסמה" — הפרטים נשמרים במכשיר זה בלבד (base64 נגד קריאה מזדמנת)
   // ומאפשרים התחברות אוטומטית בכניסה הבאה לפאנל.
   const SAVED_SA_LOGIN_KEY = 'wisecare_sa_remember_login';
@@ -465,6 +498,10 @@ export default function SuperAdminPage({
   };
 
   const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings' | 'songs' | 'contentRecs'
+  // קבלת תוכן משותף (מיוטיוב וכו') — נפתח אוטומטית אחרי האימות
+  const [adminShareOpen, setAdminShareOpen] = useState(false);
+  const [adminSharePrefill, setAdminSharePrefill] = useState<AdminSharePrefill | null>(null);
+  const [shareRefreshKey, setShareRefreshKey] = useState(0);
   const [stats, setStats] = useState(null);
   const [therapists, setTherapists] = useState([]);
   const [clients, setClients] = useState([]);
@@ -1553,10 +1590,10 @@ export default function SuperAdminPage({
       </div>
 
       {/* Songs Recommendations Tab Content */}
-      {activeTab === 'songs' && <SuperadminSongsManager />}
+      {activeTab === 'songs' && <SuperadminSongsManager key={`songs-${shareRefreshKey}`} />}
 
       {/* Content Recommendations Tab Content */}
-      {activeTab === 'contentRecs' && <SuperadminContentManager />}
+      {activeTab === 'contentRecs' && <SuperadminContentManager key={`content-${shareRefreshKey}`} />}
 
       {/* Therapists Tab Content */}
       {activeTab === 'therapists' && (
@@ -4626,6 +4663,14 @@ export default function SuperAdminPage({
       <PrivacyPolicyModal
         isOpen={isPrivacyOpen}
         onClose={() => setIsPrivacyOpen(false)}
+      />
+
+      {/* קבלת תוכן משותף מחוץ למערכת (יוטיוב וכו') */}
+      <AdminShareModal
+        isOpen={adminShareOpen}
+        onClose={() => { setAdminShareOpen(false); setAdminSharePrefill(null); }}
+        prefill={adminSharePrefill}
+        onSaved={() => setShareRefreshKey((k) => k + 1)}
       />
     </div>
   );
