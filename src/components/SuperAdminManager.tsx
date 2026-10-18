@@ -640,7 +640,7 @@ export default function SuperAdminPage({
     greenApiToken: '',
     clinicName: 'WiseCare',
     emailFromAddress: '',
-    emailAppPassword: '',
+    brevoApiKey: '',
     emailFromName: 'WiseCare — המרחב האישי שלך',
     autoSendLoginEmail: true
   });
@@ -2607,13 +2607,28 @@ export default function SuperAdminPage({
                   הגדרות אימייל — שליחת פרטי התחברות לנרשמים 📧
                 </h3>
                 <p style={{ margin: '0 0 16px', fontSize: '0.83rem', color: '#64748b', lineHeight: 1.5 }}>
-                  כל נרשם חדש למרחב האישי מקבל את הקישור, שם המשתמש והסיסמה שלו למייל — חינם דרך Gmail.
-                  הגדרה חד-פעמית: בגוגל → אבטחה → אימות דו-שלבי → "סיסמאות אפליקציה" → צרו קוד בן 16 תווים והדביקו אותו כאן.
+                  כל נרשם חדש למרחב האישי מקבל את הקישור, שם המשתמש והסיסמה שלו למייל — חינם דרך <strong>Brevo</strong> (300 מיילים ביום, בלי כרטיס אשראי).
+                  הגדרה חד-פעמית: נרשמים ב-brevo.com → מאמתים את המייל שלכם בלחיצה על הקישור שמגיע לתיבה → SMTP &amp; API ← API Keys ← יוצרים מפתח (מתחיל ב-xkeysib-) ומדביקים אותו למטה.
                 </p>
 
                 <div className="form-row">
                   <div className="form-group">
-                    <label>כתובת Gmail שולחת</label>
+                    <label>מפתח API של Brevo</label>
+                    <input
+                      type="password"
+                      dir="ltr"
+                      className="form-control"
+                      value={superadminSettings.brevoApiKey || ''}
+                      onChange={e => setSuperadminSettings({
+                        ...superadminSettings,
+                        brevoApiKey: e.target.value
+                      })}
+                      placeholder="xkeysib-..."
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>כתובת השולחת (המייל שאומת ב-Brevo)</label>
                     <input
                       type="email"
                       dir="ltr"
@@ -2624,21 +2639,6 @@ export default function SuperAdminPage({
                         emailFromAddress: e.target.value
                       })}
                       placeholder="your.email@gmail.com"
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>סיסמת אפליקציה של Google (16 תווים)</label>
-                    <input
-                      type="password"
-                      dir="ltr"
-                      className="form-control"
-                      value={superadminSettings.emailAppPassword || ''}
-                      onChange={e => setSuperadminSettings({
-                        ...superadminSettings,
-                        emailAppPassword: e.target.value
-                      })}
-                      placeholder="abcd efgh ijkl mnop"
                     />
                   </div>
                 </div>
@@ -2673,7 +2673,7 @@ export default function SuperAdminPage({
                     <button
                       type="button"
                       className="btn btn-secondary"
-                      disabled={sendingTestEmail || !testEmailTo.trim() || !(superadminSettings.emailFromAddress || '').trim() || !(superadminSettings.emailAppPassword || '').trim()}
+                      disabled={sendingTestEmail || !testEmailTo.trim() || !(superadminSettings.brevoApiKey || '').trim() || !(superadminSettings.emailFromAddress || '').trim()}
                       onClick={async () => {
                         try {
                           setSendingTestEmail(true);
@@ -2681,7 +2681,7 @@ export default function SuperAdminPage({
                           // שולחים קודם את ההגדרות הנוכחיות כדי שהבדיקה תריץ אותן
                           await api.updateSuperadminSettings({
                             emailFromAddress: superadminSettings.emailFromAddress,
-                            emailAppPassword: superadminSettings.emailAppPassword,
+                            brevoApiKey: superadminSettings.brevoApiKey,
                             emailFromName: superadminSettings.emailFromName
                           });
                           const res = await fetch('/api/settings/test-email', {

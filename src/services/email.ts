@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import axios from 'axios';
 import { db } from '@/lib/db';
 
 export interface EmailResult {
@@ -7,25 +7,26 @@ export interface EmailResult {
 }
 
 interface EmailConfig {
+  apiKey: string;
   fromAddress: string;
   fromName: string;
-  appPassword: string;
 }
 
 /**
- * קונפיגורציית Gmail SMTP — קודם מההגדרות במסד (נערך בסופראדמין),
+ * קונפיגורציית Brevo — קודם מההגדרות במסד (נערך בסופראדמין),
  * ואם ריק — נפילה למשתני סביבה. דפוס זהה ל-greenApi.ts.
+ * הכתובת השולחת חייבת להיות מאומתת בחשבון Brevo (אישור בלחיצה על קישור במייל).
  */
 function resolveEmailConfig(): EmailConfig | null {
   const settings = db.getSettings();
-  const fromAddress = (settings.emailFromAddress || process.env.GMAIL_USER || '').trim();
-  const appPassword = (settings.emailAppPassword || process.env.GMAIL_APP_PASSWORD || '').trim();
-  if (!fromAddress || !appPassword) {
+  const apiKey = (settings.brevoApiKey || process.env.BREVO_API_KEY || '').trim();
+  const fromAddress = (settings.emailFromAddress || '').trim();
+  if (!apiKey || !fromAddress) {
     return null;
   }
   return {
+    apiKey,
     fromAddress,
-    appPassword,
     fromName: (settings.emailFromName || 'WiseCare — המרחב האישי שלך').trim()
   };
 }
@@ -35,32 +36,45 @@ export function isEmailConfigured(): boolean {
   return resolveEmailConfig() !== null;
 }
 
+/** תרגום שגיאות Brevo לעברית ברורה עבור מסך ההגדרות */
+function friendlyBrevoError(err: any): string {
+  const status = err?.response?.status;
+  const code = err?.response?.data?.code;
+  if (status === 401) {
+    return 'מפתח ה-API של Brevo שגוי — יש להדביק את המפתח המלא (מתחיל ב-xkeysib-)';
+  }
+  if (status === 400 && String(code).includes('sender')) {
+    return 'הכתובת השולחת אינה מאומתת ב-Brevo — יש לאמת אותה בלחיצה על הקישור שנשלח לתיבה';
+  }
+  return err?.response?.data?.message || err?.message || 'שגיאה בשליחת המייל';
+}
+
 export async function sendEmail(params: { to: string; subject: string; html: string }): Promise<EmailResult> {
   const config = resolveEmailConfig();
   if (!config) {
-    return { sent: false, error: 'המייל אינו מוגדר — יש להשלים כתובת Gmail וסיסמת אפליקציה בהגדרות המערכת' };
+    return { sent: false, error: 'המייל אינו מוגדר — יש להשלים מפתח Brevo וכתובת שולחת מאומתת בהגדרות המערכת' };
   }
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: { user: config.fromAddress, pass: config.appPassword }
-    });
-
-    await transporter.sendMail({
-      from: `"${config.fromName}" <${config.fromAddress}>`,
-      to: params.to,
-      subject: params.subject,
-      html: params.html,
-      // טקסט נקי כגיבוי ללקוחות מייל ללא HTML
-      text: params.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
-    });
+    await axios.post(
+      'https://api.brevo.com/v3/smtp/email',
+      {
+        sender: { name: config.fromName, email: config.fromAddress },
+        to: [{ email: params.to }],
+        subject: params.subject,
+        htmlContent: params.html,
+        // טקסט נקי כגיבוי ללקוחות מייל ללא HTML
+        textContent: params.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()
+      },
+      {
+        headers: { 'api-key': config.apiKey, 'Content-Type': 'application/json' },
+        timeout: 15000
+      }
+    );
 
     return { sent: true };
   } catch (err: any) {
-    return { sent: false, error: err?.message || 'שגיאה בשליחת המייל' };
+    return { sent: false, error: friendlyBrevoError(err) };
   }
 }
 
@@ -157,7 +171,7 @@ export async function sendTestEmail(to: string): Promise<EmailResult> {
   <table role="presentation" width="100%" style="max-width:480px; margin:0 auto; background:#fff; border-radius:16px; border:1px solid #dfe7ed; padding:26px;">
     <tr><td style="text-align:center;">
       <div style="font-size:34px;">✅</div>
-      <h2 style="margin:10px 0 6px; color:#071426; font-size:18px;">החיבור ל-Gmail עובד!</h2>
+      <h2 style="margin:10px 0 6px; color:#071426; font-size:18px;">החיבור ל-Brevo עובד!</h2>
       <p style="margin:0; color:#5f6f84; font-size:14px; line-height:1.6;">
         זהו מייל ניסיון מהגדרות האימייל של WiseCare.<br>
         מעכשיו פרטי ההתחברות של נרשמים חדשים יישלחו אליהם למייל באופן אוטומטי.

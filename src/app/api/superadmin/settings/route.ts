@@ -52,7 +52,7 @@ export async function PUT(request: NextRequest) {
       'greenApiUrl',
       'clinicName',
       'emailFromAddress',
-      'emailAppPassword',
+      'brevoApiKey',
       'emailFromName',
       'autoSendLoginEmail'
     ];
