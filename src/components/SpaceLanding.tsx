@@ -146,7 +146,7 @@ export default function SpaceLanding() {
     if (!form.fullName.trim()) return 'נא להזין שם מלא';
     const digits = form.phone.replace(/\D/g, '');
     if (digits.length < 9) return 'נא להזין מספר וואטספ תקין';
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) return 'נא להזין כתובת אימייל תקינה';
+    if (!/^[^\s@<>,;:]+@[^\s@<>,;:]+\.[^\s@<>,;:]{2,}$/.test(form.email.trim())) return 'נא להזין כתובת אימייל תקינה';
     if (form.username.trim().length < 3) return 'שם משתמש קצר מדי — לפחות 3 תווים';
     if (form.password.length < 8) return 'הסיסמה קצרה מדי — לפחות 8 תווים';
     if (form.password !== form.confirmPassword) return 'הסיסמאות אינן תואמות';
@@ -170,7 +170,8 @@ export default function SpaceLanding() {
           email: form.email.trim(),
           username: form.username.trim(),
           password: form.password,
-          goal
+          goal,
+          source: 'space'
         })
       });
       const data = await res.json();
@@ -537,7 +538,7 @@ export default function SpaceLanding() {
                       <span>אימייל *</span>
                       <div className="space-input-wrap">
                         <Mail size={16} aria-hidden="true" />
-                        <input type="email" dir="ltr" value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
+                        <input type="email" dir="ltr" required aria-required="true" maxLength={254} value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
                       </div>
                     </label>
 
@@ -607,13 +608,14 @@ export default function SpaceLanding() {
                 <p>
                   {success.emailSent ? (
                     <>
-                      כל פרטי המשתמש שלך נשלחו למייל{' '}
+                      אישור ההרשמה והקישור למרחב נשלחו למייל{' '}
                       <strong dir="ltr">{form.email}</strong> 📧
                     </>
                   ) : (
                     <>
-                      שלחנו את הקישור האישי ואת פרטי הכניסה לוואטספ
-                      {success.whatsappSent ? ' בהצלחה' : ' (יישלח ברגע)'}.
+                      {success.whatsappSent
+                        ? 'הקישור האישי ופרטי הכניסה נשלחו לוואטספ בהצלחה.'
+                        : 'המרחב נפתח בהצלחה. לא הצלחנו לשלוח את ההודעות כרגע — אפשר להיכנס מיד באמצעות הכפתור למטה.'}
                     </>
                   )}
                   <br />
@@ -626,8 +628,8 @@ export default function SpaceLanding() {
                   </div>
                 ) : (
                   <div className="space-success-wa">
-                    <WhatsAppIcon size={16} />
-                    שמור/י את ההודעה — היא הדרך שלך חזרה למרחב
+                    {success.whatsappSent ? <WhatsAppIcon size={16} /> : <ShieldCheck size={16} />}
+                    {success.whatsappSent ? 'שמור/י את ההודעה — היא הדרך שלך חזרה למרחב' : 'לכניסה בהמשך, השתמש/י בשם המשתמש ובסיסמה שבחרת'}
                   </div>
                 )}
                 <button

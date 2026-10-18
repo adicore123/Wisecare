@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { sendLoginDetailsEmail } from '@/services/email';
+import { isSpaceLeadEmailEnabled, sendSpaceLeadEmails } from '@/services/spaceLeadEmail';
 import { hashPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
@@ -27,7 +28,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'נא להזין מספר טלפון לקבלת הודעות ב-WhatsApp' }, { status: 400 });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const emailRegex = /^[^\s@<>,;:]+@[^\s@<>,;:]+\.[^\s@<>,;:]{2,}$/;
     if (!email || !String(email).trim() || !emailRegex.test(String(email).trim())) {
       return NextResponse.json({ error: 'נא להזין כתובת אימייל תקינה לשחזור סיסמה' }, { status: 400 });
     }
@@ -37,12 +38,26 @@ export async function POST(request: NextRequest) {
     if (!password || String(password).length < 8) {
       return NextResponse.json({ error: 'סיסמה חייבת להכיל לפחות 8 תווים' }, { status: 400 });
     }
+    if (typeof password !== 'string' || password.length > 1024 || /[\r\n\u0000]/.test(password)) {
+      return NextResponse.json({ error: 'הסיסמה אינה תקינה. יש להזין עד 1024 תווים ללא מעברי שורה.' }, { status: 400 });
+    }
 
     const cleanFirst = String(firstName).trim();
     const cleanLast = String(lastName || '').trim();
     const cleanPhone = String(phone).trim();
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanUsername = String(username).trim().toLowerCase();
+    const isSpaceRegistration = body.source === 'space';
+
+    if ([cleanFirst, cleanLast, cleanPhone, cleanEmail, cleanUsername, String(goal)].some(value => /[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/.test(value))) {
+      return NextResponse.json({ error: 'נא להזין פרטים תקינים ללא תווי בקרה.' }, { status: 400 });
+    }
+    if (!/^[+\d\s().-]{9,40}$/.test(cleanPhone) || cleanPhone.replace(/\D/g, '').length < 9) {
+      return NextResponse.json({ error: 'נא להזין מספר וואטספ תקין.' }, { status: 400 });
+    }
+    if (cleanFirst.length > 100 || cleanLast.length > 150 || cleanPhone.length > 40 || cleanEmail.length > 254 || cleanUsername.length > 100 || String(goal).length > 120) {
+      return NextResponse.json({ error: 'אחד הפרטים ארוך מדי. נא לבדוק את הטופס.' }, { status: 400 });
+    }
 
     const clients = db.collection('clients');
     const users = db.collection('users');
@@ -95,8 +110,14 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     });
 
-    const clientAppUrl = getBaseUrl(request);
+    // Email links use a trusted configured origin, rather than a caller's Host header.
+    const clientAppUrl = isSpaceRegistration && isSpaceLeadEmailEnabled()
+      ? getBaseUrl()
+      : getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
+
+    // Persist the account before sending any external notifications.
+    await db.flush();
 
     let whatsappSent = false;
     let whatsappError = null;
@@ -111,13 +132,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // מייל עם פרטי ההתחברות לנרשם — לפי הגדרות Gmail SMTP בסופראדמין.
-    // כישלון לא חוסם: הוואטסאפ למעלה מכסה, והמצב מוחזר להצגה בפופאפ.
+    // /space uses Apps Script when configured; otherwise retain the existing provider.
+    // Failure does not roll back an account that was already created.
     let emailSent = false;
     let emailError: string | null = null;
+    let adminEmailSent = false;
     try {
       const settings: any = db.getSettings();
-      if (settings?.autoSendLoginEmail !== false && client.email) {
+      if (isSpaceRegistration && isSpaceLeadEmailEnabled()) {
+        const delivery = await sendSpaceLeadEmails({
+          id: client.id,
+          fullName: [cleanFirst, cleanLast].filter(Boolean).join(' '),
+          phone: cleanPhone,
+          email: cleanEmail,
+          username: cleanUsername,
+          password,
+          goal: String(goal || '').trim(),
+          portalUrl,
+          createdAt: client.createdAt
+        });
+        emailSent = delivery.userSent;
+        adminEmailSent = delivery.adminSent;
+        emailError = delivery.error || null;
+        clients.updateOne({ id: client.id }, {
+          spaceEmailDelivery: { ...delivery, attemptedAt: new Date().toISOString() }
+        });
+        if (delivery.error) console.warn('[Space Email]', delivery.error);
+      } else if (settings?.autoSendLoginEmail !== false && client.email) {
         const result = await sendLoginDetailsEmail({
           to: client.email,
           firstName: client.firstName,
@@ -175,6 +216,7 @@ export async function POST(request: NextRequest) {
       whatsappError,
       emailSent,
       emailError,
+      adminEmailSent,
       registrationNotifySent,
       client: {
         id: client.id,
