@@ -11,6 +11,7 @@ export interface ContentEditPayload {
   sourceName: string;
   thumbnailUrl: string;
   shared: boolean;
+  categoryId?: string | null;
 }
 
 interface ContentEditModalProps {
@@ -18,6 +19,8 @@ interface ContentEditModalProps {
   onClose: () => void;
   onSave: (payload: ContentEditPayload) => void;
   initial?: Partial<ContentEditPayload>;
+  /** קטגוריות זמינות לשיוך — מאפשרות להעביר פריט לכל קטגוריה */
+  categories?: Array<{ id: string; name: string }>;
   isEdit?: boolean;
   saving: boolean;
   error: string | null;
@@ -34,11 +37,12 @@ const TYPE_OPTIONS = [
  * הדבקת קישור → מילוי אוטומטי של סוג + שם + תיאור + תצוגה מקדימה של תמונה.
  */
 export default function ContentEditModal({
-  isOpen, onClose, onSave, initial, isEdit, saving, error
+  isOpen, onClose, onSave, initial, categories, isEdit, saving, error
 }: ContentEditModalProps) {
   const [form, setForm] = useState({ title: '', url: '', description: '', sourceName: '' });
   const [type, setType] = useState('video');
   const [shared, setShared] = useState(true);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
   const [metaThumb, setMetaThumb] = useState('');
   const [fetchingMeta, setFetchingMeta] = useState(false);
   const [localError, setLocalError] = useState('');
@@ -55,6 +59,7 @@ export default function ContentEditModal({
       });
       setType(initial?.type || 'video');
       setShared(initial?.shared !== false);
+      setCategoryId(initial?.categoryId || null);
       setMetaThumb(initial?.thumbnailUrl || '');
       setLocalError('');
       titleTouchedRef.current = Boolean(initial?.title);
@@ -112,7 +117,8 @@ export default function ContentEditModal({
       description: form.description.trim(),
       sourceName: form.sourceName.trim(),
       thumbnailUrl: metaThumb,
-      shared
+      shared,
+      categoryId
     });
   };
 
@@ -143,6 +149,25 @@ export default function ContentEditModal({
             </div>
           )}
         </label>
+
+        {categories && categories.length > 0 && (
+          <fieldset className="space-goal-fieldset song-cat-fieldset">
+            <legend>קטגוריה</legend>
+            <div className="space-goal-chips song-cat-picker">
+              {categories.map((c) => (
+                <button
+                  type="button"
+                  key={c.id}
+                  className={`space-goal-chip${categoryId === c.id ? ' space-goal-chip-active' : ''}`}
+                  onClick={() => setCategoryId(c.id)}
+                  aria-pressed={categoryId === c.id}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+        )}
 
         <fieldset className="space-goal-fieldset song-cat-fieldset">
           <legend>סוג התוכן</legend>

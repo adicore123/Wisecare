@@ -21,6 +21,8 @@ interface SongEditModalProps {
   initial?: { title?: string; url?: string; note?: string; thumbnailUrl?: string; categoryId?: string | null };
   /** קטגוריות אישיות של המטופל (אופציונלי — רק בפורטל) */
   categories?: Array<{ id: string; name: string }>;
+  /** כותרת בורר הקטגוריה — בפורטל "אישית", בסופראדמין "קטגוריה" */
+  categoryLabel?: string;
   isEdit?: boolean;
   saving: boolean;
   error: string | null;
@@ -32,7 +34,7 @@ interface SongEditModalProps {
  * השם אופציונלי — השרת גוזר אותו מהקישור אם נשאר ריק.
  */
 export default function SongEditModal({
-  isOpen, onClose, onSave, metaEndpoint, initial, categories, isEdit, saving, error
+  isOpen, onClose, onSave, metaEndpoint, initial, categories, categoryLabel = 'קטגוריה אישית', isEdit, saving, error
 }: SongEditModalProps) {
   const [form, setForm] = useState({ title: '', url: '', note: '' });
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -151,16 +153,18 @@ export default function SongEditModal({
         </label>
         {categories && categories.length > 0 && (
           <fieldset className="space-goal-fieldset song-cat-fieldset">
-            <legend>קטגוריה אישית</legend>
+            <legend>{categoryLabel}</legend>
             <div className="space-goal-chips song-cat-picker">
-              <button
-                type="button"
-                className={`space-goal-chip${categoryId === null ? ' space-goal-chip-active' : ''}`}
-                onClick={() => setCategoryId(null)}
-                aria-pressed={categoryId === null}
-              >
-                ללא קטגוריה
-              </button>
+              {categoryLabel === 'קטגוריה אישית' && (
+                <button
+                  type="button"
+                  className={`space-goal-chip${categoryId === null ? ' space-goal-chip-active' : ''}`}
+                  onClick={() => setCategoryId(null)}
+                  aria-pressed={categoryId === null}
+                >
+                  ללא קטגוריה
+                </button>
+              )}
               {categories.map((c) => (
                 <button
                   type="button"

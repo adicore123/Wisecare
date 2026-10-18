@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Video, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, Check, X, Info,
+  Video, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, FolderInput, Check, X, Info,
   Eye, EyeOff, FileText, Newspaper, Download
 } from 'lucide-react';
 import { api } from '@/lib/api';
@@ -69,12 +69,14 @@ export default function SuperadminContentManager() {
   const [deleteItemId, setDeleteItemId] = useState<string | null>(null);
   const [deletingItem, setDeletingItem] = useState(false);
 
-  // share toggle + import
+  // share toggle + import + move category
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [importPortalCode, setImportPortalCode] = useState('my-230961');
   const [importing, setImporting] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [moveItemId, setMoveItemId] = useState<string | null>(null);
+  const [movingItem, setMovingItem] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -163,13 +165,19 @@ export default function SuperadminContentManager() {
   };
 
   const saveItem = async (payload: {
-    type: string; title: string; url: string; description: string; sourceName: string; thumbnailUrl: string; shared: boolean;
+    type: string; title: string; url: string; description: string; sourceName: string; thumbnailUrl: string; shared: boolean; categoryId?: string | null;
   }) => {
-    if (saving || !selectedCat) return;
+    if (saving) return;
     try {
       setSaving(true);
       setEditorError('');
-      const withCat = { ...payload, categoryId: selectedCat };
+      // הקטגוריה נבחרת במודל; אם לא נבחרה — הקטגוריה הפתוחה
+      const targetCat = payload.categoryId || selectedCat;
+      if (!targetCat) {
+        setEditorError('נא לבחור קטגוריה');
+        return;
+      }
+      const withCat = { ...payload, categoryId: targetCat };
       if (editingId) {
         await api.updateRecommendedContent(editingId, withCat);
         showToast('הפריט עודכן ✏️');
@@ -183,6 +191,22 @@ export default function SuperadminContentManager() {
       setEditorError(err.message || 'שגיאה בשמירה');
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** העברת פריט לקטגוריה אחרת — מהכרטיס עצמו */
+  const moveItem = async (itemId: string, categoryId: string) => {
+    if (movingItem) return;
+    try {
+      setMovingItem(true);
+      await api.updateRecommendedContent(itemId, { categoryId });
+      setMoveItemId(null);
+      showToast('הפריט הועבר לקטגוריה החדשה 📂');
+      await load();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בהעברת הפריט', 'error');
+    } finally {
+      setMovingItem(false);
     }
   };
 
@@ -410,6 +434,15 @@ export default function SuperadminContentManager() {
                       >
                         {item.shared ? <Eye size={15} /> : <EyeOff size={15} />}
                       </button>
+                      <button
+                        type="button"
+                        className="song-icon-btn content-move-btn"
+                        onClick={() => setMoveItemId(item.id)}
+                        title="העברה לקטגוריה אחרת"
+                        aria-label={`העברת ${item.title} לקטגוריה אחרת`}
+                      >
+                        <FolderInput size={15} />
+                      </button>
                       <a
                         className="song-play-btn song-play-btn-ext"
                         href={item.url}
@@ -449,6 +482,7 @@ export default function SuperadminContentManager() {
         isOpen={editorOpen}
         onClose={() => setEditorOpen(false)}
         onSave={saveItem}
+        categories={categories}
         initial={
           editingItem
             ? {
@@ -458,14 +492,47 @@ export default function SuperadminContentManager() {
                 description: editingItem.description,
                 sourceName: editingItem.sourceName,
                 thumbnailUrl: editingItem.thumbnailUrl,
-                shared: editingItem.shared
+                shared: editingItem.shared,
+                categoryId: editingItem.categoryId
               }
-            : undefined
+            : { categoryId: selectedCat }
         }
         isEdit={Boolean(editingId)}
         saving={saving}
         error={editorError}
       />
+
+      {/* העברת פריט לקטגוריה אחרת */}
+      {moveItemId && (
+        <div className="song-modal-overlay" style={{ zIndex: 1250 }} onMouseDown={(e) => { if (e.target === e.currentTarget) setMoveItemId(null); }}>
+          <div className="song-modal" style={{ maxWidth: '400px' }}>
+            <h3>העברה לקטגוריה 📂</h3>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 14px 0' }}>
+              לאיזו קטגוריה להעביר את "{(items.find((s) => s.id === moveItemId)?.title || 'הפריט').slice(0, 50)}"?
+            </p>
+            <div className="space-goal-chips song-cat-picker" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              {categories.map((cat) => {
+                const current = items.find((s) => s.id === moveItemId)?.categoryId === cat.id;
+                return (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    className={`space-goal-chip${current ? ' space-goal-chip-active' : ''}`}
+                    onClick={() => moveItem(moveItemId, cat.id)}
+                    disabled={movingItem}
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Folder size={14} /> {cat.name} {current && '✓ (נוכחית)'}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="song-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setMoveItemId(null)} disabled={movingItem}>ביטול</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {importOpen && (
         <div className="song-modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) setImportOpen(false); }}>

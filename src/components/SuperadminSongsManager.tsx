@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Music, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, Check, X, Info
+  Music, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, FolderInput, Check, X, Info
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -57,6 +57,8 @@ export default function SuperadminSongsManager() {
   const [editorError, setEditorError] = useState('');
   const [deleteSongId, setDeleteSongId] = useState<string | null>(null);
   const [deletingSong, setDeletingSong] = useState(false);
+  const [moveSongId, setMoveSongId] = useState<string | null>(null);
+  const [movingSong, setMovingSong] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -144,12 +146,18 @@ export default function SuperadminSongsManager() {
     setEditorOpen(true);
   };
 
-  const saveSong = async (payload: { title: string; url: string; note: string; thumbnailUrl: string }) => {
-    if (saving || !selectedCat) return;
+  const saveSong = async (payload: { title: string; url: string; note: string; thumbnailUrl: string; categoryId?: string | null }) => {
+    if (saving) return;
     try {
       setSaving(true);
       setEditorError('');
-      const withCat = { ...payload, categoryId: selectedCat };
+      // הקטגוריה נבחרת במודל; אם לא נבחרה — הקטגוריה הפתוחה
+      const targetCat = payload.categoryId || selectedCat;
+      if (!targetCat) {
+        setEditorError('נא לבחור קטגוריה');
+        return;
+      }
+      const withCat = { ...payload, categoryId: targetCat };
       if (editingId) {
         await api.updateRecommendedSong(editingId, withCat);
         showToast('השיר עודכן ✏️');
@@ -163,6 +171,22 @@ export default function SuperadminSongsManager() {
       setEditorError(err.message || 'שגירה בשמירה');
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** העברת שיר לקטגוריה אחרת — מהכרטיס עצמו */
+  const moveSong = async (songId: string, categoryId: string) => {
+    if (movingSong) return;
+    try {
+      setMovingSong(true);
+      await api.updateRecommendedSong(songId, { categoryId });
+      setMoveSongId(null);
+      showToast('השיר הועבר לקטגוריה החדשה 📂');
+      await load();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בהעברת השיר', 'error');
+    } finally {
+      setMovingSong(false);
     }
   };
 
@@ -306,6 +330,15 @@ export default function SuperadminSongsManager() {
                       </div>
                     </div>
                     <div className="song-card-actions">
+                      <button
+                        type="button"
+                        className="song-icon-btn content-move-btn"
+                        onClick={() => setMoveSongId(song.id)}
+                        title="העברה לקטגוריה אחרת"
+                        aria-label={`העברת ${song.title} לקטגוריה אחרת`}
+                      >
+                        <FolderInput size={15} />
+                      </button>
                       <a
                         className="song-play-btn song-play-btn-ext"
                         href={song.url}
@@ -346,20 +379,55 @@ export default function SuperadminSongsManager() {
         onClose={() => setEditorOpen(false)}
         onSave={saveSong}
         metaEndpoint="/api/recommended-songs/meta"
+        categories={categories}
+        categoryLabel="קטגוריה"
         initial={
           editingId
             ? {
                 title: songs.find((s) => s.id === editingId)?.title,
                 url: songs.find((s) => s.id === editingId)?.url,
                 note: songs.find((s) => s.id === editingId)?.note,
-                thumbnailUrl: songs.find((s) => s.id === editingId)?.thumbnailUrl
+                thumbnailUrl: songs.find((s) => s.id === editingId)?.thumbnailUrl,
+                categoryId: songs.find((s) => s.id === editingId)?.categoryId
               }
-            : undefined
+            : { categoryId: selectedCat }
         }
         isEdit={Boolean(editingId)}
         saving={saving}
         error={editorError}
       />
+
+      {/* העברת שיר לקטגוריה אחרת */}
+      {moveSongId && (
+        <div className="song-modal-overlay" style={{ zIndex: 1250 }} onMouseDown={(e) => { if (e.target === e.currentTarget) setMoveSongId(null); }}>
+          <div className="song-modal" style={{ maxWidth: '400px' }}>
+            <h3>העברה לקטגוריה 📂</h3>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 14px 0' }}>
+              לאיזו קטגוריה להעביר את "{(songs.find((s) => s.id === moveSongId)?.title || 'השיר').slice(0, 50)}"?
+            </p>
+            <div className="space-goal-chips song-cat-picker" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              {categories.map((cat) => {
+                const current = songs.find((s) => s.id === moveSongId)?.categoryId === cat.id;
+                return (
+                  <button
+                    type="button"
+                    key={cat.id}
+                    className={`space-goal-chip${current ? ' space-goal-chip-active' : ''}`}
+                    onClick={() => moveSong(moveSongId, cat.id)}
+                    disabled={movingSong}
+                    style={{ justifyContent: 'flex-start' }}
+                  >
+                    <Folder size={14} /> {cat.name} {current && '✓ (נוכחית)'}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="song-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setMoveSongId(null)} disabled={movingSong}>ביטול</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ConfirmModal
         isOpen={Boolean(deleteCatId)}
