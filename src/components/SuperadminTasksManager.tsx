@@ -334,41 +334,7 @@ export default function SuperadminTasksManager() {
           </div>
 
           <form onSubmit={sendTask} className="superadmin-tasks-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <label className="song-field" style={{ margin: 0 }}>
-              <span>כותרת המשימה *</span>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="לדוגמה: תרגול נשימה 5 דקות לפני השינה"
-                required
-              />
-            </label>
-
-            <label className="song-field" style={{ margin: 0 }}>
-              <span>תיאור / הוראות (אופציונלי)</span>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="מה בדיוק לעשות, כמה זמן, וכו'"
-                rows={3}
-                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
-              />
-            </label>
-
-            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <label className="song-field" style={{ margin: 0, flex: 1, minWidth: '160px' }}>
-                <span>תאריך יעד (אופציונלי)</span>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  style={{ width: '100%' }}
-                />
-              </label>
-            </div>
-
-            {/* קטגוריות */}
+            {/* קטגוריה — הבחירה הראשונה בפתיחת משימה חדשה */}
             <fieldset className="space-goal-fieldset song-cat-fieldset" style={{ margin: 0 }}>
               <legend>קטגוריה * (תוצג למטופל כתג על המשימה)</legend>
               <div className="space-goal-chips song-cat-picker">
@@ -437,6 +403,40 @@ export default function SuperadminTasksManager() {
                 </button>
               </div>
             </fieldset>
+
+            <label className="song-field" style={{ margin: 0 }}>
+              <span>כותרת המשימה *</span>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="לדוגמה: תרגול נשימה 5 דקות לפני השינה"
+                required
+              />
+            </label>
+
+            <label className="song-field" style={{ margin: 0 }}>
+              <span>תיאור / הוראות (אופציונלי)</span>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="מה בדיוק לעשות, כמה זמן, וכו'"
+                rows={3}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1.5px solid #e2e8f0', fontSize: '0.95rem', fontFamily: 'inherit', resize: 'vertical', boxSizing: 'border-box' }}
+              />
+            </label>
+
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <label className="song-field" style={{ margin: 0, flex: 1, minWidth: '160px' }}>
+                <span>תאריך יעד (אופציונלי)</span>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </label>
+            </div>
 
             {formError && <div className="song-form-error">{formError}</div>}
 
