@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  CheckSquare, Square, Trash2, FolderPlus, Folder, Check, X, Info, Search, Send, Users, Pencil
+  CheckSquare, Square, Trash2, FolderPlus, Folder, Check, X, Info, Search, Send, Users, Pencil, Megaphone
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -45,6 +45,7 @@ export default function SuperadminTasksManager() {
   const [loading, setLoading] = useState(true);
   const [tasksLoading, setTasksLoading] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [broadcastMode, setBroadcastMode] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -176,7 +177,7 @@ export default function SuperadminTasksManager() {
 
   const sendTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedClientId) {
+    if (!broadcastMode && !selectedClientId) {
       setFormError('נא לבחור מרחב אישי מהרשימה');
       return;
     }
@@ -190,16 +191,29 @@ export default function SuperadminTasksManager() {
       const category = categoryId
         ? categories.find((c) => c.id === categoryId)?.name
         : undefined;
-      await api.createTask({
-        clientId: selectedClientId,
-        title: title.trim(),
-        description: description.trim(),
-        category,
-        dueDate: dueDate || undefined
-      });
-      showToast(`המשימה נשלחה ל${selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : 'המרחב'} 📋`);
+
+      if (broadcastMode) {
+        // שידור לכל המרחבים האישיים בבת אחת — בלי בחירה אחד-אחד
+        const res = await api.createTasksBulk({
+          clientIds: clients.map((c) => c.id),
+          title: title.trim(),
+          description: description.trim(),
+          category,
+          dueDate: dueDate || undefined
+        });
+        showToast(`המשימה שודרה ל-${res.created} מרחבים אישיים 📢`);
+      } else {
+        await api.createTask({
+          clientId: selectedClientId,
+          title: title.trim(),
+          description: description.trim(),
+          category,
+          dueDate: dueDate || undefined
+        });
+        showToast(`המשימה נשלחה ל${selectedClient ? `${selectedClient.firstName} ${selectedClient.lastName}` : 'המרחב'} 📋`);
+        if (selectedClientId) await loadClientTasks(selectedClientId);
+      }
       setTitle(''); setDescription(''); setDueDate('');
-      await loadClientTasks(selectedClientId);
     } catch (err: any) {
       setFormError(err.message || 'שגיאה בשליחת המשימה');
     } finally {
@@ -231,7 +245,7 @@ export default function SuperadminTasksManager() {
 
   return (
     <div className="superadmin-songs superadmin-content superadmin-tasks">
-      {/* בורר מרחב */}
+      {/* בורר מרחב / מצב שידור */}
       <div className="song-cat-toolbar">
         <div className="song-cat-add" style={{ flex: 1, minWidth: '220px' }}>
           <Users size={17} />
@@ -240,6 +254,8 @@ export default function SuperadminTasksManager() {
             value={clientSearch}
             onChange={(e) => setClientSearch(e.target.value)}
             placeholder="חיפוש מרחב אישי לפי שם או קוד..."
+            disabled={broadcastMode}
+            style={broadcastMode ? { opacity: 0.5 } : undefined}
           />
         </div>
       </div>
@@ -251,13 +267,31 @@ export default function SuperadminTasksManager() {
         </div>
       ) : (
         <div className="song-cat-chips">
-          {filteredClients.length === 0 && (
+          {/* שידור לכולם — משימה אחת לכל המרחבים בלחיצה אחת */}
+          <button
+            type="button"
+            className={`song-cat-tab-wrap${broadcastMode ? ' song-cat-tab-active' : ''}`}
+            onClick={() => { setBroadcastMode(!broadcastMode); setSelectedClientId(null); }}
+            style={{
+              border: '1px solid ' + (broadcastMode ? '#059669' : '#a7f3d0'),
+              background: broadcastMode ? '#059669' : '#ecfdf5',
+              color: broadcastMode ? '#fff' : '#047857',
+              fontWeight: 800
+            }}
+            title="המשימה תישלח לכל בעלי המרחבים האישיים בבת אחת"
+          >
+            <span className="song-cat-tab" style={{ background: 'transparent', color: 'inherit', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <Megaphone size={14} /> שידור לכל המרחבים ({clients.length})
+            </span>
+          </button>
+
+          {!broadcastMode && filteredClients.length === 0 && (
             <div className="song-cat-empty">
               <Search size={15} />
               <span>לא נמצאו מרחבים התואמים לחיפוש "{clientSearch}"</span>
             </div>
           )}
-          {filteredClients.map((c) => {
+          {!broadcastMode && filteredClients.map((c) => {
             const active = selectedClientId === c.id;
             return (
               <button
@@ -276,12 +310,14 @@ export default function SuperadminTasksManager() {
         </div>
       )}
 
-      {selectedClient && (
+      {(selectedClient || broadcastMode) && (
         <div className="song-cat-content">
           {/* טופס שליחת משימה */}
           <div className="song-cat-content-head">
             <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
-              📋 משימה חדשה ל{selectedClient.firstName} {selectedClient.lastName}
+              {broadcastMode
+                ? `📢 משימה לכל המרחבים (${clients.length}) — תישלח לכולם בבת אחת`
+                : `📋 משימה חדשה ל${selectedClient?.firstName} ${selectedClient?.lastName}`}
             </h3>
           </div>
 
@@ -396,14 +432,19 @@ export default function SuperadminTasksManager() {
               type="submit"
               className="btn btn-primary"
               disabled={sending}
-              style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
+              style={{
+                alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '8px',
+                background: broadcastMode ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : undefined,
+                borderColor: broadcastMode ? '#047857' : undefined
+              }}
             >
-              <Send size={16} />
-              {sending ? 'שולח...' : 'שליחת המשימה'}
+              {broadcastMode ? <Megaphone size={16} /> : <Send size={16} />}
+              {sending ? 'שולח...' : broadcastMode ? `שידור לכל ${clients.length} המרחבים` : 'שליחת המשימה'}
             </button>
           </form>
 
-          {/* משימות המרחב */}
+          {/* משימות המרחב — רק בבחירת מרחב בודד */}
+          {!broadcastMode && (
           <div style={{ marginTop: '22px' }}>
             <h4 style={{ margin: '0 0 10px', fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>
               המשימות של {selectedClient.firstName} ({pending.length} ממתינות, {done.length} הושלמו)
@@ -468,6 +509,7 @@ export default function SuperadminTasksManager() {
               </div>
             )}
           </div>
+          )}
         </div>
       )}
 

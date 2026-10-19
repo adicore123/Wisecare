@@ -297,6 +297,26 @@ export const api = {
     return res.json();
   },
 
+  // שידור משימה אחת לכמה מרחבים אישיים בבת אחת
+  createTasksBulk: async (payload: {
+    clientIds: string[];
+    title: string;
+    description?: string;
+    category?: string;
+    dueDate?: string;
+  }) => {
+    const res = await fetch(`${API_BASE}/tasks/bulk`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחה המרובה');
+    }
+    return res.json() as Promise<{ success: boolean; created: number; skipped: number }>;
+  },
+
   deleteTask: async (taskId) => {
     const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
       method: 'DELETE',
