@@ -3,12 +3,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Music, Plus, Play, Pause, Pencil, Trash2, ExternalLink, Search, Info, ListMusic, Gift, PlusCircle,
-  ChevronLeft, FolderPlus, Folder, Check, X, Dices
+  ChevronLeft, FolderPlus, Folder, Check, X, Dices, MailQuestion
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
 import SongEditModal from './SongEditModal';
+import SongRequestModal from './SongRequestModal';
 import WhatsAppIcon from './WhatsAppIcon';
 import { useMusicPlayer, isDirectAudioUrl, isStreamingUrl, type PlayerSong } from './MusicPlayerProvider';
 
@@ -80,6 +81,7 @@ interface RecommendedCategory {
  */
 export default function SongsManager({ portalCode }: { portalCode: string }) {
   const [view, setView] = useState<'mine' | 'recommended'>('mine');
+  const [requestOpen, setRequestOpen] = useState(false);
 
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState(true);
@@ -408,6 +410,13 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
         </button>
       )}
 
+      {/* בקשת שיר לכולם — פתוח לכל מטופל */}
+      <button type="button" className="song-request-cta" onClick={() => setRequestOpen(true)}>
+        <span className="song-request-cta-icon" aria-hidden="true"><MailQuestion size={17} /></span>
+        <span>בקשת שיר לכולם</span>
+        <span className="song-request-cta-hint">אהבת שיר? בקש/י שיגיע לכל המרחבים</span>
+      </button>
+
       {view === 'mine' && (
         <>
           <div className="page-actions" style={{ justifyContent: 'center', display: 'flex', gap: '12px', marginBottom: '14px', flexWrap: 'wrap' }}>
@@ -730,6 +739,12 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
           })()}
         </>
       )}
+
+      <SongRequestModal
+        isOpen={requestOpen}
+        onClose={() => setRequestOpen(false)}
+        portalCode={portalCode}
+      />
 
       <SongEditModal
         isOpen={editorOpen}

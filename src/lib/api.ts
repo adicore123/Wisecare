@@ -1382,6 +1382,68 @@ export const api = {
     return res.json();
   },
 
+  // ── בקשות שיר לכולם ────────────────────────────────────────────
+  getPortalSongRequests: async (portalCode: string) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-requests`, { cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת הבקשות');
+    }
+    return res.json();
+  },
+
+  createPortalSongRequest: async (portalCode: string, payload: {
+    url: string;
+    title?: string;
+    suggestedCategory?: string;
+    note?: string;
+  }) => {
+    const res = await fetch(`${API_BASE}/portal/${portalCode}/song-requests`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בשליחת הבקשה');
+    }
+    return res.json();
+  },
+
+  getSongRequests: async () => {
+    const res = await fetch(`${API_BASE}/song-requests`, { headers: authHeaders(), cache: 'no-store' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיעה בטעינת הבקשות');
+    }
+    return res.json();
+  },
+
+  handleSongRequest: async (id: string, action: 'approve' | 'reject', extra: Record<string, unknown> = {}) => {
+    const res = await fetch(`${API_BASE}/song-requests/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...extra })
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטיפול בבקשה');
+    }
+    return res.json();
+  },
+
+  deleteSongRequest: async (id: string) => {
+    const res = await fetch(`${API_BASE}/song-requests/${encodeURIComponent(id)}`, {
+      method: 'DELETE', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה במחיקת הבקשה');
+    }
+    return res.json();
+  },
+
+
   // Quote templates (תבניות הצעות מחיר)
   getQuoteTemplates: async () => {
     const res = await fetch(`${API_BASE}/quote-templates`, { headers: authHeaders(), cache: 'no-store' });

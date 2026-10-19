@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Music, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, FolderInput, Check, X, Info
+  Music, Plus, Pencil, Trash2, ExternalLink, FolderPlus, Folder, FolderInput, Check, X, Info, MailQuestion, Ban
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -60,6 +60,19 @@ export default function SuperadminSongsManager() {
   const [moveSongId, setMoveSongId] = useState<string | null>(null);
   const [movingSong, setMovingSong] = useState(false);
 
+  // בקשות שיר מהמטופלים
+  const [requests, setRequests] = useState<any[]>([]);
+  const [handlingId, setHandlingId] = useState<string | null>(null);
+  const [approveId, setApproveId] = useState<string | null>(null);
+  const [approveCatId, setApproveCatId] = useState<string | null>(null);
+
+  const loadRequests = useCallback(async () => {
+    try {
+      const res = await api.getSongRequests();
+      setRequests(Array.isArray(res) ? res : []);
+    } catch {}
+  }, []);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4500);
@@ -79,6 +92,7 @@ export default function SuperadminSongsManager() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { loadRequests(); }, [loadRequests]);
 
   const selected = categories.find((c) => c.id === selectedCat) || null;
   const selectedSongs = songs.filter((s) => s.categoryId === selectedCat);
@@ -190,6 +204,36 @@ export default function SuperadminSongsManager() {
     }
   };
 
+  /** אישור בקשת שיר — השיר נוסף להמלצות בקטגוריה שנבחרה ונגיש לכל המטופלים */
+  const approveRequest = async () => {
+    if (!approveId || !approveCatId) return;
+    try {
+      setHandlingId(approveId);
+      await api.handleSongRequest(approveId, 'approve', { categoryId: approveCatId });
+      setApproveId(null);
+      setApproveCatId(null);
+      showToast('הבקשה אושרה — השיר נוסף להמלצות ונגיש לכל המרחבים 🎉');
+      await Promise.all([loadRequests(), load()]);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה באישור הבקשה', 'error');
+    } finally {
+      setHandlingId(null);
+    }
+  };
+
+  const rejectRequest = async (id: string) => {
+    try {
+      setHandlingId(id);
+      await api.handleSongRequest(id, 'reject');
+      showToast('הבקשה נדחתה');
+      await loadRequests();
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה בדחיית הבקשה', 'error');
+    } finally {
+      setHandlingId(null);
+    }
+  };
+
   const confirmDeleteSong = async () => {
     if (!deleteSongId) return;
     try {
@@ -207,6 +251,73 @@ export default function SuperadminSongsManager() {
 
   return (
     <div className="superadmin-songs">
+      {/* בקשות שיר מהמטופלים — אישור מוסיף את השיר להמלצות לכולם */}
+      {requests.length > 0 && (
+        <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '18px' }}>
+          <h3 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <MailQuestion size={18} color="#7c3aed" />
+            בקשות שיר מהמטופלים
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#7c3aed', background: '#ede9fe', padding: '2px 10px', borderRadius: '20px' }}>
+              {requests.filter((r) => r.status === 'pending').length} ממתינות
+            </span>
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '12px' }}>
+            {requests.map((r) => (
+              <div
+                key={r.id}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap',
+                  background: r.status === 'pending' ? '#faf5ff' : '#f8fafc',
+                  border: `1px solid ${r.status === 'pending' ? '#e9d5ff' : '#e2e8f0'}`,
+                  borderRadius: '12px', padding: '12px 14px',
+                  opacity: r.status === 'pending' ? 1 : 0.65
+                }}
+              >
+                {r.thumbnailUrl ? (
+                  <img src={r.thumbnailUrl} alt="" style={{ width: 52, height: 52, borderRadius: 9, objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div className="song-card-icon" style={{ width: 52, height: 52 }}><Music size={19} /></div>
+                )}
+                <div style={{ flex: 1, minWidth: '180px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0f172a' }}>{r.title}</div>
+                  <div style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '2px' }}>
+                    בקשה מ־{r.clientName}
+                    {r.suggestedCategory ? ` · הציע קטגוריה: ${r.suggestedCategory}` : ''}
+                  </div>
+                  {r.note && <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '3px' }}>"{r.note}"</div>}
+                </div>
+                {r.status === 'pending' ? (
+                  <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ padding: '7px 16px', fontSize: '0.83rem' }}
+                      disabled={handlingId === r.id}
+                      onClick={() => { setApproveId(r.id); setApproveCatId(categories[0]?.id || null); }}
+                    >
+                      אישור לכולם
+                    </button>
+                    <button
+                      type="button"
+                      className="song-icon-btn song-icon-btn-danger"
+                      title="דחיית הבקשה"
+                      disabled={handlingId === r.id}
+                      onClick={() => rejectRequest(r.id)}
+                    >
+                      <Ban size={15} />
+                    </button>
+                  </div>
+                ) : (
+                  <span style={{ fontSize: '0.74rem', fontWeight: 700, color: r.status === 'approved' ? '#059669' : '#b91c1c', background: r.status === 'approved' ? '#ecfdf5' : '#fef2f2', padding: '3px 10px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
+                    {r.status === 'approved' ? 'אושרה ✓' : 'נדחתה'}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="song-cat-toolbar">
         <div className="song-cat-add">
           <FolderPlus size={17} />
@@ -424,6 +535,43 @@ export default function SuperadminSongsManager() {
             </div>
             <div className="song-modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setMoveSongId(null)} disabled={movingSong}>ביטול</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* אישור בקשה — בחירת קטגוריה להמלצות */}
+      {approveId && (
+        <div className="song-modal-overlay" style={{ zIndex: 1250 }} onMouseDown={(e) => { if (e.target === e.currentTarget) setApproveId(null); }}>
+          <div className="song-modal" style={{ maxWidth: '420px' }}>
+            <h3>אישור הבקשה 🎁</h3>
+            <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '0 0 14px', lineHeight: 1.5 }}>
+              "{requests.find((r) => r.id === approveId)?.title}" יתווסף להמלצות הצוות — ויהיה נגיש לכל המטופלים.
+              <br />לאיזו קטגוריה לשייך אותו?
+            </p>
+            <div className="space-goal-chips song-cat-picker" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
+              {categories.map((cat) => (
+                <button
+                  type="button"
+                  key={cat.id}
+                  className={`space-goal-chip${approveCatId === cat.id ? ' space-goal-chip-active' : ''}`}
+                  onClick={() => setApproveCatId(cat.id)}
+                  style={{ justifyContent: 'flex-start' }}
+                >
+                  <Folder size={14} /> {cat.name}
+                </button>
+              ))}
+            </div>
+            {requests.find((r) => r.id === approveId)?.suggestedCategory && (
+              <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: '10px 0 0' }}>
+                💡 המטופל הציע: {requests.find((r) => r.id === approveId)?.suggestedCategory}
+              </p>
+            )}
+            <div className="song-modal-actions">
+              <button type="button" className="btn btn-secondary" onClick={() => setApproveId(null)} disabled={handlingId === approveId}>ביטול</button>
+              <button type="button" className="btn btn-primary" onClick={approveRequest} disabled={!approveCatId || handlingId === approveId}>
+                {handlingId === approveId ? 'מאשר...' : 'אישור והוספה לכולם'}
+              </button>
             </div>
           </div>
         </div>
