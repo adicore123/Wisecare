@@ -2779,8 +2779,21 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
 
                         <div className="client-task-content">
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-                            <span className="badge badge-info" style={{ fontSize: '0.78rem' }}>
-                              {task.category || 'תרגול ביתי'}
+                            <span
+                              className="portal-task-category-badge"
+                              style={{
+                                fontSize: '0.78rem',
+                                fontWeight: 800,
+                                color: 'var(--primary)',
+                                background: 'var(--primary-faint)',
+                                padding: '3px 12px',
+                                borderRadius: '20px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px'
+                              }}
+                            >
+                              📂 {task.category || 'תרגול ביתי'}
                             </span>
                             {task.dueDate && (
                               <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>

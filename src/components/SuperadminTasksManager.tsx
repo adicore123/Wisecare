@@ -94,6 +94,14 @@ export default function SuperadminTasksManager() {
 
   useEffect(() => { load(); }, [load]);
 
+  // ברירת מחדל: הקטגוריה הראשונה מסומנת מיד — המשימה תמיד יוצאת עם קטגוריה
+  // שנראית למטופל בפורטל
+  useEffect(() => {
+    if (categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [categories, categoryId]);
+
   const selectedClient = clients.find((c) => c.id === selectedClientId) || null;
 
   const loadClientTasks = useCallback(async (clientId: string) => {
@@ -183,6 +191,10 @@ export default function SuperadminTasksManager() {
     }
     if (!title.trim()) {
       setFormError('נא לתת כותרת למשימה');
+      return;
+    }
+    if (!categoryId) {
+      setFormError('נא לבחור קטגוריה — כך המשימה תסומן למטופל במרחב האישי');
       return;
     }
     try {
@@ -358,7 +370,7 @@ export default function SuperadminTasksManager() {
 
             {/* קטגוריות */}
             <fieldset className="space-goal-fieldset song-cat-fieldset" style={{ margin: 0 }}>
-              <legend>קטגוריה</legend>
+              <legend>קטגוריה * (תוצג למטופל כתג על המשימה)</legend>
               <div className="space-goal-chips song-cat-picker">
                 {categories.length === 0 && (
                   <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>אין קטגוריות — צור/י אחת למטה</span>
