@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { verifyPassword } from '@/lib/security';
-import { createSessionCookie, signClientToken } from '@/lib/auth';
+import { createSessionCookie, signClientToken, signToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
 import { normalizePhone } from '@/lib/phoneHelpers';
+import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +17,48 @@ export async function POST(request: NextRequest) {
     }
 
     const cleanId = String(identifier).trim().toLowerCase();
+
+    // כניסת סופראדמין מטופס ההתחברות של /join — אותם פרטים פותחים את
+    // הפאנל הראשי במקום מרחב אישי (זהה לשערי הפורטל ב-verify-auth).
+    const brute = checkLoginBruteForce(`join-login:${cleanId}`);
+    if (brute.locked) {
+      return NextResponse.json(
+        { error: `נעילה זמנית עקב ריבוי ניסיונות שגויים. נסה/י שוב בעוד ${brute.remainingMinutes || 15} דקות.` },
+        { status: 429 }
+      );
+    }
+    const inputDigits = cleanId.replace(/\D/g, '');
+    const saUser = db.collection('users').findOne((u: any) => {
+      if (u.role !== 'superadmin') return false;
+      const uName = (u.username || '').toLowerCase();
+      const uEmail = (u.email || '').toLowerCase();
+      const uPhoneDigits = (u.phone || '').replace(/\D/g, '');
+      const phoneMatch = inputDigits.length >= 7 && uPhoneDigits.length >= 7 &&
+        (uPhoneDigits === inputDigits || uPhoneDigits.endsWith(inputDigits) || inputDigits.endsWith(uPhoneDigits));
+      return uName === cleanId || uEmail === cleanId || phoneMatch;
+    });
+    if (saUser) {
+      if (!verifyPassword(password, saUser.password)) {
+        const failure = recordFailedLogin(`join-login:${cleanId}`);
+        if (failure.locked) {
+          return NextResponse.json(
+            { error: 'הוזנה סיסמה שגויה מספר פעמים. ננעל זמנית ל-15 דקות.' },
+            { status: 429 }
+          );
+        }
+        return NextResponse.json({ error: 'שם משתמש או סיסמה שגויים.' }, { status: 401 });
+      }
+      recordSuccessfulLogin(`join-login:${cleanId}`);
+      const token = signToken(saUser);
+      const response = NextResponse.json({
+        superadminSession: true,
+        token,
+        user: { id: saUser.id, name: saUser.name, username: saUser.username, role: saUser.role }
+      });
+      response.headers.append('Set-Cookie', createSessionCookie(token));
+      return response;
+    }
+
     const clients = db.collection('clients');
 
     // Username/email are globally unique; a phone number may now be shared by

@@ -237,6 +237,14 @@ export default function JoinPage() {
         password: loginForm.password
       });
 
+      // פרטי סופראדמין בטופס זה — מעבר ישיר לפאנל הניהול הראשי
+      if (res?.superadminSession) {
+        localStorage.setItem('wisecare_token', res.token);
+        localStorage.setItem('wisecare_user', JSON.stringify(res.user));
+        window.location.replace('/superadmin');
+        return;
+      }
+
       if (res?.portalCode) {
         localStorage.setItem('wisecare_last_portal', res.portalCode);
         localStorage.setItem(`wisecare_portal_auth_${res.portalCode}`, 'true');
