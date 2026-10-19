@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
+  Inbox,
   Palette,
   ArrowRight,
   Send, 
@@ -234,6 +235,7 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [submittingTaskId, setSubmittingTaskId] = useState(null);
   const [reflectionTexts, setReflectionTexts] = useState({});
   const [taskFilter, setTaskFilter] = useState('all');
+  const [tasksView, setTasksView] = useState<'received' | 'mine'>('received');
 
   // Insights state
   const [isNewInsightOpen, setIsNewInsightOpen] = useState(false);
@@ -2018,7 +2020,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const pendingTasks = tasks.filter(t => !t.completed);
   const progressPercent = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
 
-  const filteredTasks = tasks.filter(t => {
+  // פיצול המשימות: "קיבלתי" (מהפאנל הראשי/מטפל) מול "שלי" (שהמטופל יצר לעצמו)
+  const receivedTasks = tasks.filter(t => !t.isSelfCreated);
+  const myOwnTasks = tasks.filter(t => t.isSelfCreated);
+  const tasksViewTasks = tasksView === 'received' ? receivedTasks : myOwnTasks;
+
+  const filteredTasks = tasksViewTasks.filter(t => {
     if (taskFilter === 'pending') return !t.completed;
     if (taskFilter === 'completed') return t.completed;
     return true;
@@ -2731,6 +2738,42 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                 </div>
               </div>
 
+              {/* מסלולי המשימות — "קיבלתי" מול "שלי" */}
+              <div className="portal-tasks-views" role="tablist" aria-label="סוגי המשימות">
+                <button
+                  type="button"
+                  className={`portal-tasks-view-btn${tasksView === 'received' ? ' portal-tasks-view-active' : ''}`}
+                  onClick={() => setTasksView('received')}
+                  role="tab"
+                  aria-selected={tasksView === 'received'}
+                >
+                  <span className="portal-tasks-view-icon portal-tasks-view-icon-received">
+                    <Inbox size={24} aria-hidden="true" />
+                  </span>
+                  <span className="portal-tasks-view-texts">
+                    <span className="portal-tasks-view-title">משימות שקיבלתי</span>
+                    <span className="portal-tasks-view-sub">משימות שנשלחו אליך מהמרחב</span>
+                  </span>
+                  <span className="portal-tasks-view-count">{receivedTasks.length}</span>
+                </button>
+                <button
+                  type="button"
+                  className={`portal-tasks-view-btn${tasksView === 'mine' ? ' portal-tasks-view-active' : ''}`}
+                  onClick={() => setTasksView('mine')}
+                  role="tab"
+                  aria-selected={tasksView === 'mine'}
+                >
+                  <span className="portal-tasks-view-icon portal-tasks-view-icon-mine">
+                    <Sparkles size={24} aria-hidden="true" />
+                  </span>
+                  <span className="portal-tasks-view-texts">
+                    <span className="portal-tasks-view-title">המשימות שלי</span>
+                    <span className="portal-tasks-view-sub">יעדים ותרגולים שקבעת לעצמך</span>
+                  </span>
+                  <span className="portal-tasks-view-count">{myOwnTasks.length}</span>
+                </button>
+              </div>
+
               {/* Tasks List */}
               {filteredTasks.length === 0 ? (
                 <div className="card-table" style={{ textAlign: 'center', padding: '56px 20px', color: '#64748b' }}>
@@ -2751,7 +2794,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                     {taskFilter === 'completed' ? 'טרם הושלמו משימות בסינון זה' : 'אין כרגע משימות להצגה בסינון זה'}
                   </h4>
                   <p style={{ fontSize: '0.9rem', color: '#64748b', marginTop: '6px' }}>
-                    {taskFilter === 'pending' ? 'איזה יופי! כל התרגולים לשבוע זה כבר הושלמו 🌟' : 'כאשר המטפל/ת יוסיפו תרגולים, הם יופיעו כאן מיד.'}
+                    {tasksView === 'received'
+                      ? 'כאשר תישלח אליך משימה חדשה — היא תופיע כאן מיד 📋'
+                      : 'הוסף/י משימה בכפתור "הוסף משימה / תרגול" והיא תופיע כאן 🌱'}
                   </p>
                 </div>
               ) : (
@@ -2798,6 +2843,11 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                             {task.dueDate && (
                               <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <Calendar size={13} /> יעד לביצוע: {task.dueDate}
+                              </span>
+                            )}
+                            {task.createdAt && (
+                              <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                נפתחה: {new Date(task.createdAt).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                               </span>
                             )}
                             {task.completed && (
