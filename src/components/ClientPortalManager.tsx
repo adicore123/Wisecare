@@ -1347,6 +1347,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         reflectionTexts[taskId]
       );
       showToast('המשוב והתובנות שלך עודכנו ונשמרו למפגש הבא! 🕊️');
+      // מעקב שימוש — שמירת תיעוד אישי על משימה
+      fetch(`/api/portal/${encodeURIComponent(portalCode)}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module: 'tasks', action: 'save_reflection' })
+      }).catch(() => {});
       const updated = await api.getPortalData(portalCode);
       setData(updated);
       // חזרה לתצוגה המקוצרת — התיעוד נשמר והכרטיס נשאר קומפקטי
@@ -1407,6 +1413,12 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
         showToast('התובנה נשמרה ביומן האישי שלך בהצלחה! ✨');
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.5 } });
       }
+      // מעקב שימוש — כתיבת מחשבה ביומן
+      fetch(`/api/portal/${encodeURIComponent(portalCode)}/track`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module: 'journal', action: 'write_journal' })
+      }).catch(() => {});
       setInsightForm({
         title: '',
         content: '',

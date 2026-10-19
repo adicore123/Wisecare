@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getClientAuthFromRequest } from '@/lib/auth';
-import { recordModuleView } from '@/lib/usageTracking';
+import { recordModuleView, recordAction } from '@/lib/usageTracking';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
+/** הפעולות המשמעותיות שמתועדות ביומן האירועים */
+const KNOWN_ACTIONS = new Set(['play_song', 'write_journal', 'save_reflection']);
+
 /**
- * מעקב שימוש — דיווח מהפורטל על כניסה למודול (טאב).
- * Fire-and-forget מהלקוח; כישלון שקט כדי לא להאט את הפורטל.
+ * מעקב שימוש — דיווח מהפורטל על כניסה למודול (טאב) או פעולה
+ * (ניגון שיר, כתיבת מחשבה). Fire-and-forget; כישלון שקט.
  */
 export async function POST(
   request: NextRequest,
@@ -30,7 +33,12 @@ export async function POST(
 
     const body = await request.json().catch(() => ({}));
     const module = String(body.module || '');
-    recordModuleView(client.id, module);
+    const action = String(body.action || '');
+
+    if (module) recordModuleView(client.id, module);
+    if (action && KNOWN_ACTIONS.has(action)) {
+      recordAction(client.id, action, module || undefined);
+    }
     await db.flush();
 
     return NextResponse.json({ ok: true });

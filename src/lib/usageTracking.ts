@@ -24,6 +24,7 @@ function emptyModules(): Record<string, number> {
 /** רישום כניסה מוצלחת למרחב */
 export function recordLogin(clientId: string): void {
   const now = new Date().toISOString();
+  recordEvent(clientId, 'login');
   const existing = findTodayDoc(clientId);
   if (existing) {
     db.collection('usageStats').updateById(existing.id, {
@@ -45,6 +46,7 @@ export function recordLogin(clientId: string): void {
 export function recordModuleView(clientId: string, module: string): void {
   const mod = TRACKED_MODULES.includes(module as TrackedModule) ? module : null;
   if (!mod) return;
+  recordEvent(clientId, 'module', mod);
   const now = new Date().toISOString();
   const existing = findTodayDoc(clientId);
   if (existing) {
@@ -68,6 +70,48 @@ export interface UsageSummary {
   loginsToday: number;
   lastActiveAt: string | null;
   modulesLast30: Record<string, number>;
+}
+
+/** יומן אירועים לתצוגה המפורטת — login / מודול / פעולה (שיר, מחשבה) */
+export interface UsageEvent {
+  id: string;
+  clientId: string;
+  kind: 'login' | 'module' | 'action';
+  module?: string;
+  action?: string;
+  at: string;
+}
+
+function recordEvent(clientId: string, kind: UsageEvent['kind'], module?: string, action?: string): void {
+  db.collection('usageEvents').insertOne({
+    clientId,
+    kind,
+    ...(module ? { module } : {}),
+    ...(action ? { action } : {}),
+    at: new Date().toISOString()
+  } as any);
+}
+
+/** האירועים האחרונים של לקוח — החדשים קודם */
+export function recentEventsForClient(clientId: string, limit = 100): UsageEvent[] {
+  return db
+    .collection('usageEvents')
+    .find({ clientId })
+    .sort((a: any, b: any) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, limit)
+    .map((e: any) => ({
+      id: e.id,
+      clientId: e.clientId,
+      kind: e.kind,
+      module: e.module,
+      action: e.action,
+      at: e.at
+    }));
+}
+
+/** רישום פעולה משמעותית — נגן שיר, כתב מחשבה וכו' */
+export function recordAction(clientId: string, action: string, module?: string): void {
+  recordEvent(clientId, 'action', module, action);
 }
 
 /** סיכום לתצוגה בכרטיס היוזר בסופראדמין */

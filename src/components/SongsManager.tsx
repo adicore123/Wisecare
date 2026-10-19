@@ -117,6 +117,21 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
   const playerSong = (s: { id: string; title: string; url: string; note?: string }): PlayerSong =>
     ({ id: s.id, title: s.title, url: s.url, note: s.note });
 
+  // מעקב שימוש — ניגון שיר נרשם ביומן האירועים של המרחב (שקט, בלי להאט)
+  const trackPlaySong = useCallback(() => {
+    fetch(`/api/portal/${encodeURIComponent(portalCode)}/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ module: 'songs', action: 'play_song' })
+    }).catch(() => {});
+  }, [portalCode]);
+
+  // עטיפה שמתעדת כל ניגון ביומן האירועים
+  const playTracked = useCallback((s: PlayerSong, list?: PlayerSong[]) => {
+    trackPlaySong();
+    player.playSong(s, list);
+  }, [player, trackPlaySong]);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4500);
@@ -295,7 +310,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
         const j = Math.floor(Math.random() * (i + 1));
         [rest[i], rest[j]] = [rest[j], rest[i]];
       }
-      player.playSong(playerSong(pick), [pick, ...rest].map(playerSong));
+      playTracked(playerSong(pick), [pick, ...rest].map(playerSong));
       showToast(`🎲 הפתעה: ${pick.title}`);
     } else {
       window.open(pick.url, '_blank', 'noopener,noreferrer');
@@ -522,7 +537,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => player.playSong(playerSong(playable[0]), playable.map(playerSong))}
+                  onClick={() => playTracked(playerSong(playable[0]), playable.map(playerSong))}
                 >
                   <ListMusic size={15} style={{ display: 'inline', verticalAlign: '-3px', marginLeft: '5px' }} />
                   נגן הכל ({playable.length})
@@ -541,7 +556,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
               <CategoryHeading
                 name={cat.name}
                 count={catSongs.length}
-                onPlayAll={catPlayable.length ? () => player.playSong(playerSong(catPlayable[0]), catPlayable.map(playerSong)) : undefined}
+                onPlayAll={catPlayable.length ? () => playTracked(playerSong(catPlayable[0]), catPlayable.map(playerSong)) : undefined}
               />
             );
           })()}
@@ -583,7 +598,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                           onClick={() =>
                             active
                               ? player.togglePlay()
-                              : player.playSong(playerSong(song), playable.map(playerSong))
+                              : playTracked(playerSong(song), playable.map(playerSong))
                           }
                           title={active && player.isPlaying ? 'השהיה' : 'נגן'}
                           aria-label={active && player.isPlaying ? `השהיית ${song.title}` : `נגינת ${song.title}`}
@@ -657,7 +672,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                         active.songs.some((s) => isDirectAudioUrl(s.url))
                           ? () => {
                               const playableRecs = active.songs.filter((s) => isDirectAudioUrl(s.url));
-                              player.playSong(playerSong(playableRecs[0]), playableRecs.map(playerSong));
+                              playTracked(playerSong(playableRecs[0]), playableRecs.map(playerSong));
                             }
                           : undefined
                       }
@@ -699,7 +714,7 @@ export default function SongsManager({ portalCode }: { portalCode: string }) {
                               onClick={() =>
                                 isActive
                                   ? player.togglePlay()
-                                  : player.playSong(playerSong(song), active.songs.filter((s) => isDirectAudioUrl(s.url)).map(playerSong))
+                                  : playTracked(playerSong(song), active.songs.filter((s) => isDirectAudioUrl(s.url)).map(playerSong))
                               }
                               title={isActive && player.isPlaying ? 'השהיה' : 'נגן'}
                               aria-label={isActive && player.isPlaying ? `השהיית ${song.title}` : `נגינת ${song.title}`}

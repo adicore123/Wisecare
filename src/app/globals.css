@@ -8118,6 +8118,94 @@ table.quotes-table {
   white-space: nowrap;
 }
 
+.usage-history-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #6d28d9;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  padding: 4px 2px;
+  min-height: 28px;
+}
+
+.usage-history-btn:hover { color: #5b21b6; }
+
+/* ── יומן פעילות מפורט — מובייל ───────────────────────────── */
+.activity-log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.activity-log-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
+  flex-wrap: nowrap;
+}
+
+.activity-log-row:nth-child(even) { background: #ffffff; }
+
+.activity-log-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.activity-log-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-log-when {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-size: 0.72rem;
+  color: #64748b;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.activity-log-time {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #334155;
+  direction: ltr;
+}
+
+@media (max-width: 400px) {
+  .activity-log-label { font-size: 0.78rem; white-space: normal; }
+  .activity-log-when { flex-direction: row; gap: 6px; align-items: center; }
+}
+
 /* ── "בקשת שיר לכולם" — כפתור בפורטל המטופל ──────────────────── */
 .song-request-cta {
   display: flex;

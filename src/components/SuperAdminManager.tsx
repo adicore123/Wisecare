@@ -43,7 +43,8 @@ import {
   FileText,
   Music,
   Video,
-  CheckSquare
+  CheckSquare,
+  History
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { portalTokenKey } from '@/lib/portalFetch';
@@ -52,6 +53,7 @@ import SuperadminSongsManager from './SuperadminSongsManager';
 import SuperadminContentManager from './SuperadminContentManager';
 import SuperadminTasksManager from './SuperadminTasksManager';
 import AdminShareModal, { AdminSharePrefill } from './AdminShareModal';
+import ActivityLogModal from './ActivityLogModal';
 import ConfirmModal from './ConfirmModal';
 import Toast from './Toast';
 import WhatsAppIcon from './WhatsAppIcon';
@@ -523,6 +525,8 @@ export default function SuperAdminPage({
   };
 
   const [activeTab, setActiveTab] = useState('therapists'); // 'therapists' | 'clients' | 'settings' | 'songs' | 'contentRecs'
+  // יומן פעילות מפורט — לאיזה מרחב פתחנו את ההיסטוריה
+  const [activityLogFor, setActivityLogFor] = useState<{ id: string; name: string } | null>(null);
   // קבלת תוכן משותף (מיוטיוב וכו') — נפתח אוטומטית אחרי האימות
   const [adminShareOpen, setAdminShareOpen] = useState(false);
   const [adminSharePrefill, setAdminSharePrefill] = useState<AdminSharePrefill | null>(null);
@@ -3510,6 +3514,15 @@ export default function SuperAdminPage({
                               ) : (
                                 <span className="usage-badge usage-badge-idle">💤 עדיין לא פעיל</span>
                               )}
+                              <button
+                                type="button"
+                                className="usage-history-btn"
+                                onClick={() => { setActivityLogFor({ id: client.id, name: displayName }); }}
+                                title="יומן פעילות מפורט — מה ומתי בדיוק קרה"
+                                aria-label={`יומן פעילות של ${displayName}`}
+                              >
+                                <History size={14} /> היסטוריה
+                              </button>
                             </div>
                             {client.usage.lastActiveAt && Object.keys(client.usage.modulesLast30 || {}).length > 0 && (
                               <div className="usage-chips">
@@ -4945,6 +4958,14 @@ export default function SuperAdminPage({
         onClose={() => { setAdminShareOpen(false); setAdminSharePrefill(null); }}
         prefill={adminSharePrefill}
         onSaved={() => setShareRefreshKey((k) => k + 1)}
+      />
+
+      {/* יומן פעילות מפורט של מרחב אישי */}
+      <ActivityLogModal
+        isOpen={Boolean(activityLogFor)}
+        onClose={() => setActivityLogFor(null)}
+        clientId={activityLogFor?.id || null}
+        clientName={activityLogFor?.name || ''}
       />
     </div>
   );

@@ -350,6 +350,17 @@ export const api = {
     return res.json() as Promise<{ success: boolean; added: number; clientsTouched: number }>;
   },
 
+  getUsageEvents: async (clientId: string) => {
+    const res = await fetch(`${API_BASE}/superadmin/usage-events?clientId=${encodeURIComponent(clientId)}`, {
+      headers: authHeaders(), cache: 'no-store'
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בטעינת יומן הפעילות');
+    }
+    return res.json();
+  },
+
   getContentItems: async (arg) => {
     const therapistId = typeof arg === 'string' ? arg : (arg?.therapistId || '');
     const query = new URLSearchParams(therapistId ? { therapistId } : {});
