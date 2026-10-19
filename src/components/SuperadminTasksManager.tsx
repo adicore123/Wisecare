@@ -7,6 +7,7 @@ import {
 import { api } from '@/lib/api';
 import Toast from './Toast';
 import ConfirmModal from './ConfirmModal';
+import TaskEditModal from './TaskEditModal';
 
 interface TaskCategory {
   id: string;
@@ -66,6 +67,9 @@ export default function SuperadminTasksManager() {
   const [formError, setFormError] = useState('');
   const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null);
   const [deletingTask, setDeletingTask] = useState(false);
+  const [editTask, setEditTask] = useState<ClientTask | null>(null);
+  const [editingSaving, setEditingSaving] = useState(false);
+  const [editError, setEditError] = useState('');
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -245,6 +249,27 @@ export default function SuperadminTasksManager() {
       showToast(err.message || 'שגיאה במחיקה', 'error');
     } finally {
       setDeletingTask(false);
+    }
+  };
+
+  const saveEditedTask = async (payload: { title: string; description: string; category: string; dueDate: string }) => {
+    if (!editTask) return;
+    try {
+      setEditingSaving(true);
+      setEditError('');
+      await api.updateTask(editTask.id, {
+        title: payload.title,
+        description: payload.description,
+        category: payload.category || 'תרגול ביתי',
+        ...(payload.dueDate ? { dueDate: payload.dueDate } : { dueDate: null })
+      });
+      setEditTask(null);
+      showToast('המשימה עודכנה ✏️');
+      if (selectedClientId) await loadClientTasks(selectedClientId);
+    } catch (err: any) {
+      setEditError(err.message || 'שגיאה בשמירה');
+    } finally {
+      setEditingSaving(false);
     }
   };
 
@@ -507,15 +532,26 @@ export default function SuperadminTasksManager() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      className="song-icon-btn song-icon-btn-danger"
-                      onClick={() => setDeleteTaskId(t.id)}
-                      title="מחיקת המשימה"
-                      aria-label={`מחיקת ${t.title}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        className="song-icon-btn"
+                        onClick={() => { setEditError(''); setEditTask(t); }}
+                        title="עריכת המשימה"
+                        aria-label={`עריכת ${t.title}`}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="song-icon-btn song-icon-btn-danger"
+                        onClick={() => setDeleteTaskId(t.id)}
+                        title="מחיקת המשימה"
+                        aria-label={`מחיקת ${t.title}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -545,6 +581,26 @@ export default function SuperadminTasksManager() {
         confirmLabel="מחיקה"
         isDanger
         loading={deletingTask}
+      />
+
+      {/* עריכת משימה */}
+      <TaskEditModal
+        isOpen={Boolean(editTask)}
+        onClose={() => setEditTask(null)}
+        onSave={saveEditedTask}
+        categories={categories}
+        initial={
+          editTask
+            ? {
+                title: editTask.title,
+                description: editTask.description,
+                category: editTask.category,
+                dueDate: editTask.dueDate
+              }
+            : undefined
+        }
+        saving={editingSaving}
+        error={editError}
       />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}

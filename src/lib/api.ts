@@ -317,9 +317,21 @@ export const api = {
     return res.json() as Promise<{ success: boolean; created: number; skipped: number }>;
   },
 
-  deleteTask: async (taskId) => {
+  updateTask: async (taskId, taskData) => {
     const res = await fetch(`${API_BASE}/tasks/${taskId}`, {
-      method: 'DELETE',
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify(taskData)
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בעדכון המשימה');
+    }
+    return res.json();
+  },
+
+  deleteTask: async (taskId) => {
+    const res = await fetch(`${API_BASE}/tasks/${taskId}`, {      method: 'DELETE',
       headers: authHeaders()
     });
     if (!res.ok) throw new Error('שגיאה במחיקת משימה');
