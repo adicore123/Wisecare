@@ -8032,6 +8032,27 @@ table.quotes-table {
   color: #ffffff;
 }
 
+/* תיעוד אישי בכרטיס משימה — כפתורי "קרא עוד" / "עריכת התיעוד" */
+.portal-reflection-toggle {
+  background: none;
+  border: none;
+  padding: 4px 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.portal-reflection-toggle:hover { color: var(--primary-hover, var(--primary)); }
+
+/* במובייל התיבה מקבלת גובה בסיס נוח ופונט 16px (מונע זום אוטומטי ב-iOS) */
+@media (max-width: 640px) {
+  .portal-reflection-input { min-height: 110px; }
+}
+
 /* קבלת שיתוף בפאנל הניהול — מצב הצלחה */
 .quickshare-success {
   display: flex;

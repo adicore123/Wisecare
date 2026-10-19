@@ -236,6 +236,16 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [reflectionTexts, setReflectionTexts] = useState({});
   const [taskFilter, setTaskFilter] = useState('all');
   const [tasksView, setTasksView] = useState<'received' | 'mine'>('received');
+  // תיעוד אישי: איזו משימה במצב עריכה, ואילו תיעודים פתוחים ב"קרא עוד"
+  const [editingReflection, setEditingReflection] = useState<string | null>(null);
+  const [expandedReflections, setExpandedReflections] = useState<Set<string>>(new Set());
+
+  // תיבת טקסט שגדלה אוטומטית עם הכתיבה — נוחה לתיעוד במובייל
+  const autoGrowTextarea = (el: HTMLTextAreaElement | null) => {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 420)}px`;
+  };
 
   // Insights state
   const [isNewInsightOpen, setIsNewInsightOpen] = useState(false);
@@ -1323,6 +1333,8 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
       showToast('המשוב והתובנות שלך עודכנו ונשמרו למפגש הבא! 🕊️');
       const updated = await api.getPortalData(portalCode);
       setData(updated);
+      // חזרה לתצוגה המקוצרת — התיעוד נשמר והכרטיס נשאר קומפקטי
+      setEditingReflection(null);
     } catch (err) {
       showToast('שגיאה בשמירת המשוב: ' + err.message, 'error');
     } finally {
@@ -2902,7 +2914,9 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                             </p>
                           )}
 
-                          {/* Client Reflection Feedback Box */}
+                          {/* Client Reflection Feedback Box — תיעוד אישי נוח במובייל:
+                              במצב קריאה הטקסט השמור מקוצר ל-3 שורות עם "קרא עוד";
+                              במצב עריכה — תיבה שגדלה אוטומטית עם הכתיבה */}
                           <div className="client-task-notes-box" style={{ marginTop: '18px', background: '#f8fafc', borderRadius: '12px' }}>
                             <label style={{
                               display: 'flex',
@@ -2917,29 +2931,116 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
                               <span>{portalInfo.isSelfCare ? 'הערות ותובנות אישיות (איך הרגשת? מה לקחת מהתרגול?):' : 'משוב ותובנות למטפל/ת שלך (איך הרגשת? מה עלה במהלך התרגול?):'}</span>
                             </label>
 
-                            <div style={{ display: 'flex', gap: '10px' }}>
-                              <input 
-                                type="text"
-                                className="form-control"
-                                placeholder="כתוב/י כאן מחשבות, שאלות או חוויות שיעלו למפגש הבא..."
-                                value={reflectionTexts[task.id] !== undefined ? reflectionTexts[task.id] : ''}
-                                onChange={(e) => setReflectionTexts({
-                                  ...reflectionTexts,
-                                  [task.id]: e.target.value
-                                })}
-                                style={{ background: '#ffffff' }}
-                              />
-                              <button 
-                                type="button"
-                                onClick={() => handleSaveReflection(task.id)}
-                                disabled={submittingTaskId === task.id}
-                                className="btn btn-secondary"
-                                style={{ padding: '8px 18px', fontSize: '0.85rem', whiteSpace: 'nowrap', borderColor: 'var(--primary, var(--primary))', color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))' }}
-                              >
-                                <Send size={14} />
-                                <span>עדכן משוב</span>
-                              </button>
-                            </div>
+                            {(editingReflection === task.id || !task.clientNotes) ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                                <textarea
+                                  className="form-control portal-reflection-input"
+                                  dir="auto"
+                                  placeholder="כתוב/י כאן בנחת — מחשבות, שאלות או חוויות שיעלו למפגש הבא... התיבה גדלה ככל שכותבים יותר ✍️"
+                                  value={reflectionTexts[task.id] !== undefined ? reflectionTexts[task.id] : ''}
+                                  onChange={(e) => {
+                                    setReflectionTexts({
+                                      ...reflectionTexts,
+                                      [task.id]: e.target.value
+                                    });
+                                    autoGrowTextarea(e.target);
+                                  }}
+                                  ref={(el) => {
+                                    if (el && editingReflection === task.id) autoGrowTextarea(el);
+                                  }}
+                                  rows={3}
+                                  style={{
+                                    background: '#ffffff',
+                                    fontSize: '1rem',
+                                    lineHeight: 1.65,
+                                    padding: '12px 14px',
+                                    borderRadius: '12px',
+                                    border: '1.5px solid #e2e8f0',
+                                    resize: 'none',
+                                    overflow: 'hidden',
+                                    minHeight: '96px',
+                                    boxSizing: 'border-box',
+                                    width: '100%',
+                                    fontFamily: 'inherit'
+                                  }}
+                                />
+                                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                                  {Boolean(task.clientNotes) && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingReflection(null)}
+                                      className="btn btn-secondary"
+                                      style={{ padding: '8px 18px', fontSize: '0.85rem' }}
+                                    >
+                                      ביטול
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSaveReflection(task.id)}
+                                    disabled={submittingTaskId === task.id}
+                                    className="btn btn-secondary"
+                                    style={{ padding: '8px 18px', fontSize: '0.85rem', whiteSpace: 'nowrap', borderColor: 'var(--primary, var(--primary))', color: 'var(--primary-hover, var(--primary-hover, color-mix(in srgb, var(--primary) 85%, black)))' }}
+                                  >
+                                    <Send size={14} />
+                                    <span>{submittingTaskId === task.id ? 'שומר...' : task.clientNotes ? 'שמירת התיעוד' : 'שמירה'}</span>
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <p
+                                  className="portal-reflection-saved"
+                                  style={{
+                                    margin: 0,
+                                    fontSize: '0.95rem',
+                                    lineHeight: 1.7,
+                                    color: '#334155',
+                                    background: '#ffffff',
+                                    border: '1px solid #eef2f6',
+                                    borderRadius: '12px',
+                                    padding: '12px 14px',
+                                    whiteSpace: 'pre-wrap',
+                                    ...(expandedReflections.has(task.id) ? {} : {
+                                      display: '-webkit-box',
+                                      WebkitLineClamp: 3,
+                                      WebkitBoxOrient: 'vertical',
+                                      overflow: 'hidden'
+                                    })
+                                  }}
+                                >
+                                  {task.clientNotes}
+                                </p>
+                                <div style={{ display: 'flex', gap: '12px', marginTop: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                  <button
+                                    type="button"
+                                    className="portal-reflection-toggle"
+                                    onClick={() => {
+                                      const next = new Set(expandedReflections);
+                                      if (next.has(task.id)) next.delete(task.id);
+                                      else next.add(task.id);
+                                      setExpandedReflections(next);
+                                    }}
+                                    aria-expanded={expandedReflections.has(task.id)}
+                                  >
+                                    {expandedReflections.has(task.id) ? 'הצג פחות' : 'קרא עוד'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="portal-reflection-toggle"
+                                    onClick={() => {
+                                      setReflectionTexts({
+                                        ...reflectionTexts,
+                                        [task.id]: task.clientNotes
+                                      });
+                                      setEditingReflection(task.id);
+                                    }}
+                                  >
+                                    ✏️ עריכת התיעוד
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
