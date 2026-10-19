@@ -17,17 +17,20 @@ export async function GET(request: NextRequest) {
     await db.ensureLoaded();
     const categoriesCol = db.collection('taskCategories');
 
-    // שימוש ראשון — זריעת קטגוריות ברירת מחדל (דפוס quote-templates)
-    let categories = categoriesCol.find({});
-    if (categories.length === 0) {
-      for (const name of DEFAULT_TASK_CATEGORIES) {
+    // זריעת ברירות מחדל — idempotent לפי שם: מוסיפה רק שמות חסרים, כך שהרצות
+    // חוזרות/מקבילות (או קריאה ראשונה שנקטעה) לא יוצרות כפילויות לעולם
+    const existing = categoriesCol.find({});
+    const existingNames = new Set(existing.map((c: any) => c.name));
+    let added = false;
+    for (const name of DEFAULT_TASK_CATEGORIES) {
+      if (!existingNames.has(name)) {
         categoriesCol.insertOne({ name, createdAt: new Date().toISOString() });
+        added = true;
       }
-      await db.flush();
-      categories = categoriesCol.find({});
     }
+    if (added) await db.flush();
 
-    const sorted = categories.sort(
+    const sorted = categoriesCol.find({}).sort(
       (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
     );
 
