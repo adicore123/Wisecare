@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
 import { sendLoginDetailsEmail } from '@/services/email';
-import { isSpaceLeadEmailEnabled, sendSpaceLeadEmails } from '@/services/spaceLeadEmail';
 import { hashPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
@@ -13,6 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     await db.ensureLoaded();
     const body = await request.json().catch(() => ({}));
+    const isSpaceRegistration = body.source === 'space';
     let { firstName, lastName = '', fullName, phone, email = '', username = '', password = '', goal = '' } = body;
 
     if (!firstName && fullName) {
@@ -29,8 +29,10 @@ export async function POST(request: NextRequest) {
     }
 
     const emailRegex = /^[^\s@<>,;:]+@[^\s@<>,;:]+\.[^\s@<>,;:]{2,}$/;
-    if (!email || !String(email).trim() || !emailRegex.test(String(email).trim())) {
-      return NextResponse.json({ error: 'נא להזין כתובת אימייל תקינה לשחזור סיסמה' }, { status: 400 });
+    if ((!isSpaceRegistration && !String(email).trim()) || (String(email).trim() && !emailRegex.test(String(email).trim()))) {
+      return NextResponse.json({ error: isSpaceRegistration
+        ? 'נא להזין כתובת אימייל תקינה או להשאיר את השדה ריק'
+        : 'נא להזין כתובת אימייל תקינה לשחזור סיסמה' }, { status: 400 });
     }
     if (!username || String(username).trim().length < 3) {
       return NextResponse.json({ error: 'שם משתמש חייב להכיל לפחות 3 תווים' }, { status: 400 });
@@ -47,7 +49,6 @@ export async function POST(request: NextRequest) {
     const cleanPhone = String(phone).trim();
     const cleanEmail = String(email).trim().toLowerCase();
     const cleanUsername = String(username).trim().toLowerCase();
-    const isSpaceRegistration = body.source === 'space';
 
     if ([cleanFirst, cleanLast, cleanPhone, cleanEmail, cleanUsername, String(goal)].some(value => /[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/.test(value))) {
       return NextResponse.json({ error: 'נא להזין פרטים תקינים ללא תווי בקרה.' }, { status: 400 });
@@ -105,13 +106,14 @@ export async function POST(request: NextRequest) {
       therapistId: null,
       isSelfCare: true,
       source: 'self_join',
+      ...(isSpaceRegistration ? { registrationOrigin: 'space' } : {}),
       goal: String(goal || '').trim(),
       status: 'active',
       createdAt: new Date().toISOString()
     });
 
-    // Email links use a trusted configured origin, rather than a caller's Host header.
-    const clientAppUrl = isSpaceRegistration && isSpaceLeadEmailEnabled()
+    // /space notification links use the configured origin, not a caller's Host header.
+    const clientAppUrl = isSpaceRegistration
       ? getBaseUrl()
       : getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
@@ -121,44 +123,42 @@ export async function POST(request: NextRequest) {
 
     let whatsappSent = false;
     let whatsappError = null;
-    if (body.sendWhatsApp !== false) {
+    let whatsappMessageId: string | null = null;
+    // Every /space registration receives credentials via the super-admin Green API connection.
+    if (isSpaceRegistration || body.sendWhatsApp !== false) {
       try {
         const message = `שלום ${client.firstName}, המרחב האישי והמאובטח שלך ב-WiseCare מוכן 🌱\n\nפרטי החשבון שלך:\n👤 שם משתמש: *${client.username}*\n🔑 סיסמה: ${password}\n\nהקישור הישיר למרחב שלך:\n👉 ${portalUrl}\n\nכאן תוכל לנהל משימות, לשמור סרטונים ומאמרים, ולתעד פגישות.\n💡 מומלץ לשמור הודעה זו או להוסיף את הפורטל למסך הבית!`;
-        await sendWhatsAppMessage({ phone: client.phone, message });
+        const delivery = await sendWhatsAppMessage({ phone: client.phone, message });
+        if (isSpaceRegistration && (!delivery.success || typeof delivery.idMessage !== 'string' || !delivery.idMessage.trim())) {
+          throw new Error('WHATSAPP_INVALID_RESPONSE');
+        }
         whatsappSent = true;
+        whatsappMessageId = delivery.idMessage || null;
       } catch (err: any) {
-        console.warn('[WhatsApp Join Warning]', err.message);
-        whatsappError = err.message;
+        // Do not persist/log raw provider errors: they may contain request credentials.
+        whatsappError = isSpaceRegistration ? 'WHATSAPP_DELIVERY_FAILED' : err.message;
+        console.warn('[WhatsApp Join Warning]', whatsappError);
       }
     }
 
-    // /space uses Apps Script when configured; otherwise retain the existing provider.
+    if (isSpaceRegistration) {
+      clients.updateOne({ id: client.id }, {
+        spaceWhatsAppDelivery: {
+          sent: whatsappSent, messageId: whatsappMessageId, error: whatsappError,
+          attemptedAt: new Date().toISOString()
+        }
+      });
+      await db.flush();
+    }
+
+    // /space is WhatsApp-only. Keep the existing email behavior for /join.
     // Failure does not roll back an account that was already created.
     let emailSent = false;
     let emailError: string | null = null;
-    let adminEmailSent = false;
+    const adminEmailSent = false;
     try {
       const settings: any = db.getSettings();
-      if (isSpaceRegistration && isSpaceLeadEmailEnabled()) {
-        const delivery = await sendSpaceLeadEmails({
-          id: client.id,
-          fullName: [cleanFirst, cleanLast].filter(Boolean).join(' '),
-          phone: cleanPhone,
-          email: cleanEmail,
-          username: cleanUsername,
-          password,
-          goal: String(goal || '').trim(),
-          portalUrl,
-          createdAt: client.createdAt
-        });
-        emailSent = delivery.userSent;
-        adminEmailSent = delivery.adminSent;
-        emailError = delivery.error || null;
-        clients.updateOne({ id: client.id }, {
-          spaceEmailDelivery: { ...delivery, attemptedAt: new Date().toISOString() }
-        });
-        if (delivery.error) console.warn('[Space Email]', delivery.error);
-      } else if (settings?.autoSendLoginEmail !== false && client.email) {
+      if (!isSpaceRegistration && settings?.autoSendLoginEmail !== false && client.email) {
         const result = await sendLoginDetailsEmail({
           to: client.email,
           firstName: client.firstName,

@@ -146,7 +146,7 @@ export default function SpaceLanding() {
     if (!form.fullName.trim()) return 'נא להזין שם מלא';
     const digits = form.phone.replace(/\D/g, '');
     if (digits.length < 9) return 'נא להזין מספר וואטספ תקין';
-    if (!/^[^\s@<>,;:]+@[^\s@<>,;:]+\.[^\s@<>,;:]{2,}$/.test(form.email.trim())) return 'נא להזין כתובת אימייל תקינה';
+    if (form.email.trim() && !/^[^\s@<>,;:]+@[^\s@<>,;:]+\.[^\s@<>,;:]{2,}$/.test(form.email.trim())) return 'נא להזין כתובת אימייל תקינה או להשאיר את השדה ריק';
     if (form.username.trim().length < 3) return 'שם משתמש קצר מדי — לפחות 3 תווים';
     if (form.password.length < 8) return 'הסיסמה קצרה מדי — לפחות 8 תווים';
     if (form.password !== form.confirmPassword) return 'הסיסמאות אינן תואמות';
@@ -512,7 +512,7 @@ export default function SpaceLanding() {
 
                 <div className="space-reg-trust" aria-hidden="true">
                   <span><ShieldCheck size={13} /> פרטיות מלאה</span>
-                  <span><WhatsAppIcon size={13} /> הפרטים מגיעים בוואטסאפ ובמייל</span>
+                  <span><WhatsAppIcon size={13} /> פרטי הכניסה מגיעים בוואטסאפ</span>
                   <span><CheckCircle2 size={13} /> דקה אחת</span>
                 </div>
 
@@ -527,7 +527,7 @@ export default function SpaceLanding() {
                     </label>
 
                     <label className="space-field">
-                      <span>מספר וואטספ *</span>
+                      <span>מספר וואטסאפ לקבלת פרטי הכניסה *</span>
                       <div className="space-input-wrap">
                         <Phone size={16} aria-hidden="true" />
                         <input type="tel" dir="ltr" value={form.phone} onChange={set('phone')} placeholder="050-0000000" autoComplete="tel" />
@@ -535,10 +535,10 @@ export default function SpaceLanding() {
                     </label>
 
                     <label className="space-field">
-                      <span>אימייל *</span>
+                      <span>אימייל (לא חובה)</span>
                       <div className="space-input-wrap">
                         <Mail size={16} aria-hidden="true" />
-                        <input type="email" dir="ltr" required aria-required="true" maxLength={254} value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
+                        <input type="email" dir="ltr" maxLength={254} value={form.email} onChange={set('email')} placeholder="you@email.com" autoComplete="email" />
                       </div>
                     </label>
 
@@ -602,36 +602,27 @@ export default function SpaceLanding() {
                 </form>
               </>
             ) : (
-              <div className="space-success">
+              <div className="space-success" role="status" aria-live="polite">
                 <CheckCircle2 size={52} aria-hidden="true" />
                 <h2>{form.fullName.trim().split(' ')[0]} — המרחב שלך מוכן!</h2>
                 <p>
-                  {success.emailSent ? (
+                  {success.whatsappSent ? (
                     <>
-                      אישור ההרשמה והקישור למרחב נשלחו למייל{' '}
-                      <strong dir="ltr">{form.email}</strong> 📧
+                      שם המשתמש, הסיסמה שבחרת והקישור למרחב נשלחו לוואטסאפ שלך במספר{' '}
+                      <strong dir="ltr">{form.phone}</strong>.
                     </>
                   ) : (
                     <>
-                      {success.whatsappSent
-                        ? 'הקישור האישי ופרטי הכניסה נשלחו לוואטספ בהצלחה.'
-                        : 'המרחב נפתח בהצלחה. לא הצלחנו לשלוח את ההודעות כרגע — אפשר להיכנס מיד באמצעות הכפתור למטה.'}
+                      המרחב נפתח בהצלחה, אבל לא הצלחנו לשלוח את פרטי הכניסה לוואטסאפ כרגע. שמור/י את שם המשתמש והסיסמה שבחרת — אפשר להיכנס מיד באמצעות הכפתור למטה.
                     </>
                   )}
                   <br />
                   שם המשתמש שלך: <strong dir="ltr">{success.client?.username || form.username}</strong>
                 </p>
-                {success.emailSent ? (
-                  <div className="space-success-mail">
-                    <Mail size={16} aria-hidden="true" />
-                    שמור/י את המייל — הוא הדרך שלך חזרה למרחב
-                  </div>
-                ) : (
-                  <div className="space-success-wa">
-                    {success.whatsappSent ? <WhatsAppIcon size={16} /> : <ShieldCheck size={16} />}
-                    {success.whatsappSent ? 'שמור/י את ההודעה — היא הדרך שלך חזרה למרחב' : 'לכניסה בהמשך, השתמש/י בשם המשתמש ובסיסמה שבחרת'}
-                  </div>
-                )}
+                <div className="space-success-wa">
+                  {success.whatsappSent ? <WhatsAppIcon size={16} /> : <ShieldCheck size={16} />}
+                  {success.whatsappSent ? 'שמור/י את הודעת הוואטסאפ — פרטי הכניסה שלך נמצאים בה' : 'לכניסה בהמשך, השתמש/י בשם המשתמש ובסיסמה שבחרת'}
+                </div>
                 <button
                   type="button"
                   className="space-btn space-btn-primary space-btn-lg"
