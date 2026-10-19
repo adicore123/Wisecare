@@ -338,6 +338,18 @@ export const api = {
     return res.json();
   },
 
+  // סנכרון משימות שידור — משלים לכל המרחבים אצוות שחסרות
+  syncBroadcastTasks: async () => {
+    const res = await fetch(`${API_BASE}/tasks/bulk/sync`, {
+      method: 'POST', headers: authHeaders()
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'שגיאה בסנכרון');
+    }
+    return res.json() as Promise<{ success: boolean; added: number; clientsTouched: number }>;
+  },
+
   getContentItems: async (arg) => {
     const therapistId = typeof arg === 'string' ? arg : (arg?.therapistId || '');
     const query = new URLSearchParams(therapistId ? { therapistId } : {});

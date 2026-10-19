@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
+import { newBroadcastId } from '@/lib/broadcastTasks';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -31,6 +32,8 @@ export async function POST(request: NextRequest) {
     const clientsCol = db.collection('clients');
     const tasks = db.collection('tasks');
 
+    // אצוית שידור — מזהה אחד לכל העותקים; נרשמים עתידיים מקבלים אותה אוטומטית
+    const broadcastId = newBroadcastId();
     let created = 0;
     const skipped: string[] = [];
     for (const rawId of clientIds) {
@@ -52,6 +55,7 @@ export async function POST(request: NextRequest) {
         clientNotes: '',
         isSelfCreated: false,
         assignedBy: 'superadmin',
+        broadcastId,
         createdAt: new Date().toISOString()
       });
       created++;

@@ -41,6 +41,11 @@ export async function PUT(request: NextRequest, props: RouteProps) {
       updateData.completedAt = body.completed ? new Date().toISOString() : null;
     }
 
+    // חותם אצוית שידור — סופראדמין בלבד, לצורך מילוי לאחור של אצוות קיימות
+    if (body.broadcastId !== undefined && auth.role === 'superadmin') {
+      updateData.broadcastId = String(body.broadcastId).slice(0, 60);
+    }
+
     const updated = tasks.updateById(id, updateData);
     await db.flush();
     return NextResponse.json(updated);

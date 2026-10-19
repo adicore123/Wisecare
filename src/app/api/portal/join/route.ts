@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { db } from '@/lib/db';
 import { sendWhatsAppMessage } from '@/services/greenApi';
+import { provisionBroadcastTasksForClient } from '@/lib/broadcastTasks';
 import { sendLoginDetailsEmail } from '@/services/email';
 import { hashPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken } from '@/lib/auth';
@@ -122,6 +123,15 @@ export async function POST(request: NextRequest) {
 
     // Persist the account before sending any external notifications.
     await db.flush();
+
+    // משימות שידור ("לכולם") שנשלחו לפני הרישום — מוקצות לנרשם החדש מיד,
+    // כך שהוא מתחיל עם אותן משימות כמו כולם. כישלון כאן לא חוסם רישום.
+    try {
+      const provisioned = provisionBroadcastTasksForClient(client.id, null);
+      if (provisioned > 0) await db.flush();
+    } catch (err: any) {
+      console.warn('[Broadcast Provision Warning]', err.message);
+    }
 
     let whatsappSent = false;
     let whatsappError = null;

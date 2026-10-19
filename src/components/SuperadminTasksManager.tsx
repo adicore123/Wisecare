@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  CheckSquare, Square, Trash2, FolderPlus, Folder, Check, X, Info, Search, Send, Users, Pencil, Megaphone
+  CheckSquare, Square, Trash2, FolderPlus, Folder, Check, X, Info, Search, Send, Users, Pencil, Megaphone, RefreshCw
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import Toast from './Toast';
@@ -72,6 +72,7 @@ export default function SuperadminTasksManager() {
   const [editError, setEditError] = useState('');
   const [allTasks, setAllTasks] = useState<Array<ClientTask & { clientId: string }>>([]);
   const [allTasksLoading, setAllTasksLoading] = useState(false);
+  const [syncingBroadcasts, setSyncingBroadcasts] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
@@ -694,6 +695,31 @@ export default function SuperadminTasksManager() {
           <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
             🗂️ כל המשימות שנפתחו מהפאנל ({allTasks.length})
           </h3>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={syncingBroadcasts}
+            onClick={async () => {
+              try {
+                setSyncingBroadcasts(true);
+                const res = await api.syncBroadcastTasks();
+                showToast(
+                  res.added > 0
+                    ? `הושלמו ${res.added} משימות שידור ל-${res.clientsTouched} מרחבים 🔄`
+                    : 'כל המרחבים מסונכרנים — אין חסרות ✅'
+                );
+                await Promise.all([loadAllTasks(), selectedClientId ? loadClientTasks(selectedClientId) : Promise.resolve()]);
+              } catch (err: any) {
+                showToast(err.message || 'שגיאה בסנכרון', 'error');
+              } finally {
+                setSyncingBroadcasts(false);
+              }
+            }}
+            title="משלים לכל בעלי המרחבים משימות שידור שחסרות להם (למשל נרשמו אחרי השידור)"
+          >
+            <RefreshCw size={14} style={{ display: 'inline', verticalAlign: '-2px', marginLeft: '5px' }} />
+            {syncingBroadcasts ? 'מסנכרן...' : 'סנכרון משימות שידור לכולם'}
+          </button>
         </div>
 
         {allTasksLoading ? (
