@@ -70,10 +70,46 @@ export default function SuperadminTasksManager() {
   const [editTask, setEditTask] = useState<ClientTask | null>(null);
   const [editingSaving, setEditingSaving] = useState(false);
   const [editError, setEditError] = useState('');
+  const [allTasks, setAllTasks] = useState<Array<ClientTask & { clientId: string }>>([]);
+  const [allTasksLoading, setAllTasksLoading] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 4500);
+  };
+
+  /** כל המשימות שנפתחו מהפאנל הראשי — לכל המרחבים */
+  const loadAllTasks = useCallback(async () => {
+    try {
+      setAllTasksLoading(true);
+      const tasks = await api.getTasks();
+      setAllTasks(
+        (Array.isArray(tasks) ? tasks : [])
+          .filter((t: any) => t.assignedBy === 'superadmin')
+          .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      );
+    } catch {
+      setAllTasks([]);
+    } finally {
+      setAllTasksLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { loadAllTasks(); }, [loadAllTasks]);
+
+  const clientNameOf = useCallback((clientId: string) => {
+    const c = clients.find((x) => x.id === clientId);
+    return c ? `${c.firstName} ${c.lastName}`.trim() : 'מרחב לא זמין';
+  }, [clients]);
+
+  /** תאריך פתיחת המשימה — נשמר אוטומטית בשרת, בלי קלט ידני */
+  const openedDate = (iso?: string | null) => {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return '—';
+    }
   };
 
   const load = useCallback(async () => {
@@ -252,6 +288,7 @@ export default function SuperadminTasksManager() {
         if (selectedClientId) await loadClientTasks(selectedClientId);
       }
       setTitle(''); setDescription(''); setDueDate('');
+      await loadAllTasks();
     } catch (err: any) {
       setFormError(err.message || 'שגיאה בשליחת המשימה');
     } finally {
@@ -267,6 +304,7 @@ export default function SuperadminTasksManager() {
       setDeleteTaskId(null);
       showToast('המשימה נמחקה 🗑️');
       if (selectedClientId) await loadClientTasks(selectedClientId);
+      await loadAllTasks();
     } catch (err: any) {
       showToast(err.message || 'שגיאה במחיקה', 'error');
     } finally {
@@ -288,6 +326,7 @@ export default function SuperadminTasksManager() {
       setEditTask(null);
       showToast('המשימה עודכנה ✏️');
       if (selectedClientId) await loadClientTasks(selectedClientId);
+      await loadAllTasks();
     } catch (err: any) {
       setEditError(err.message || 'שגיאה בשמירה');
     } finally {
@@ -612,6 +651,9 @@ export default function SuperadminTasksManager() {
                             📅 {t.dueDate}
                           </span>
                         )}
+                        <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#94a3b8' }}>
+                          🕐 נפתחה: {openedDate(t.createdAt)}
+                        </span>
                         <span style={{ fontSize: '0.72rem', fontWeight: 700, color: t.completed ? '#059669' : '#94a3b8' }}>
                           {t.completed ? 'הושלמה ✓' : 'ממתינה'}
                         </span>
@@ -646,6 +688,89 @@ export default function SuperadminTasksManager() {
         </div>
       )}
 
+      {/* כל המשימות שנפתחו מהפאנל הראשי — טבלה גלובלית לכל המרחבים */}
+      <div className="song-cat-content" style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '20px' }}>
+        <div className="song-cat-content-head">
+          <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>
+            🗂️ כל המשימות שנפתחו מהפאנל ({allTasks.length})
+          </h3>
+        </div>
+
+        {allTasksLoading ? (
+          <div className="song-empty">טוען...</div>
+        ) : allTasks.length === 0 ? (
+          <div className="song-empty">
+            <CheckSquare size={26} />
+            <p>עדיין לא נפתחו משימות מהפאנל — משימות שתשלחו יופיעו כאן</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <table className="custom-table" style={{ margin: 0, minWidth: '640px' }}>
+              <thead>
+                <tr>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>מרחב אישי</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>כותרת</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>קטגוריה</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>נפתחה</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>תאריך יעד</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'right' }}>סטטוס</th>
+                  <th style={{ padding: '10px 14px', textAlign: 'center' }}>פעולות</th>
+                </tr>
+              </thead>
+              <tbody>
+                {allTasks.map((t) => (
+                  <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                    <td style={{ padding: '10px 14px', fontWeight: 700, whiteSpace: 'nowrap', color: '#334155' }}>
+                      {clientNameOf(t.clientId)}
+                    </td>
+                    <td style={{ padding: '10px 14px', color: '#0f172a', maxWidth: '260px' }}>
+                      <div style={{ fontWeight: 700, textDecoration: t.completed ? 'line-through' : 'none' }}>{t.title}</div>
+                      {t.description && <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>{t.description.slice(0, 60)}{t.description.length > 60 ? '…' : ''}</div>}
+                    </td>
+                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, background: '#f1f5f9', color: '#475569', padding: '2px 9px', borderRadius: '20px' }}>
+                        📂 {t.category || 'תרגול ביתי'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap', color: '#334155', fontSize: '0.85rem', fontWeight: 600 }}>
+                      🕐 {openedDate(t.createdAt)}
+                    </td>
+                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap', color: '#64748b', fontSize: '0.85rem' }}>
+                      {t.dueDate || '—'}
+                    </td>
+                    <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '0.74rem', fontWeight: 700, color: t.completed ? '#059669' : '#b45309', background: t.completed ? '#ecfdf5' : '#fffbeb', padding: '2px 9px', borderRadius: '20px' }}>
+                        {t.completed ? 'הושלמה ✓' : 'ממתינה'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                      <button
+                        type="button"
+                        className="song-icon-btn"
+                        onClick={() => { setEditError(''); setEditTask(t); }}
+                        title="עריכת המשימה"
+                        aria-label={`עריכת ${t.title}`}
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className="song-icon-btn song-icon-btn-danger"
+                        onClick={() => setDeleteTaskId(t.id)}
+                        title="מחיקת המשימה"
+                        aria-label={`מחיקת ${t.title}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <ConfirmModal
         isOpen={Boolean(deleteCatId)}
         onClose={() => setDeleteCatId(null)}
@@ -662,7 +787,7 @@ export default function SuperadminTasksManager() {
         onClose={() => setDeleteTaskId(null)}
         onConfirm={confirmDeleteTask}
         title="מחיקת משימה"
-        message={`למחוק את "${clientTasks.find((t) => t.id === deleteTaskId)?.title || 'המשימה'}"?`}
+        message={`למחוק את "${(clientTasks.find((t) => t.id === deleteTaskId) || allTasks.find((t) => t.id === deleteTaskId))?.title || 'המשימה'}"? המשימה תיעלם גם מהמרחב האישי של המטופל.`}
         confirmLabel="מחיקה"
         isDanger
         loading={deletingTask}
