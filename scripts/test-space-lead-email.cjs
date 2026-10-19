@@ -1,22 +1,24 @@
-// Node 24+. All Google services and fetch are mocked: no real emails or registrations.
+// Node 24+. All Google services and HTTP calls are mocked: no real emails or registrations.
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { readFileSync, mkdirSync, writeFileSync } = require('node:fs');
 const { resolve } = require('node:path');
 const { pathToFileURL } = require('node:url');
+const { registerHooks } = require('node:module');
 const vm = require('node:vm');
 const { createHmac, createHash } = require('node:crypto');
 
 const secret = '8264937150283649'; // Test-only 16-digit key, not the real server key.
 const fixture = {
   id: 'id-qa-0001', fullName: 'נועה ישראלי', phone: '050-1234567',
-  email: 'noa@example.com', username: 'noa.wellbeing', goal: 'calm',
+  email: 'noa@example.com', username: 'noa.wellbeing', password: '  Chosen<&"Password!2026  ', goal: 'calm',
   portalUrl: 'https://wisecare.example/portal/my-123456',
   createdAt: '2026-10-19T08:30:00.000Z', source: 'space'
 };
 
 function harness(options = {}) {
   const sent = [];
+  const logs = [];
   const props = {
     WEBHOOK_SECRET: secret, ADMIN_EMAIL: 'owner@example.com', SITE_URL: 'https://wisecare.example'
   };
@@ -28,7 +30,7 @@ function harness(options = {}) {
   };
   let locked = false;
   const context = vm.createContext({
-    console: { log() {}, warn() {} },
+    console: { log: (...args) => logs.push(args.join(' ')), warn: (...args) => logs.push(args.join(' ')) },
     PropertiesService: { getScriptProperties: () => properties },
     Session: { getEffectiveUser: () => ({ getEmail: () => 'owner@example.com' }) },
     Utilities: {
@@ -51,7 +53,7 @@ function harness(options = {}) {
     }
   });
   vm.runInContext(readFileSync(resolve(__dirname, '../integrations/google-apps-script/Code.gs'), 'utf8'), context);
-  return { context, sent, props, options };
+  return { context, sent, props, options, logs };
 }
 
 function envelope(lead = fixture, timestamp = Date.now().toString()) {
@@ -107,6 +109,41 @@ if (process.argv.includes('--preview')) {
     assert.equal(post(h).ok, true);
     assert.equal(h.sent.length, 2);
     assert.equal(h.sent.filter(mail => mail.to === fixture.email).length, 1);
+  });
+
+  test('only registrant receives the exact chosen password; admin and receipts do not', () => {
+    const h = harness();
+    assert.equal(post(h).ok, true);
+    const user = h.sent[0];
+    const admin = h.sent[1];
+    const escapedPassword = h.context.escape_(fixture.password);
+    assert.ok(user.body.includes('סיסמה: ' + fixture.password + '\n'));
+    assert.ok(user.htmlBody.includes(escapedPassword));
+    assert.match(user.htmlBody, /white-space:pre-wrap/);
+    assert.doesNotMatch(user.htmlBody, /הסיסמה אינה נשלחת/);
+    for (const value of Object.values(admin)) {
+      assert.ok(!String(value).includes(fixture.password));
+      assert.ok(!String(value).includes(escapedPassword));
+    }
+    assert.ok(!JSON.stringify(h.props).includes(fixture.password));
+    assert.ok(!JSON.stringify(h.logs).includes(fixture.password));
+  });
+
+  test('rejects missing, short and multiline passwords without sending', () => {
+    const h = harness();
+    for (const password of [undefined, '', 'short', 'chosen\npassword', 'chosen\rpassword', 'x'.repeat(1025)]) {
+      assert.equal(post(h, envelope({ ...fixture, password })).ok, false);
+    }
+    assert.equal(h.sent.length, 0);
+  });
+
+  test('does not expose the password in failed delivery logs or responses', () => {
+    const h = harness({ fail: () => { throw new Error(fixture.password); } });
+    const result = post(h);
+    assert.equal(result.ok, false);
+    assert.equal(result.error, 'MAIL_SEND_FAILED');
+    assert.ok(!JSON.stringify(result).includes(fixture.password));
+    assert.ok(!JSON.stringify(h.logs).includes(fixture.password));
   });
 
   test('rejects unsigned, stale and tampered requests without sending', () => {
@@ -184,50 +221,65 @@ if (process.argv.includes('--preview')) {
       h.options.fail = null;
       return true;
     } });
-    const original = global.fetch;
+    const axios = (await import('axios')).default;
+    const original = axios.post;
+    // Mock this unrelated dependency so importing the sender never loads the real DB.
+    const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
+      if (specifier === '@/lib/contentHelpers') {
+        return { url: 'data:text/javascript,export function isPublicWebUrl(url){return new URL(url).protocol === "https:";}', shortCircuit: true };
+      }
+      return nextResolve(specifier, context);
+    } });
+    const response = (data, status = 200, type = 'application/json', url = 'https://script.googleusercontent.com/test') => ({
+      status, data, headers: { 'content-type': type }, request: { res: { responseUrl: url } }
+    });
     const oldUrl = process.env.SPACE_LEADS_APPS_SCRIPT_URL;
     const oldSecret = process.env.SPACE_LEADS_WEBHOOK_SECRET;
     t.after(() => {
-      global.fetch = original;
+      axios.post = original;
+      hooks.deregister();
       if (oldUrl === undefined) delete process.env.SPACE_LEADS_APPS_SCRIPT_URL; else process.env.SPACE_LEADS_APPS_SCRIPT_URL = oldUrl;
       if (oldSecret === undefined) delete process.env.SPACE_LEADS_WEBHOOK_SECRET; else process.env.SPACE_LEADS_WEBHOOK_SECRET = oldSecret;
     });
     process.env.SPACE_LEADS_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/test-deployment/exec';
     process.env.SPACE_LEADS_WEBHOOK_SECRET = secret;
     let calls = 0;
-    global.fetch = async (url, init) => {
+    axios.post = async (url, data, options) => {
       calls++;
-      assert.equal(init.redirect, 'follow');
-      const data = JSON.parse(init.body);
+      assert.equal(options.maxRedirects, 5);
       const forwarded = JSON.parse(data.payload);
-      assert.equal(forwarded.password, undefined);
+      assert.equal(forwarded.password, fixture.password);
       assert.equal(forwarded.token, undefined);
-      return Response.json(post(h, data));
+      return response(post(h, data));
     };
     const { sendSpaceLeadEmails } = await import(pathToFileURL(resolve(__dirname, '../src/services/spaceLeadEmail.ts')).href);
-    const result = await sendSpaceLeadEmails({ ...fixture, password: 'MUST_NOT_LEAVE_SERVER', token: 'PRIVATE_TOKEN' });
+    const result = await sendSpaceLeadEmails({ ...fixture, token: 'PRIVATE_TOKEN' });
     assert.deepEqual(result, { userSent: true, adminSent: true });
     assert.equal(calls, 2);
     assert.equal(h.sent.length, 2);
+    assert.ok(h.sent[0].body.includes(fixture.password));
+    assert.ok(!h.sent[1].body.includes(fixture.password));
+    assert.ok(!h.sent[1].htmlBody.includes(h.context.escape_(fixture.password)));
 
     // Google authentication pages and unexpected response IDs must fail closed.
-    global.fetch = async () => new Response('Unauthorized', { status: 401 });
+    axios.post = async () => response('Unauthorized', 401);
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_AUTH_REQUIRED');
-    global.fetch = async () => ({ url: 'https://accounts.google.com/v3/signin', status: 200 });
+    axios.post = async () => response('', 200, 'text/html', 'https://accounts.google.com/v3/signin');
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_AUTH_REQUIRED');
-    global.fetch = async () => new Response('<html>Sign in</html>', { headers: { 'Content-Type': 'text/html' } });
+    axios.post = async () => response('<html>Sign in</html>', 200, 'text/html');
     assert.equal((await sendSpaceLeadEmails(fixture)).userSent, false);
-    global.fetch = async () => Response.json({ requestId: 'different-id', userSent: true, adminSent: true });
+    axios.post = async () => response({ requestId: 'different-id', userSent: true, adminSent: true });
     assert.equal((await sendSpaceLeadEmails(fixture)).userSent, false);
-    global.fetch = async () => Response.json({ ok: false, requestId: '', userSent: false, adminSent: false, error: 'INVALID_REQUEST_OR_CONFIGURATION' });
+    axios.post = async () => response({ ok: false, requestId: '', userSent: false, adminSent: false, error: 'INVALID_REQUEST_OR_CONFIGURATION' });
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_CONFIGURATION');
-    global.fetch = async () => Response.json({ ok: false, requestId: '', userSent: false, adminSent: false, error: 'UNAUTHORIZED' });
+    axios.post = async () => response({ ok: false, requestId: '', userSent: false, adminSent: false, error: 'UNAUTHORIZED' });
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_SIGNATURE_REJECTED');
     process.env.SPACE_LEADS_WEBHOOK_SECRET = '1'.repeat(15);
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_CONFIGURATION');
     process.env.SPACE_LEADS_WEBHOOK_SECRET = secret;
+    assert.equal((await sendSpaceLeadEmails({ ...fixture, password: undefined })).error, 'INVALID_REGISTRATION_PASSWORD');
     process.env.SPACE_LEADS_APPS_SCRIPT_URL = 'https://evil.example/exec';
-    global.fetch = async () => { throw new Error('Must not fetch an untrusted endpoint'); };
+    axios.post = async () => { throw new Error('Must not request an untrusted endpoint'); };
     assert.equal((await sendSpaceLeadEmails(fixture)).error, 'APPS_SCRIPT_CONFIGURATION');
   });
 }
