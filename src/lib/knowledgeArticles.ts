@@ -272,30 +272,460 @@ export const KNOWLEDGE_ARTICLES: KnowledgeArticle[] = [
     id: 'depression-loneliness',
     categoryId: 'depression',
     titleHe: 'בדידות — הסיגריות הרגשיות',
-    readMinutes: 3,
+    readMinutes: 6,
     evidenceTier: 'verified',
     body: `בדידות חברתית נושאת סיכון תמותה של 26-29% — שקול לעישון 15 סיגריות ביום.
 
 זו לא מטאפורה. זה נתון ממטא-אנליזה של 70 מחקרים, 3.4 מיליון משתתפים.
 
-הבדידות היא אות ביולוגי — כמו רעב או צמא — שדוחף אותנו להתחבר. זו מערכת הישרדות, לא חולשה.
+אבל מה שהמחקר מגלה עכשיו מפתיע עוד יותר: לא מספיק "לצאת לאנשים". מה שבאמת עובד זה לשנות את החשיבה על אנשים.
 
-ולכן: חיבור חברתי הוא לא "נחמד להיות" — הוא רפואה.`,
+הלולאה: בדידות \u2192 רגישות-יתר לאיום חברתי \u2192 חיפוש אישוש ("הוא בטח שונא אותי") \u2192 נסיגה ועצבנות \u2192 אחרים מתרחקים \u2192 בדידות מאוששת.
+
+מטא-אנליזה של התערבויות: טיפול בקוגניציה החברתית השיג את האפקט הגדול ביותר — יותר מאימון מיומנויות חברתיות, יותר מהגדלת מגע חברתי. כלומר: "הצטרף למועדון" לבד — לא מספיק. לעבוד על "הוא בטח שונא אותי" — מכפיל את האפקט.`,
     findings: [
       { highlight: 'קשרים חברתיים חלשים = סיכון תמותה מוגבר ב-50%; בדידות מגדילה סיכוי למוות מוקדם ב-26% — מטא-אנליזה של 70 מחקרים, ‏3.4 מיליון משתתפים', citation: 'Holt-Lunstad J et al. (2015), Perspectives on Psychological Science' },
-      { highlight: 'בדידות מנבאת דיכאון ותחלואה באופן עצמאי — גם אחרי בקרה לגורמים מבחינים', citation: 'Park C et al. (2020), Journal of Affective Disorders' },
-      { highlight: 'טיפול קבוצתי לדיכאון משיג תוצאות דומות לטיפול אישי — עם תוספת של תמיכה הדדית', citation: 'Cuijpers P et al. — meta-analytic work on group therapy' },
-      { highlight: 'התנדבות ~2 שעות בשבוע מנבאת דיכאון נמוך יותר באופן עקבי במחקרי מעקב', citation: 'Cohort data on volunteering and depression' },
+      { highlight: 'בדידות מכפילה סיכון לדיכאון חדש: ‏OR=2.33 (95% CI 1.62-3.34) למבוגרים שלעיתים קרובות בודדים. גם מנבאת חזרה של דיכאון', citation: 'Mann F, et al. Social Psychiatry and Psychiatric Epidemiology, 2022 — meta-analysis' },
+      { highlight: 'לולאת הבדידות התנהגותית: בדידות \u2192 hypervigilance חברתי \u2192 אישוש \u2192 נסיגה \u2192 אחרים מתרחקים. המעגל מזוהה וניתן לשבירה בכל חוליה', citation: 'Cacioppo JT, Hawkley LC. Perceived social isolation and cognition. 2009' },
+      { highlight: 'מה עובד לבדידות: שינוי חשיבה חברתית \u2014 לא רק חשיפה חברתית. טיפול ב"הוא בטח שונא אותי" משיג אפקט גדול יותר מ"הצטרף למועדון"', citation: 'Masi CM, et al. Meta-analysis of interventions to reduce loneliness. Pers Soc Psychol Review, 2011' },
+      { highlight: 'בדידות \u2260 ביחד לבד: מדובר בפער בין החיבור הרצוי למושג. אפשר להרגיש בודד בין אנשים ולא-בודד לבד', citation: 'Peplau LA, Perlman D. Perspectives on loneliness. 1982' },
     ],
     tools: [
-      { icon: 'thought', text: 'בדידות = רעב לחיבור, לא כישלון. מיקרו-חיבורים סופרים: שיחה קצרה, הודעה לחבר. התחל/י מ-1 מיקרו-חיבור ביום' },
+      { icon: 'thought', text: 'לפני שאתם מניחים "הוא לא רוצה לדבר איתי": מה הראיות? האם בדקתם? בדידות משקרת על מניעים של אחרים.' },
       { icon: 'thought', text: 'סולם 3 אנשים: דרגה 1 = טקסט. דרגה 2 = פעילות משותפת. דרגה 3 = לחלוק משפט אמיתי. אחת ליום.' },
       { icon: 'songs', text: 'שיר שמרגיש כמו חיבוק — מפעיל מעגלי נחמה במוח', linkTo: 'songs' },
-      { icon: 'journal', text: 'כתוב/י: מי האנשים שממלאים אותי? מה מונע ממני לפנות אליהם?', linkTo: 'insights' },
+      { icon: 'journal', text: 'כתוב/י: מי האנשים שממלאים אותי? מה מונע ממני לפנות אליהם? מה אני מניח/ה שהם חושבים?', linkTo: 'insights' },
     ],
     sources: [
-      { ref: 'Holt-Lunstad J, et al. Loneliness and social isolation as risk factors for mortality. Perspect Psychol Sci. 2015.', link: 'https://journals.sagepub.com/doi/10.1177/1745691614568352' },
-      { ref: 'Park C, et al. Loneliness as a predictor of depression. J Affect Disord. 2020.' },
+      { ref: 'Holt-Lunstad J, et al. Perspect Psychol Sci. 2015.' },
+      { ref: 'Mann F, et al. Soc Psychiatry Psychiatr Epidemiol. 2022.' },
+      { ref: 'Masi CM, et al. Pers Soc Psychol Rev. 2011.' },
+      { ref: 'Cacioppo JT, Hawkley LC. 2009.' },
+    ],
+  },
+
+  {
+    id: 'depression-chemical-imbalance-myth',
+    categoryId: 'depression',
+    titleHe: 'מיתוס חוסר האיזון הכימי',
+    readMinutes: 6,
+    evidenceTier: 'verified',
+    body: `"דיכאון זה חוסר של סרוטונין במוח" — נשמע מוכר? המחקר המקיף ביותר שנערך אי-פעם בדק בדיוק את זה, ומצא: אין ראיות.
+
+סקירת-המטריה של מונקריף (‏2022, Molecular Psychiatry) בדקה את כל ששת תחומי הראיות: רמות סרוטונין, קולטנים, נוגדי דיכאון, מחסור טריפטופן, גנים. המסקנה: אין תמיכה מדעית לסיפור "הכימיקלים לא מאוזנים".
+
+אז מה דיכאון כן? רשת. לא סיבה אחת — אלא גורמים רבים שמזינים זה את זה: שינה גרועה → עייפות → אובדן עניין → התבודדות → שינה גרועה יותר. כל סימפטום מחזק את הבא. ולכן: פוגעים בחוליה אחת (שינה, תנועה, חשיבה) — וכל הרשת משתפרת.
+
+והנתון שנותן תקווה: ‏BDNF — חלבון שמעודד צמיחת תאי עצב — נמוך בדיכאון אבל חוזר לנורמה אחרי טיפול. אפילו אימון גופני אחד מעלה אותו מיד.`,
+    findings: [
+      {
+        highlight: 'סקירת-מטריה שכללה את כל 6 תחומי הראיות: אין תמיכה ל"דיכאון = סרוטונין נמוך". המסקנה: "אין לומר למטופלים שדיכאון נגרם מחוסר איזון כימי"',
+        citation: 'Moncrieff J, Cooper RE, et al. The serotonin theory of depression. Molecular Psychiatry, 2022 — umbrella review',
+      },
+      {
+        highlight: 'אין גן בודד לדיכאון: ‏18 גנים מועמדים היסטוריים (כולל 5-HTTLPR) נבדקו במאות אלפי אנשים — אף אחד לא חזה דיכאון. דיכאון פוליגני: ‏102 לוקוסים, כל אחד מסביר פחות מ-1%',
+        citation: 'Border R, et al. American Journal of Psychiatry, 2019; Wray NR, et al. Nature Genetics, 2018 — GWAS >800,000',
+      },
+      {
+        highlight: '‏BDNF — חלבון צמיחת תאי עצב — נמוך בדיכאון ומתואם לחומרת התסמינים. אחרי טיפול (תרופתי או אימון גופני אחד!) הוא חוזר לנורמה',
+        citation: 'Brunoni AR, et al. meta-analysis, J Affective Disorders, 2008; Molendijk ML, et al. Molecular Psychiatry, 2014; Laske C, et al. 2010 — BDNF 24.4\u219228.5 ng/ml post-exercise, p<0.0001',
+      },
+      {
+        highlight: 'ל-27% מהמדוכאים יש דלקת כרונית מדידה (‏CRP>3) לעומת ~10% באוכלוסיה. דיכאון הוא לא מחלה אחת אלא "מטרייה" של מסלולים שונים',
+        citation: 'Osimo EF, Baxter LM, et al. Psychological Medicine, 2019 — meta-analysis, 30 studies',
+      },
+      {
+        highlight: 'מודל הרשת: סימפטומים גורמים זה לזה (שינה\u2192עייפות\u2192אנהדוניה\u2192התבודדות\u2192שינה). שינה ואנהדוניה הן ה"צמתים" המרכזיים — לכן פוגעים בהן ראשון',
+        citation: 'Borsboom D. A network theory of mental disorders. Perspectives on Psychological Science, 2017',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'זה לא "הכימיה שלך" — זו רשת שאפשר להשפיע עליה. כל חוליה שמשתפרת מושכת את כל הרשת. תבחרו חוליה אחת להתחיל ממנה.' },
+      { icon: 'breathing', text: 'שינה + נשימה = הצומת המרכזי. 5 דקות נשימות לפני שינה משפיעות על כל הרשת מחר', linkTo: 'breathing' },
+    ],
+    sources: [
+      { ref: 'Moncrieff J, et al. Molecular Psychiatry, 2022.' },
+      { ref: 'Wray NR, et al. Nature Genetics, 2018.' },
+      { ref: 'Osimo EF, et al. Psychological Medicine, 2019.' },
+      { ref: 'Borsboom D. Perspect Psychol Sci, 2017.' },
+    ],
+  },
+
+  {
+    id: 'depression-meds-truth',
+    categoryId: 'depression',
+    titleHe: 'תרופות נוגדות דיכאון: האמת',
+    readMinutes: 5,
+    evidenceTier: 'verified',
+    body: `המחקר הגדול בעולם על נוגדי דיכאון בדק 522 ניסויים עם 116,477 משתתפים. התוצאה: כל 21 התרופות שנבדקו יעילות יותר מפלצבו — אבל באופן צנוע.
+
+מה זה אומר בפועל? שתרופות עוזרות להרבה אנשים, אבל הן לא קוסם. הן כלי אחד מתוך ארגז, ולא תמיד הכי חזק.
+
+והנתון הקריטי: ‏Geddes וצוותו מצאו שהמשך נטילת תרופות אחרי ההחלמה מפחית את סיכון הנשניות בחצי: ‏41% נשניות בפלצבו מול 18% בהמשך תרופות. כלומר — גם אם מרגישים טוב, זה בדיוק הזמן לא להפסיק (בלי לייעץ לרופא).
+
+ולמי שמעדיף לא להיות על תרופות לכל החיים: ‏MBCT (טיפול מיינדפולנס) הוכח כשקול לתרופות במניעת נשניות אחרי החלמה.`,
+    findings: [
+      {
+        highlight: 'מטא-אנליזת רשת של 522 ניסויים (‏N=116,477): כל 21 תרופות יעילות מפלצבו; ‏OR מ-1.37 ל-2.13. אמיתי אך צנוע',
+        citation: 'Cipriani A, et al. Comparative efficacy and acceptability of 21 antidepressant drugs. The Lancet, 2018',
+      },
+      {
+        highlight: 'המשך תרופות אחרי החלמה מפחית נשניות בחצי: ‏41% בפלצבו מול 18% בהמשך תרופות. לא להפסיק כשמרגישים "בסדר" — זה בדיוק כשהתרופה עובדת',
+        citation: 'Geddes JR, et al. Relapse prevention with antidepressants. The Lancet, 2003',
+      },
+      {
+        highlight: '‏MBCT עם הפחתת תרופות = שקול להמשך תרופות במניעת נשניות לאורך 24 חודשים (PREVENT trial)',
+        citation: 'Kuyken W, et al. The Lancet, 2015 — non-inferiority RCT',
+      },
+      {
+        highlight: 'לדיכאון כרוני: שילוב תרופות + פסיכותרפיה משיג ~85% תגובה לעומת ~55% בכל אחת לבד — אחד האפקטים הגדולים בפסיכיאטריה',
+        citation: 'Keller MB, et al. JAMA, 2000 — N=681, chronic depression',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'אם תרופות עוזרות — אל תפסיקו כשמרגישים טוב. זה כמו להפסיק אנטיביוטיקה באמצע: הרגע שמרגישים טוב הוא בדיוק כשהטיפול עובד.' },
+      { icon: 'breathing', text: 'מיינדפולנס כטיפול משלים (או חלופה): מודול הנשימות מבוסס על אותם עקרונות', linkTo: 'breathing' },
+    ],
+    sources: [
+      { ref: 'Cipriani A, et al. The Lancet, 2018.' },
+      { ref: 'Geddes JR, et al. The Lancet, 2003.' },
+      { ref: 'Kuyken W, et al. PREVENT. The Lancet, 2015.' },
+      { ref: 'Keller MB, et al. JAMA, 2000.' },
+    ],
+  },
+
+  {
+    id: 'depression-exercise-medicine',
+    categoryId: 'depression',
+    titleHe: 'תנועה כתרופה — הנתונים',
+    readMinutes: 6,
+    evidenceTier: 'verified',
+    body: `ניסוי ה-SMILE (‏Blumenthal, ‏1999): ‏156 מבוגרים עם דיכאון קליני חולקו ל-3 קבוצות — כושר גופני, סרטרלין (זולופט), או שניהם.
+
+אחרי 16 שבועות: ‏60.4% הפוגה בכושר גופני, ‏68.8% בסרטרלין, ‏65.5% בשילוב. סטטיסטית — הבדל לא מובהק.
+
+ואז בא הממצא המדהים: במעקב של 10 חודשים, הנשניות הייתה 8% בלבד בקבוצת הכושר — לעומת 38% בתרופות ו-31% בשילוב. כלומר: תרופות עוזרות להגיע; תנועה עוזרת להישאר.
+
+המנגנון? ‏BDNF. אימון גופני מעלה BDNF בדם מיד — אותו חלבון שנמוך בדיכאון ואחראי על צמיחת תאי עצב.
+
+וכמה צריך? הפרוטוקול ששימש בניסויים: ‏3 פעמים בשבוע, ‏45 דקות, בעצימות 70-85% מהדופק המקסימלי. אבל גם הליכה רגילה הוכחה כאפקטיבית.`,
+    findings: [
+      {
+        highlight: 'ניסוי SMILE (N=156): הפוגה 60.4% בכושר גופני vs 68.8% בסרטרלין — הבדל לא מובהק. תרגיל = תרופה',
+        citation: 'Blumenthal JA, et al. Effects of exercise training on older patients with major depression. Archives of General Psychiatry, 1999',
+      },
+      {
+        highlight: 'מעקב 10 חודשים: נשניות 8% בלבד בקבוצת הכושר לעומת 38% בתרופות ו-31% בשילוב. תנועה מגינה מפני חזרה',
+        citation: 'Babyak M, et al. Exercise treatment for major depression: 10-month follow-up. Psychosomatic Medicine, 2000',
+      },
+      {
+        highlight: 'מטא-אנליזת 2024 (BMJ): הליכה/ריצה, יוגה וכוח הן האפקטיביות ביותר; האפקטים מספרתיים שקולים ל-CBT וגדולים מ-SSRI בהשוואה ישירה',
+        citation: 'Noetel M, et al. Effect of exercise on depression. BMJ, 2024;384:e075847 — network meta-analysis',
+      },
+      {
+        highlight: 'אפקט כולל: ‏SMD=-0.43 (Singh 2023, BJSM); גדול יותר בדיכאון מאובחן (לא רק תסמינים קלים) ובתרגיל אירובי (Schuch 2016)',
+        citation: 'Singh B, et al. Br J Sports Med, 2023; Schuch FB, et al. J Psychiatric Research, 2016 — 25 RCTs',
+      },
+      {
+        highlight: 'מנגנון BDNF: אימון חד-פעמי מעלה BDNF באופן מיידי (אפקט בינוני); התגובה החזקה ביותר בעצימות גבוהה',
+        citation: 'Szuhany KL, Bugatti M, Otto MW. J Psychiatric Research, 2015 — meta-analysis; Fern\u00e1ndez-Rodr\u00edguez, 2022',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'כלל ה-5 דקות: לא צריך מוטיבציה. צריך להתחיל — והמוטיבציה מגיעה אחרי הפעולה. 5 דקות הליכה עדיף על 0.' },
+      { icon: 'songs', text: 'פלייליסט התנועה: 3 שירים שמרימים אותך מהכיסא. לא צריך אימון — רק לזוז', linkTo: 'songs' },
+      { icon: 'breathing', text: 'שילוב מנצח: נשימות מודרכות לפני/אחרי תנועה מפחית קורטיזול ומעצים את אפקט ה-BDNF', linkTo: 'breathing' },
+    ],
+    sources: [
+      { ref: 'Blumenthal JA, et al. Arch Gen Psychiatry, 1999.' },
+      { ref: 'Babyak M, et al. Psychosomatic Medicine, 2000.' },
+      { ref: 'Noetel M, et al. BMJ, 2024;384.' },
+      { ref: 'Schuch FB, et al. J Psychiatr Res, 2016.' },
+    ],
+  },
+
+  {
+    id: 'depression-sleep-reset',
+    categoryId: 'depression',
+    titleHe: 'שינה: הצומת שמזיז את הכל',
+    readMinutes: 5,
+    evidenceTier: 'verified',
+    body: `נדודי שינה מכפילים את הסיכון לפתח דיכאון (‏OR≈2.1). והקשר דו-כיווני: דיכאון גם גורם לנדודי שינה.
+
+הגילוי המפתיע: טיפול בשינה (CBT-I) מטפל גם בדיכאון. לא רק בשינה — בדיכאון עצמו. מטא-אנליזה 2024: ‏CBT-I מפחית תסמיני דיכאון מעבר לשיפור בשינה בלבד.
+
+אז מה באמת עובד? לא "היגיינת שינה" גנרית (זו רק הכנה). מה שעובד:
+• שעת יקיצה קבועה — ‏7 ימים בשבוע, גם בשבת
+• המיטה = שינה בלבד (לא טלפון, לא דאגות)
+• הגבלת זמן במיטה לזמן השינה בפועל
+
+ומה לא עובד: "שינת התאוששות" בסוף שבוע. המחקר מראה שהיא לא מתקנת את הנזק מהשבוע ואפילו מחמירה את חוסר הסנכרון.`,
+    findings: [
+      {
+        highlight: 'נדודי שינה מכפילים סיכון לדיכאון עתידי (‏OR\u22482.1). הקשר דו-כיווני: דיכאון \u2194 נדודי שינה',
+        citation: 'Baglioni C, et al. Insomnia as a predictor of depression. J Affective Disorders, 2011 — meta-analysis',
+      },
+      {
+        highlight: 'CBT-I מפחית תסמיני דיכאון מעבר לשינה: מטא-אנליזה 2024 + Asarnow 2019 — שיעורי הפוגה גבוהים יותר גם מדיכאון וגם מנדודי שינה',
+        citation: 'Furukawa Y, et al. 2024 (PubMed 39242039); Asarnow LD. Sleep Medicine Reviews, 2019',
+      },
+      {
+        highlight: '"שינת התאוששות" בסוף שבוע לא מתקנת את הנזק המטבולי משבוע של חוסר שינה — ואפילו מחמירה את חוסר הסנכרון הצירקדיאני',
+        citation: 'Depner CM, et al. Ad libitum weekend recovery sleep. Current Biology, 2019',
+      },
+      {
+        highlight: 'שליטה בגירויים (stimulus control): מיטה = שינה בלבד. קודם לכן: קריאה/טלפון במיטה מלמדים את המוח שמיטה = ערות',
+        citation: 'Edinger JD, et al. Behavioral and psychological treatments for chronic insomnia. J Clinical Sleep Medicine, 2021 — AASM guideline',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'חוק ברזל: שעת יקיצה קבועה — ‏7 ימים. גם אם נרדמתם מאוחר. זה מסנכרן את השעון הביולוגי והכל נגרר אחריו.' },
+      { icon: 'breathing', text: 'לא מצליחים להירדם? קומו מהמיטה, שבו באור עמום, ‏10 נשימות 4-6 — וחזרו רק כשעייפים', linkTo: 'breathing' },
+    ],
+    sources: [
+      { ref: 'Baglioni C, et al. J Affect Disord, 2011.' },
+      { ref: 'Asarnow LD. Sleep Med Rev, 2019.' },
+      { ref: 'Depner CM, et al. Current Biology, 2019.' },
+      { ref: 'Edinger JD, et al. J Clin Sleep Med, 2021.' },
+    ],
+  },
+
+  {
+    id: 'depression-food-medicine',
+    categoryId: 'depression',
+    titleHe: 'תזונה כטיפול — ניסוי SMILES',
+    readMinutes: 5,
+    evidenceTier: 'verified',
+    body: `ניסוי SMILES (‏2017): הראשון בעולם שבו תזונה שימשה כטיפול לדיכאון קליני.
+
+67 מבוגרים עם דיכאון מז'ורי חולקו לשתי קבוצות: אחת קיבלה ליווי תזונתי (דיאטה ים-תיכונית מותאמת), השנייה קיבלה ליווי חברתי (אותה תדירות מפגשים, בלי שינוי תזונה).
+
+אחרי 12 שבועות: ‏32.3% הפוגה בקבוצת התזונה מול 8.2% בליווי החברתי. פי 4.
+
+וזה עבד בלי קשר להכנסה, השכלה, ‏BMI, עישון או תרופות. התזונה לבדה.
+
+מה זה אומר? שמה שאתם שמים בפה משפיע על מצב הרוח — לא באופן מטאפורי, אלא בכ-33% הפחתת סיכון (Lassale 2019, מטא-אנליזה של קוהורטים).
+
+נקודה על אומגה-3: עובד — אבל רק בפורמולה הנכונה. ‏EPA\u226560% מהשילוב, עד 1 גרם ליום. אם על התווית DHA גדול מ-EPA — המוצר הלא נכון.`,
+    findings: [
+      {
+        highlight: 'ניסוי SMILES: ‏32.3% הפוגה מדיכאון בתזונה ים-תיכונית vs 8.2% בליווי חברתי — פי 4. עבד בלי קשר להכנסה, BMI, עישון או תרופות',
+        citation: 'Jacka FN, et al. A randomised controlled trial of dietary improvement for adults with major depression (SMILES). BMC Medicine, 2017',
+      },
+      {
+        highlight: 'היענות הגבוהה ביותר לדיאטה ים-תיכונית = ‏~33% הפחתת סיכון לדיכאון חדש (RR\u22480.67); דיאטה דלקתית מגדילה סיכון',
+        citation: 'Lassale C, et al. Healthy dietary indices and risk of depressive outcomes. Molecular Psychiatry, 2019 — meta-analysis',
+      },
+      {
+        highlight: 'אומגה-3: יעיל רק בפורמולה EPA-dominant (EPA\u226560% מEPA+DHA) \u22641 \u2192/יום. ‏EPA\u226560%: ES=0.532; פורמולות DHA-כבדות \u2014 בלי אפקט',
+        citation: 'Liao HY, et al. Translational Psychiatry, 2019 — meta-analysis; Sublette WW, et al. 2011',
+      },
+      {
+        highlight: 'ויטמין D: באוכלוסייה הכללית \u2014 לא מונע דיכאון (VITAL-DEP, N~18,000). רק לבעלי חסר נמדד יש תועלת — בדיקת דם, לא ניחוש',
+        citation: 'Okereke OI, et al. VITAL-DEP. JAMA, 2020',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'שינוי אחד: הוסיפו משהו ירוק לכל ארוחה. לא "דיאטה" — תוספת. הנתונים מה-SMILES התחילו משינויים קטנים.' },
+      { icon: 'journal', text: 'מסלול 12 שבועות: רשמו מה אכלתם ואיך הרגשתם. הנתונים ידברו בעד עצמם', linkTo: 'insights' },
+    ],
+    sources: [
+      { ref: 'Jacka FN, et al. BMC Medicine, 2017.' },
+      { ref: 'Lassale C, et al. Molecular Psychiatry, 2019.' },
+      { ref: 'Liao HY, et al. Transl Psychiatry, 2019.' },
+      { ref: 'Okereke OI, et al. JAMA, 2020.' },
+    ],
+  },
+
+  {
+    id: 'depression-rumination-engine',
+    categoryId: 'depression',
+    titleHe: 'רומינציה: המנגנון הממכר',
+    readMinutes: 6,
+    evidenceTier: 'verified',
+    body: `רומינציה — לחשוב את אותן מחשבות שוב ושוב — היא לא "עיבוד". היא המנגנון שמנבא דיכאון עתידי.
+
+נולן-הוקסמה עקבה אחרי אנשים אחרי רעידת האדמה בסן-פרנסיסקו: לאלה עם סגנון תגובה רומינטיבי היו אפיזודות דיכאון משמעותית ארוכות יותר. ובמחקרי המשך: רומינציה חזתה לא רק התקפים חדשים אלא גם חומרה וכרוניות.
+
+אבל לא כל מחשבה חוזרת רעה. המחקר מבחין:
+• **Brooding** — לולאת "למה אני כזה?" מופשטת ושיפוטית — רעילה, מנבאת דיכאון
+• **Reflection** — חשיבה קונקרטית יותר, פחות מזיקה
+
+הכלל המעשי: לשאול "מה הצעד הקטן הבא?" במקום "למה אני כזה?". מ-abstract-why ל-concrete-how.`,
+    findings: [
+      {
+        highlight: 'רומינציה מנבאת לא רק אפיזודות דיכאון ארוכות יותר — אלא גם התקפים חדשים, חומרה גדולה יותר וחרדה נלווית (טרנס-דיאגנוסטית)',
+        citation: 'Nolen-Hoeksema S. Journal of Abnormal Psychology, 2000; Nolen-Hoeksema, Morrow, Fredrickson. JPSP, 1993',
+      },
+      {
+        highlight: 'רומינציה מתווכת את הקשר בין אירועי חיים מלחיצים לדיכאון וחרדה — המנגנון שהופך סטרס לדיכאון',
+        citation: 'Michl LC, McLaughlin KA. J Abnorm Psychol, 2013 — ~1,100 citations',
+      },
+      {
+        highlight: 'Brooding (לולאת "למה" מופשטת) מנבא דיכאון עתידי; Reflection (קונקרטי) פחות מזיק. ההבחנה קריטית לטיפול',
+        citation: 'Treynor W, Gonzalez R, Nolen-Hoeksema S. Cognitive Therapy and Research, 2003 — rumination bifurcation',
+      },
+      {
+        highlight: 'דיכאון פוגע ביכולת להתנתק ממידע שלילי — לא בהכוונה אליו. אימון "לשחרר" חשוב יותר מאימון "להימנע"',
+        citation: 'Peckham AD, McHugh RK, Otto MW. Attentional biases in depression. meta-analysis',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'מבחן 10 שניות: כשתופסים את עצמכם בלולאה — שאלו "מה הצעד הקטן הבא?" מיד. לא "למה אני כזה" — "מה אני עושה עכשיו?"' },
+      { icon: 'breathing', text: 'רומינציה תוקפת? נשימות מודרכות מנתקות את הלולאה ב-90 שניות', linkTo: 'breathing' },
+      { icon: 'journal', text: 'כתבו את המחשבה בלולאה + לידה: "מה הצעד הקטן?" — המרה מ-abstract ל-concrete', linkTo: 'insights' },
+    ],
+    sources: [
+      { ref: 'Nolen-Hoeksema S. J Abnorm Psychol, 2000.' },
+      { ref: 'Michl LC, McLaughlin KA. J Abnorm Psychol, 2013.' },
+      { ref: 'Treynor W, et al. Cognitive Therapy and Research, 2003.' },
+      { ref: 'Peckham AD, et al. meta-analysis.' },
+    ],
+  },
+
+  {
+    id: 'depression-mbct-selfcompassion',
+    categoryId: 'depression',
+    titleHe: 'מיינדפולנס וחמלה עצמית',
+    readMinutes: 6,
+    evidenceTier: 'verified',
+    body: `שני כלים עם הראיות החזקות ביותר למניעת נשניות דיכאון:
+
+**MBCT (טיפול קוגניטיבי מבוסס מיינדפולנס):**
+מטא-אנליזה של 9 RCTs: מוריד סיכון נשניות ב-31% (HR=0.69). הכי יעיל למי שכבר חווה 3+ אפיזודות. ובניסוי PREVENT: שקול להמשך תרופות.
+
+**חמלה עצמית:**
+אחת המתאמים הפסיכולוגיים החזקים ביותר עם דיכאון: r=-0.53. כלומר: ככל שחמלה עצמית גבוהה יותר — דיכאון נמוך יותר. וזה לא רק מתאם: התערבויות לחמלה עצמית מפחיתות דיכאון באפקט בינוני.
+
+למי זה במיוחד? לרומינטורים ולביקורתיים-עצמית — שהם בדיוק אוכלוסיית הסיכון הגבוה.`,
+    findings: [
+      {
+        highlight: 'MBCT מוריד סיכון נשניות דיכאון ב-31% (HR=0.69, 9 RCTs IPD meta). הכי יעיל לבעלי תסמינים שיוריים ולמי עם 3+ אפיזודות',
+        citation: 'Kuyken W, et al. Efficacy of mindfulness-based cognitive therapy in prevention of depressive relapse. JAMA Psychiatry, 2016',
+      },
+      {
+        highlight: 'במקור: נשניות 37% בMBCT vs 66% בטיפול רגיל — אבל רק למי עם 3+ אפיזודות קודמות. למי עם פחות — לא היה אפקט',
+        citation: 'Teasdale JD, et al. J Consult Clin Psychol, 2000 — multisite RCT',
+      },
+      {
+        highlight: 'חמלה עצמית \u2194 דיכאון: r=-0.53 (three-level meta, cross-cultural). אחד המתאמים החזקים בפסיכולוגיה',
+        citation: 'MacBeth A, Gumley A. 2012; Lou Y, Wang D. Three-level meta-analysis. 2022',
+      },
+      {
+        highlight: 'התערבויות לחמלה עצמית מפחיתות דיכאון באפקט בינוני; במיוחד אפקטיביות למבקרים-עצמיתית — אוכלוסיית הרומינטורים',
+        citation: 'Han X, et al. 2023 meta-analysis (PMC10239723); Wakelin E, et al. Clinical Psychology & Psychotherapy, 2022',
+      },
+      {
+        highlight: 'מיינדפולנס כללי: אפקט 0.30 על דיכאון ב-8 שבועות (47 RCTs, N=3,515) — מתמשך עד 6 חודשים, שקול לתרופות בממוצע',
+        citation: 'Goyal M, et al. Meditation programs for psychological stress. JAMA Internal Medicine, 2014',
+      },
+    ],
+    tools: [
+      { icon: 'breathing', text: 'מיינדפולנס 10 דקות ביום: מודול הנשימות כאן בדיוק בשביל זה. המחקר מראה שאפקט מגיע אחרי 8 שבועות — לא מיד', linkTo: 'breathing' },
+      { icon: 'thought', text: 'חמלה: דברו אל עצמכם כמו שהייתם מדברים אל חבר בדיכאון. "אני לא חלש — אני נלחם/ת במשהו אמיתי."' },
+      { icon: 'journal', text: 'כתבו: "מה אני אומר/ת לעצמי? מה הייתי אומר/ת לחבר שאומר את זה?" — הפער הוא התרגיל', linkTo: 'insights' },
+    ],
+    sources: [
+      { ref: 'Kuyken W, et al. JAMA Psychiatry, 2016.' },
+      { ref: 'Teasdale JD, et al. J Consult Clin Psychol, 2000.' },
+      { ref: 'MacBeth A, Gumley A. 2012; Lou Y, Wang D. 2022.' },
+      { ref: 'Goyal M, et al. JAMA Intern Med, 2014.' },
+    ],
+  },
+
+  {
+    id: 'depression-myths-busted',
+    categoryId: 'depression',
+    titleHe: 'מה לא עובד — מיתוסים שהמחקר הפריך',
+    readMinutes: 5,
+    evidenceTier: 'verified',
+    body: `"רק תחשוב חיובי" — לא עובד. להפך: דיכוי מחשבות מגביר אותן.
+
+ניסוי ה"דוב הלבן" של ווגנר: הוראה לא לחשוב על דוב לבן גרמה לאנשים לחשוב עליו יותר. אותו דבר עם מחשבות שליליות: "אל תחשוב על הכישלון" = חושבים על הכישלון.
+
+"תוציא הכל, תרגיש טוב יותר" — גם לא. בושמן: אנשים שהיכו שק על חשיבה על מי שהרגיז אותם — הפכו לתוקפניים יותר, לא פחות. וליובומירסקי: דיבור וכתיבה על אירוע שלילי אחרי כישלון החמיר מצב רוח.
+
+"רק תדחוף, זה יעבור" — חצי אמת. ‏70% מחלימים תוך שנה גם בלי טיפול — אבל טיפול מזרז ומפחית סיכון נשניות.
+
+"זה באופי שלך / חולשה" — נתונים: תורשתיות 37%. זה תנאי רפואי כמו לחץ דם, לא כישלון מוסרי.`,
+    findings: [
+      {
+        highlight: 'דיכוי מחשבות גורם ל-rebound: "אל תחשוב על X" = חושבים על X יותר. "חשיבה חיובית" ככפייה נכשלת',
+        citation: 'Wegner DM, et al. Paradoxical effects of thought suppression. JPSP, 1987 — white bear experiments',
+      },
+      {
+        highlight: 'פורקן (venting) מחמיר: היכוי שק תוך חשיבה על המרגיז \u2192 יותר תוקפנות. דיבור/כתיבה על אירוע שלילי אחרי כישלון \u2192 מצב רוח גרוע יותר',
+        citation: 'Bushman BJ. Personality and Social Psychology Bulletin, 2002; Lyubomirsky S, et al. JPSP, 2006',
+      },
+      {
+        highlight: '"חשיבה חיובית" (PPI) עוזרת רק באופן מצומצם: g\u22480.2-0.3 — תוספת, לא טיפול. CBT \u2260 חשיבה חיובית: בדיקת מחשבות מול ראיות',
+        citation: 'Bolier L, et al. BMC Public Health, 2013 — positive psychology interventions meta',
+      },
+      {
+        highlight: '"רק תדחוף" — חצי אמת: ‏70% מחלימים תוך שנה גם ללא טיפול (Posternak 2006). אבל טיפול מזרז החלמה ומפחית נשניות',
+        citation: 'Posternak MA, et al. J Nervous and Mental Disease, 2006 — naturalistic course',
+      },
+      {
+        highlight: '"דיכאון = חולשה אופי" מופרך: תורשתיות ~37% (Sullivan 2000). דיכאון מתנהג כמו מחלה כרונית רב-גורמית, לא כישלון מוסרי',
+        citation: 'Sullivan PF, Neale MC, Kendler KS. Genetic epidemiology of major depression. Am J Psychiatry, 2000',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'במקום "אל תחשוב שלילי": שאלו "מה הראיות? האם זו עובדה או פרשנות?" — בדיקה, לא החלפה.' },
+      { icon: 'breathing', text: 'כשמחשבה שלילית תוקפת: אל תילחמו בה. שימו לב לה ("הנה המחשבה הזאת שוב") ונשמו. זה מיינדפולנס, לא דיכוי', linkTo: 'breathing' },
+    ],
+    sources: [
+      { ref: 'Wegner DM, et al. JPSP, 1987.' },
+      { ref: 'Bushman BJ. Pers Soc Psychol Bull, 2002.' },
+      { ref: 'Bolier L, et al. BMC Public Health, 2013.' },
+      { ref: 'Sullivan PF, et al. Am J Psychiatry, 2000.' },
+    ],
+  },
+
+  {
+    id: 'depression-recovery-hope',
+    categoryId: 'depression',
+    titleHe: 'החלמה ותקווה — הנתונים',
+    readMinutes: 6,
+    evidenceTier: 'verified',
+    body: `STAR*D — ניסוי טיפול-מדורג הגדול בהיסטוריה (‏N=3,671): אחרי 4 שלבי טיפול, ‏67% הגיעו להפוגה. גם בספירה השמרנית (41%) — זה עדיין רוב.
+
+אבל הנתון שחשוב באמת: נשניות. אחרי אפיזודה אחת: ‏50% סיכוי לנשניות. אחרי שתיים: ‏70%. אחרי שלוש: ‏90%.
+
+זה נשמע מפחיד — אבל הוא בדיוק מה שהמחקר על מניעת נשניות בנוי עליו. שלושה מנופים מנבאי׾ הישארות בריא:
+• אין תסמינים שיוריים (לא "כמעט טוב" — טוב באמת)
+• המשך טיפול / MBCT
+• התנהגות: תנועה, שינה קבועה, פעילות מתוכננת
+
+ו... צמיחה אחרי דיכאון? אמיתית — אבל לא חובה. "חייבים למצוא משהו טוב בזה" היא בעצמה הכחשה.`,
+    findings: [
+      {
+        highlight: 'STAR*D (N=3,671): ‏67% הפוגה מצטברת אחרי 4 שלבי טיפול (36.8% \u2192 30.6% \u2192 13.7% \u2192 13.0%). ספירה שמרנית: ~41%. רוב מחלימים עם התמדה',
+        citation: 'Rush AJ, et al. STAR*D. American Journal of Psychiatry, 2006; reanalysis 2023-2024',
+      },
+      {
+        highlight: 'נשניות: ‏50% אחרי אפיזודה 1, ‏70% אחרי 2, ‏90% אחרי 3. ובמעקב ארוך: 60% תוך 5 שנים, ‏85% תוך 15 שנים',
+        citation: 'Kupfer DJ / Judd LL. NIMH Collaborative Depression Study; Hardeveld F, et al. Acta Psychiatr Scand, 2010 — meta-analysis',
+      },
+      {
+        highlight: 'מנבאי הישארות בריא: (א) אין תסמינים שיוריים; (ב) המשך טיפול \u2014 תרופות מפחיתות נשניות 41%\u219218%; (ג) התנהגות: המשך תרגיל אחרי החלמה מנבא הישארות בריאה',
+        citation: 'Judd LL, et al. residual symptoms; Geddes JR, et al. Lancet 2003; Babyak M, et al. Psychosom Med 2000',
+      },
+      {
+        highlight: 'צמיחה אחרי-דיכאון אמיתית אך לא חובה: מצוקה וצמיחה יכולות להתקיים במקביל. החלמה לא דורשת "למצוא את הטוב בזה"',
+        citation: 'Bianchini V, et al. Clinical Practice & Epidemiology in Mental Health, 2017 — PTG framework',
+      },
+    ],
+    tools: [
+      { icon: 'thought', text: 'אם זו לא האפיזודה הראשונה — זה לא כישלון, זה סטטיסטיקה. הטיפול לומד למנוע, לא רק לרפא.' },
+      { icon: 'journal', text: 'מפת החלמה: רשמו 3 דברים שמשאירים אותי בריא/ה + ‏1 סימן אזהרה מוקדם. עדכנו כל חודש', linkTo: 'insights' },
+      { icon: 'songs', text: 'שירים של תקווה — לא שמחה מזויפת, אלא אמיתית', linkTo: 'songs' },
+    ],
+    sources: [
+      { ref: 'Rush AJ, et al. Am J Psychiatry, 2006 (STAR*D).' },
+      { ref: 'Hardeveld F, et al. Acta Psychiatr Scand, 2010.' },
+      { ref: 'Geddes JR, et al. Lancet, 2003.' },
+      { ref: 'Bianchini V, et al. Clin Pract Epidemiol Ment Health, 2017.' },
     ],
   },
 
