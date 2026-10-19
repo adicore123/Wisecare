@@ -4,6 +4,7 @@ import { verifyPassword } from '@/lib/security';
 import { createSessionCookie, signClientToken, signToken } from '@/lib/auth';
 import { getBaseUrl } from '@/lib/urlHelpers';
 import { normalizePhone } from '@/lib/phoneHelpers';
+import { recordLogin } from '@/lib/usageTracking';
 import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
@@ -99,6 +100,12 @@ export async function POST(request: NextRequest) {
     const clientAppUrl = getBaseUrl(request);
     const portalUrl = `${clientAppUrl}/portal/${encodeURIComponent(client.portalCode)}`;
     const token = signClientToken(client);
+
+    // מעקב שימוש — כניסה מוצלחת למרחב (לא סופראדמין)
+    try {
+      recordLogin(client.id);
+      await db.flush();
+    } catch {}
 
     const response = NextResponse.json({
       success: true,

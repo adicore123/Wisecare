@@ -58,6 +58,29 @@ import WhatsAppIcon from './WhatsAppIcon';
 import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 // Professional Titles in Therapy, Bodywork, Wellness & Clinical Practice (Categorized)
+
+// מעקב שימוש — תוויות המודולים לתצוגה בכרטיס היוזר (30 יום אחרונים)
+const MODULE_USAGE_LABELS = [
+  { key: 'tasks', label: '📋' },
+  { key: 'content', label: '🎬' },
+  { key: 'songs', label: '🎵' },
+  { key: 'breathing', label: '🌬️' },
+  { key: 'knowledge', label: '🧠' },
+  { key: 'journal', label: '📝' },
+  { key: 'appointments', label: '📅' }
+];
+
+function relativeTimeHe(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'פעיל עכשיו';
+  if (minutes < 60) return `לפני ${minutes} דק'`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `לפני ${hours} שע'`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `לפני ${days} ימים`;
+  return 'לפני חודש+';
+}
 const THERAPIST_PROFESSIONAL_TITLES = [
   {
     category: 'פסיכולוגיה ופסיכותרפיה',
@@ -3115,6 +3138,7 @@ export default function SuperAdminPage({
                       <th>סוג מרחב ושיוך</th>
                       <th>קוד וקישור כניסה</th>
                       <th>טלפון ואימייל</th>
+                      <th>פעילות</th>
                       <th>משימות ותרגולים</th>
                       <th style={{ textAlign: 'left' }}>גישת SuperAdmin ללא סיסמה</th>
                     </tr>
@@ -3122,7 +3146,7 @@ export default function SuperAdminPage({
                   <tbody>
                     {filteredClients.length === 0 ? (
                       <tr>
-                        <td colSpan={6} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: '40px 20px', color: '#64748b' }}>
                           <Users size={36} color="#cbd5e1" style={{ margin: '0 auto 12px auto', display: 'block' }} />
                           <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>לא נמצאו לקוחות מתאימים</div>
                           <div style={{ fontSize: '0.82rem', color: '#94a3b8', marginTop: '4px' }}>
@@ -3293,6 +3317,27 @@ export default function SuperAdminPage({
                             </td>
 
                             <td>
+                              {client.usage ? (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: client.usage.loginsToday > 0 ? '#b45309' : '#64748b' }}>
+                                    {client.usage.loginsToday > 0 ? `🔥 ${client.usage.loginsToday} היום` : client.usage.lastActiveAt ? `🕐 ${relativeTimeHe(client.usage.lastActiveAt)}` : '💤 לא פעיל'}
+                                  </span>
+                                  {Object.keys(client.usage.modulesLast30 || {}).length > 0 && (
+                                    <div className="usage-chips">
+                                      {MODULE_USAGE_LABELS.map(({ key, label }) => {
+                                        const count = client.usage.modulesLast30?.[key];
+                                        if (!count) return null;
+                                        return <span key={key} className="usage-chip">{label} {count}</span>;
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>—</span>
+                              )}
+                            </td>
+
+                            <td>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                                 <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155' }}>
                                   {client.completedTasksCount || 0} / {client.tasksCount || 0} הושלמו
@@ -3452,6 +3497,35 @@ export default function SuperAdminPage({
                             </a>
                           </div>
                         </div>
+
+                        {/* Usage Activity Block — mobile-first compact */}
+                        {isSelf && client.usage && (
+                          <div className="usage-block">
+                            <div className="usage-block-title">
+                              📊 פעילות
+                              {client.usage.loginsToday > 0 ? (
+                                <span className="usage-badge usage-badge-hot">🔥 {client.usage.loginsToday} כניסות היום</span>
+                              ) : client.usage.lastActiveAt ? (
+                                <span className="usage-badge">🕐 {relativeTimeHe(client.usage.lastActiveAt)}</span>
+                              ) : (
+                                <span className="usage-badge usage-badge-idle">💤 עדיין לא פעיל</span>
+                              )}
+                            </div>
+                            {client.usage.lastActiveAt && Object.keys(client.usage.modulesLast30 || {}).length > 0 && (
+                              <div className="usage-chips">
+                                {MODULE_USAGE_LABELS.map(({ key, label }) => {
+                                  const count = client.usage.modulesLast30?.[key];
+                                  if (!count) return null;
+                                  return (
+                                    <span key={key} className="usage-chip">
+                                      {label} {count}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
 
                         {/* Phone & Contact */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.84rem' }}>

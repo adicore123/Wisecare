@@ -4,6 +4,7 @@ import { verifyPassword, hashPassword } from '@/lib/security';
 import { createSessionCookie, getClientAuthFromRequest, signClientToken, signToken } from '@/lib/auth';
 import { checkLoginBruteForce, recordFailedLogin, recordSuccessfulLogin } from '@/lib/rateLimit';
 import { normalizePhone } from '@/lib/phoneHelpers';
+import { recordLogin } from '@/lib/usageTracking';
 
 export async function GET(
   request: NextRequest,
@@ -153,6 +154,12 @@ export async function POST(
     }
 
     recordSuccessfulLogin(bruteKey);
+
+    // מעקב שימוש — כניסה מוצלחת של המטופל למרחב (לא סופראדמין)
+    try {
+      recordLogin(client.id);
+      await db.flush();
+    } catch {}
 
     // Migrate legacy plaintext credentials to a salted hash on first successful login
     if (client.initialPassword && verifyPassword(password, client.initialPassword)) {

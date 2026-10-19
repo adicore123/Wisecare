@@ -152,6 +152,22 @@ export default function ClientPortalPage({ portalCode, initialPayload }: { porta
   const [contentRecView, setContentRecView] = useState(false);
   const [readingArticle, setReadingArticle] = useState<any | null>(null);
 
+  // מעקב שימוש — דיווח fire-and-forget על כניסה למודול (לסיכום בכרטיס היוזר
+  // בסופראדמין). מודול לא נספר פעמיים ברצף, וכישלון שקט לחלוטין.
+  useEffect(() => {
+    if (!portalCode || typeof window === 'undefined') return;
+    const STORAGE_KEY = 'wisecare_last_tracked_module';
+    try {
+      if (localStorage.getItem(STORAGE_KEY) === activeTab) return;
+      localStorage.setItem(STORAGE_KEY, activeTab);
+    } catch {}
+    fetch(`/api/portal/${encodeURIComponent(portalCode)}/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ module: activeTab })
+    }).catch(() => {});
+  }, [activeTab, portalCode]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const portalQuery = new URLSearchParams(window.location.search);

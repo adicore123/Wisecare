@@ -8053,6 +8053,71 @@ table.quotes-table {
   .portal-reflection-input { min-height: 110px; }
 }
 
+/* ── בלוק פעילות בכרטיס יוזר (סופראדמין) — mobile-first ────────── */
+.usage-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #eef2f6;
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
+.usage-block-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.usage-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.71rem;
+  font-weight: 700;
+  color: #475569;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 2px 9px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
+.usage-badge-hot {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.usage-badge-idle {
+  color: #94a3b8;
+  background: #f1f5f9;
+}
+
+.usage-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.usage-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0f766e;
+  background: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  border-radius: 100px;
+  padding: 3px 10px;
+  min-height: 24px;
+  white-space: nowrap;
+}
+
 /* ── "בקשת שיר לכולם" — כפתור בפורטל המטופל ──────────────────── */
 .song-request-cta {
   display: flex;

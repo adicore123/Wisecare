@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getAuthFromRequest } from '@/lib/auth';
 import { sanitizeClient } from '@/lib/clientSanitize';
+import { usageSummaryForClient } from '@/lib/usageTracking';
 
 export async function GET(request: NextRequest) {
   try {
@@ -44,7 +45,8 @@ export async function GET(request: NextRequest) {
         isSelfCare: Boolean(client.isSelfCare || !client.therapistId),
         therapist,
         tasksCount: clientTasks.length,
-        completedTasksCount: completedTasks
+        completedTasksCount: completedTasks,
+        usage: usageSummaryForClient(client.id)
       };
     });
 
