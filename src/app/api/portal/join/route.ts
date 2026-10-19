@@ -70,9 +70,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'שם משתמש זה כבר תפוס במערכת. נא לבחור שם משתמש אחר.' }, { status: 400 });
     }
 
-    // 2. Check if phone is already registered. The authorized QA number
-    // (0509611808) is exempt and may open unlimited test accounts.
-    if (!isTestPhoneNumber(cleanPhone)) {
+    // Temporary /space-only QA exception requested for this exact number.
+    // Preserve the existing system-wide QA exception without exempting any other phone.
+    const allowDuplicatePhone = isTestPhoneNumber(cleanPhone) ||
+      (isSpaceRegistration && normalizePhone(cleanPhone) === '0548354141');
+    if (!allowDuplicatePhone) {
       const normalized = normalizePhone(cleanPhone);
       const existingClientByPhone = clients.findOne((c: any) =>
         c.phone && normalizePhone(c.phone) === normalized

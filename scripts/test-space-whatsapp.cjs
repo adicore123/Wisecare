@@ -7,13 +7,17 @@ const { resolve } = require('node:path');
 const { stripTypeScriptTypes } = require('node:module');
 const vm = require('node:vm');
 
+const phoneHelpers = vm.createContext({});
+vm.runInContext(stripTypeScriptTypes(readFileSync(resolve(__dirname, '../src/lib/phoneHelpers.ts'), 'utf8'))
+  .replace(/^export /gm, ''), phoneHelpers);
+
 const source = stripTypeScriptTypes(readFileSync(resolve(__dirname, '../src/app/api/portal/join/route.ts'), 'utf8'))
   .replace(/^import .*;\r?\n/gm, '').replace('export async function POST', 'async function POST');
 const password = '  Chosen<&Password!2026  ';
 const fixture = { source: 'space', fullName: 'נועה ישראלי', phone: '0509611808', username: 'noa.qa', password, goal: 'growth' };
 
 function harness(options = {}) {
-  const records = [], messages = [], emails = [], logs = [];
+  const records = (options.existingClients || []).map(record => ({ ...record })), messages = [], emails = [], logs = [];
   let flushes = 0;
   const matches = (item, filter) => typeof filter === 'function' ? filter(item) : Object.entries(filter).every(([key, value]) => item[key] === value);
   const clients = {
@@ -37,7 +41,7 @@ function harness(options = {}) {
     hashPassword: value => { assert.equal(value, password); return 'hash-only'; },
     createSessionCookie: () => 'test=cookie', signClientToken: () => 'test-session',
     getBaseUrl: request => request ? 'https://request.example' : 'https://canonical.example',
-    normalizePhone: value => value.replace(/\D/g, ''), isTestPhoneNumber: () => true
+    normalizePhone: phoneHelpers.normalizePhone, isTestPhoneNumber: phoneHelpers.isTestPhoneNumber
   });
   vm.runInContext(source, context);
   return { records, messages, emails, logs, submit: async (overrides = {}) => {
@@ -122,4 +126,34 @@ test('existing admin WhatsApp notification is preserved and never includes the c
   assert.equal(h.messages.length, 2);
   assert.ok(h.messages[0].message.includes(password));
   assert.ok(!h.messages[1].message.includes(password));
+});
+
+test('/space allows duplicate 0548354141 in local and international formats without changing the original client', async () => {
+  const existing = { id: 'existing-client', phone: '0548354141', username: 'existing.user', portalCode: 'existing-999999' };
+  for (const phone of ['0548354141', '054-835-4141', '972548354141', '+972 54 835 4141']) {
+    const h = harness({ existingClients: [existing] });
+    const result = await h.submit({ phone });
+    assert.equal(result.status, 201);
+    assert.equal(result.body.whatsappSent, true);
+    assert.equal(h.records.length, 2);
+    assert.deepEqual(h.records[0], existing);
+    assert.equal(h.messages[0].phone, phone);
+  }
+});
+
+test('the new exception does not allow other duplicate phones or affect /join', async () => {
+  for (const phone of ['0548354142', '0541234567']) {
+    const h = harness({ existingClients: [{ id: 'existing-client', phone }] });
+    assert.equal((await h.submit({ phone })).status, 400);
+    assert.equal(h.messages.length, 0);
+    assert.equal(h.records.length, 1);
+  }
+  const h = harness({ existingClients: [{ id: 'existing-client', phone: '0548354141' }] });
+  assert.equal((await h.submit({ source: undefined, phone: '054-835-4141', email: 'noa@example.com' })).status, 400);
+});
+
+test('the allowed duplicate phone does not bypass username uniqueness', async () => {
+  const h = harness({ existingClients: [{ id: 'existing-client', phone: '0548354141', username: fixture.username }] });
+  assert.equal((await h.submit({ phone: '0548354141' })).status, 400);
+  assert.equal(h.messages.length, 0);
 });
