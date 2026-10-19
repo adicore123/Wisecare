@@ -134,6 +134,28 @@ export default function SuperadminTasksManager() {
     );
   }, [clients, clientSearch]);
 
+  const [showNewCatInput, setShowNewCatInput] = useState(false);
+
+  /** יצירת קטגוריה מתוך שדה הדרופדאון — נבחרת אוטומטית לאחר היצירה */
+  const createCategoryFromField = async () => {
+    const name = newCatName.trim();
+    if (!name || catBusy) return;
+    try {
+      setCatBusy(true);
+      const cat = await api.createTaskCategory(name);
+      const cats = await api.getTaskCategories();
+      setCategories(Array.isArray(cats) ? cats : []);
+      setCategoryId(cat.id);
+      setNewCatName('');
+      setShowNewCatInput(false);
+      showToast(`הקטגוריה "${name}" נוצרה ונבחרה 📂`);
+    } catch (err: any) {
+      showToast(err.message || 'שגיאה ביצירת הקטגוריה', 'error');
+    } finally {
+      setCatBusy(false);
+    }
+  };
+
   const addCategory = async () => {
     const name = newCatName.trim();
     if (!name || catBusy) return;
@@ -359,75 +381,138 @@ export default function SuperadminTasksManager() {
           </div>
 
           <form onSubmit={sendTask} className="superadmin-tasks-form" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {/* קטגוריה — הבחירה הראשונה בפתיחת משימה חדשה */}
-            <fieldset className="space-goal-fieldset song-cat-fieldset" style={{ margin: 0 }}>
-              <legend>קטגוריה * (תוצג למטופל כתג על המשימה)</legend>
-              <div className="space-goal-chips song-cat-picker">
-                {categories.length === 0 && (
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>אין קטגוריות — צור/י אחת למטה</span>
-                )}
-                {categories.map((cat) => {
-                  const active = categoryId === cat.id;
-                  return renamingId === cat.id ? (
-                    <React.Fragment key={cat.id}>
-                      <input
-                        type="text"
-                        value={renameValue}
-                        autoFocus
-                        onChange={(e) => setRenameValue(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveRename(); } if (e.key === 'Escape') setRenamingId(null); }}
-                        className="song-cat-rename"
-                      />
-                      <button type="button" className="song-icon-btn" onClick={saveRename} title="שמירה"><Check size={14} /></button>
-                      <button type="button" className="song-icon-btn" onClick={() => setRenamingId(null)} title="ביטול"><X size={14} /></button>
-                    </React.Fragment>
-                  ) : (
-                    <React.Fragment key={cat.id}>
-                      <button
-                        type="button"
-                        className={`space-goal-chip${active ? ' space-goal-chip-active' : ''}`}
-                        onClick={() => setCategoryId(active ? null : cat.id)}
-                        aria-pressed={active}
-                      >
-                        <Folder size={13} /> {cat.name}
-                      </button>
-                      <button
-                        type="button"
-                        className="song-icon-btn"
-                        title="שינוי שם"
-                        onClick={() => { setRenamingId(cat.id); setRenameValue(cat.name); }}
-                        style={{ flexShrink: 0 }}
-                      >
-                        <Pencil size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        className="song-icon-btn song-icon-btn-danger"
-                        title="מחיקת קטגוריה"
-                        onClick={() => setDeleteCatId(cat.id)}
-                        style={{ flexShrink: 0 }}
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-              <div className="song-cat-add" style={{ marginTop: '10px' }}>
+            {/* קטגוריה — הבחירה הראשונה בפתיחת משימה חדשה, כדרופדאון */}
+            <label className="song-field" style={{ margin: 0 }}>
+              <span>קטגוריה * (תוצג למטופל כתג על המשימה במרחב האישי)</span>
+              <select
+                value={showNewCatInput ? '__new__' : (categoryId || '')}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === '__new__') {
+                    setShowNewCatInput(true);
+                  } else {
+                    setShowNewCatInput(false);
+                    setCategoryId(v || null);
+                  }
+                }}
+                style={{
+                  width: '100%', padding: '10px 14px', borderRadius: '10px',
+                  border: '1.5px solid #e2e8f0', fontSize: '0.98rem',
+                  fontFamily: 'inherit', background: '#fff', cursor: 'pointer'
+                }}
+              >
+                <option value="" disabled>בחר/י קטגוריה…</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>📂 {cat.name}</option>
+                ))}
+                <option value="__new__">➕ הוספת קטגוריה חדשה…</option>
+              </select>
+            </label>
+
+            {/* יצירת קטגוריה חדשה מתוך השדה — נבחרת אוטומטית לאחר היצירה */}
+            {showNewCatInput && (
+              <div className="song-cat-add" style={{ margin: 0 }}>
                 <FolderPlus size={15} />
                 <input
                   type="text"
                   value={newCatName}
+                  autoFocus
                   onChange={(e) => setNewCatName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
-                  placeholder="קטגוריה חדשה (לדוגמה: הרפיה)"
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); createCategoryFromField(); } if (e.key === 'Escape') { setShowNewCatInput(false); setNewCatName(''); } }}
+                  placeholder="שם הקטגוריה החדשה..."
                   disabled={catBusy}
                 />
-                <button type="button" className="btn btn-secondary" onClick={addCategory} disabled={catBusy || !newCatName.trim()}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={createCategoryFromField}
+                  disabled={catBusy || !newCatName.trim()}
+                >
                   יצירה
                 </button>
+                <button
+                  type="button"
+                  className="song-icon-btn"
+                  onClick={() => { setShowNewCatInput(false); setNewCatName(''); }}
+                  title="ביטול"
+                >
+                  <X size={14} />
+                </button>
               </div>
-            </fieldset>
+            )}
+
+            {/* ניהול קטגוריות — מקופל, לא מפריע לזרימת השליחה */}
+            <details className="task-cats-admin" style={{ margin: 0 }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.85rem', fontWeight: 700, color: '#64748b', userSelect: 'none' }}>
+                ⚙️ ניהול קטגוריות (הוספה / שינוי שם / מחיקה)
+              </summary>
+              <fieldset className="space-goal-fieldset song-cat-fieldset" style={{ margin: '10px 0 0' }}>
+                <div className="space-goal-chips song-cat-picker">
+                  {categories.length === 0 && (
+                    <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>אין קטגוריות — צור/י אחת למטה</span>
+                  )}
+                  {categories.map((cat) => {
+                    return renamingId === cat.id ? (
+                      <React.Fragment key={cat.id}>
+                        <input
+                          type="text"
+                          value={renameValue}
+                          autoFocus
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveRename(); } if (e.key === 'Escape') setRenamingId(null); }}
+                          className="song-cat-rename"
+                        />
+                        <button type="button" className="song-icon-btn" onClick={saveRename} title="שמירה"><Check size={14} /></button>
+                        <button type="button" className="song-icon-btn" onClick={() => setRenamingId(null)} title="ביטול"><X size={14} /></button>
+                      </React.Fragment>
+                    ) : (
+                      <React.Fragment key={cat.id}>
+                        <button
+                          type="button"
+                          className={`space-goal-chip${categoryId === cat.id ? ' space-goal-chip-active' : ''}`}
+                          onClick={() => setCategoryId(cat.id)}
+                          aria-pressed={categoryId === cat.id}
+                        >
+                          <Folder size={13} /> {cat.name}
+                        </button>
+                        <button
+                          type="button"
+                          className="song-icon-btn"
+                          title="שינוי שם"
+                          onClick={() => { setRenamingId(cat.id); setRenameValue(cat.name); }}
+                          style={{ flexShrink: 0 }}
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          className="song-icon-btn song-icon-btn-danger"
+                          title="מחיקת קטגוריה"
+                          onClick={() => setDeleteCatId(cat.id)}
+                          style={{ flexShrink: 0 }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+                <div className="song-cat-add" style={{ marginTop: '10px' }}>
+                  <FolderPlus size={15} />
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
+                    placeholder="קטגוריה חדשה (לדוגמה: הרפיה)"
+                    disabled={catBusy}
+                  />
+                  <button type="button" className="btn btn-secondary" onClick={addCategory} disabled={catBusy || !newCatName.trim()}>
+                    יצירה
+                  </button>
+                </div>
+              </fieldset>
+            </details>
 
             <label className="song-field" style={{ margin: 0 }}>
               <span>כותרת המשימה *</span>

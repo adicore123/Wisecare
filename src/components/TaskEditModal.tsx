@@ -66,22 +66,29 @@ export default function TaskEditModal({
       <div className="song-modal" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
         <h3>עריכת משימה ✏️</h3>
 
-        <fieldset className="space-goal-fieldset song-cat-fieldset">
-          <legend>קטגוריה</legend>
-          <div className="space-goal-chips song-cat-picker">
+        <label className="song-field">
+          <span>קטגוריה (תוצג למטופל כתג על המשימה)</span>
+          <select
+            value={categories.some((c) => c.name === form.category) ? form.category : (form.category ? '__custom__' : '')}
+            onChange={(e) => {
+              const v = e.target.value;
+              setForm((f) => ({ ...f, category: v === '__custom__' ? f.category : v }));
+            }}
+            style={{
+              width: '100%', padding: '10px 14px', borderRadius: '10px',
+              border: '1.5px solid #e2e8f0', fontSize: '0.98rem',
+              fontFamily: 'inherit', background: '#fff', cursor: 'pointer'
+            }}
+          >
+            <option value="">ללא / בחר/י…</option>
             {categories.map((c) => (
-              <button
-                type="button"
-                key={c.id}
-                className={`space-goal-chip${form.category === c.name ? ' space-goal-chip-active' : ''}`}
-                onClick={() => setForm((f) => ({ ...f, category: f.category === c.name ? '' : c.name }))}
-                aria-pressed={form.category === c.name}
-              >
-                {c.name}
-              </button>
+              <option key={c.id} value={c.name}>📂 {c.name}</option>
             ))}
-          </div>
-        </fieldset>
+            {form.category && !categories.some((c) => c.name === form.category) && (
+              <option value="__custom__">📂 {form.category} (קיימת)</option>
+            )}
+          </select>
+        </label>
 
         <label className="song-field">
           <span>כותרת המשימה *</span>
